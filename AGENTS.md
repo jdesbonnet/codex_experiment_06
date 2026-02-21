@@ -15,7 +15,14 @@ PIO0_6 (connected to 'SCK' pin on 23LC1024 via green wire),
 PIO0_8 (connected to 'SO' pin on 23LC1024 via yellow wire), 
 PIO0_9 (connected to 'SI' pin on 23LC1024 via blue wire).
 
+There is a LED connected to PIO1_2. The other end of the LED is connected via a resistor to ground.
+
 Otherwise there are no other peripherals.
+
+## UART setup
+
+UART0 is connected to the Raspberry Pi debugger probe UART and is visible on the Pi as `/dev/ttyACM0`.
+Use 57600 baud, 8N1, no flow control.
 
 ## Software tools
 
@@ -27,6 +34,5 @@ You will find software to talk to the debugging probe here: https://github.com/o
 - For timestamps use ISO-6801 in UTC using the 'Z' suffix. For internal calculations Java ms epoch time is preferred. If resources are constrained and whole second resolution is acceptable then unix epoch time in seconds is acceptable.
 - If performing calculations or implementing an algorithm it is important that references are documented in comments.
 - During the development phase we will add plenty of logging (except where that logging might affect timing).
-
 
 
