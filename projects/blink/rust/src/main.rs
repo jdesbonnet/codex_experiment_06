@@ -5,6 +5,7 @@ use cortex_m_rt::entry;
 use panic_halt as _;
 use lpc1114_common::pac::Peripherals;
 use cortex_m::asm;
+use lpc1114_common::systick;
 
 #[entry]
 fn main() -> ! {
@@ -18,6 +19,7 @@ fn main() -> ! {
     }
 
     // Stay on default 12 MHz IRC.
+    systick::init_1ms_12mhz();
 
     // PIO1_0 as GPIO (FUNC=1) push-pull.
     unsafe {
@@ -29,13 +31,13 @@ fn main() -> ! {
     loop {
         let next = p.GPIO1.data.read().bits() ^ (1 << 0);
         unsafe { p.GPIO1.data.write(|w| w.bits(next)) };
-        delay_cycles(3_000_000);
+        delay_ms(500);
     }
 }
 
-fn delay_cycles(mut cycles: u32) {
-    while cycles != 0 {
+fn delay_ms(ms: u32) {
+    let start = systick::millis();
+    while systick::millis().wrapping_sub(start) < ms {
         asm::nop();
-        cycles -= 1;
     }
 }
