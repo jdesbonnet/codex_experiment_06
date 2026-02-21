@@ -1,6 +1,12 @@
-# LPC1114 Minimal Project
+# LPC1114 Multi-Project Workspace
 
-This is a minimal bare-metal project skeleton for the LPC1114FN28/102 (Cortex-M0).
+This repository now supports multiple small projects sharing common code.
+
+## Layout
+
+- `common/` shared drivers and utilities
+- `projects/` per-project `main.c`
+- `linker/` linker script
 
 ## Dependencies
 
@@ -27,24 +33,24 @@ You can verify with:
 ## Build
 
 ```sh
-make
+make PROJECT=sram_test
 ```
 
 Outputs:
-- `build/lpc1114_min.elf`
-- `build/lpc1114_min.bin`
+- `build/<project>/<project>.elf`
+- `build/<project>/<project>.bin`
 
 ## Flash (OpenOCD)
 
-Example (adjust paths if needed):
+Example:
 
 ```sh
 openocd -s /usr/share/openocd/scripts -s ./openocd -f ./openocd/base.cfg \
-  -c "init; reset halt; flash write_image erase build/lpc1114_min.elf; reset run; shutdown"
+  -c "init; reset halt; flash write_image erase build/sram_test/sram_test.elf; reset run; shutdown"
 ```
 
-## Notes
+## Projects
 
-- Linker script is `linker/lpc1114.ld` with 32 KB flash / 4 KB SRAM.
-- Startup code is in `src/startup.c` (vector table + data/bss init).
-- No peripheral init yet; `main()` is a placeholder loop.
+- `sram_test`: SRAM tests + bandwidth
+- `uart_smoke`: simple UART message
+- `blink`: toggles PIO1_2

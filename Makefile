@@ -1,10 +1,8 @@
-# Minimal LPC1114 (Cortex-M0) build using GNU Arm Embedded Toolchain.
-# Assumes arm-none-eabi-* tools are in PATH.
+# Multi-project LPC1114 build using GNU Arm Embedded Toolchain.
+# Usage: make PROJECT=sram_test
 
-PROJECT := lpc1114_min
-BUILD_DIR := build
-SRC_DIR := src
-INC_DIR := include
+PROJECT ?= sram_test
+BUILD_DIR := build/$(PROJECT)
 
 CC := arm-none-eabi-gcc
 OBJCOPY := arm-none-eabi-objcopy
@@ -12,12 +10,23 @@ SIZE := arm-none-eabi-size
 
 CFLAGS := -mcpu=cortex-m0 -mthumb -Og -g -ffunction-sections -fdata-sections \
 	-Wall -Wextra -Werror -std=c11
-CFLAGS += -I$(INC_DIR)
+CFLAGS += -Icommon/include
 
 LDFLAGS := -T linker/lpc1114.ld -nostartfiles -Wl,--gc-sections
 
-SRCS := $(SRC_DIR)/startup.c $(SRC_DIR)/main.c
-OBJS := $(SRCS:$(SRC_DIR)/%.c=$(BUILD_DIR)/%.o)
+COMMON_SRCS := \
+	common/src/startup.c \
+	common/src/clock.c \
+	common/src/systick.c \
+	common/src/uart.c \
+	common/src/ssp.c \
+	common/src/sram23lc1024.c
+
+PROJECT_SRC := projects/$(PROJECT)/main.c
+
+OBJS := \
+	$(COMMON_SRCS:%.c=$(BUILD_DIR)/%.o) \
+	$(BUILD_DIR)/$(PROJECT_SRC:.c=.o)
 
 .PHONY: all clean
 
@@ -27,7 +36,8 @@ all: $(BUILD_DIR)/$(PROJECT).elf $(BUILD_DIR)/$(PROJECT).bin
 $(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)
 
-$(BUILD_DIR)/%.o: $(SRC_DIR)/%.c | $(BUILD_DIR)
+$(BUILD_DIR)/%.o: %.c | $(BUILD_DIR)
+	mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 $(BUILD_DIR)/$(PROJECT).elf: $(OBJS)
@@ -37,4 +47,4 @@ $(BUILD_DIR)/$(PROJECT).bin: $(BUILD_DIR)/$(PROJECT).elf
 	$(OBJCOPY) -O binary $< $@
 
 clean:
-	rm -rf $(BUILD_DIR)
+	rm -rf build
