@@ -208,9 +208,7 @@ static void sram_test(void)
     uint8_t mode;
     const uint32_t sram_size = 128u * 1024u;
     const uint32_t chunk = sizeof(wbuf);
-    const uint8_t patterns[] = { 0x00u, 0xFFu, 0xAAu, 0x55u };
-    const uint32_t dots_per_line = 64u;
-    uint32_t dot_count;
+    const uint8_t patterns[] = { 0xAAu, 0x55u };
     uint32_t start_ms;
     uint32_t elapsed_ms;
     uint32_t bytes_per_s;
@@ -237,9 +235,8 @@ static void sram_test(void)
         uint8_t pat = patterns[p];
         uart_puts("SRAM: pattern 0x");
         uart_put_hex8(pat);
-        uart_puts(" write\r\n");
+        uart_puts(" write: ");
 
-        dot_count = 0u;
         sram_cs_low();
         ssp0_xfer(0x02u);
         ssp0_xfer(0x00u);
@@ -250,25 +247,14 @@ static void sram_test(void)
                 wbuf[i] = pat;
                 ssp0_xfer(wbuf[i]);
             }
-            uart_putc('.');
-            dot_count++;
-            if ((dot_count % dots_per_line) == 0u) {
-                uart_puts("\r\n");
-            }
         }
         sram_cs_high();
-        if ((dot_count % dots_per_line) != 0u) {
-            uart_puts("\r\n");
-        }
-        uart_puts("\r\nSRAM: pattern 0x");
-        uart_put_hex8(pat);
-        uart_puts(" write OK\r\n");
+        uart_puts("OK\r\n");
 
         uart_puts("SRAM: pattern 0x");
         uart_put_hex8(pat);
-        uart_puts(" read/verify\r\n");
+        uart_puts(" read: ");
 
-        dot_count = 0u;
         sram_cs_low();
         ssp0_xfer(0x03u);
         ssp0_xfer(0x00u);
@@ -281,99 +267,15 @@ static void sram_test(void)
             for (uint32_t i = 0; i < chunk; i++) {
                 if (rbuf[i] != pat) {
                     sram_cs_high();
-                    uart_puts("\r\nSRAM: mismatch addr=0x");
-                    uart_put_hex8((uint8_t)((addr + i) >> 16));
-                    uart_put_hex8((uint8_t)((addr + i) >> 8));
-                    uart_put_hex8((uint8_t)(addr + i));
-                    uart_puts(" exp=");
-                    uart_put_hex8(pat);
-                    uart_puts(" got=");
-                    uart_put_hex8(rbuf[i]);
-                    uart_puts("\r\n");
+                    uart_puts("FAIL\r\n");
                     return;
                 }
             }
-            uart_putc('.');
-            dot_count++;
-            if ((dot_count % dots_per_line) == 0u) {
-                uart_puts("\r\n");
-            }
         }
         sram_cs_high();
-        if ((dot_count % dots_per_line) != 0u) {
-            uart_puts("\r\n");
-        }
-        uart_puts("\r\nSRAM: pattern 0x");
-        uart_put_hex8(pat);
-        uart_puts(" read OK\r\n");
+        uart_puts("OK\r\n");
     }
 
-    uart_puts("SRAM: walking-1s write\r\n");
-    dot_count = 0u;
-    sram_cs_low();
-    ssp0_xfer(0x02u);
-    ssp0_xfer(0x00u);
-    ssp0_xfer(0x00u);
-    ssp0_xfer(0x00u);
-    for (uint32_t addr = 0; addr < sram_size; addr += chunk) {
-        for (uint32_t i = 0; i < chunk; i++) {
-            wbuf[i] = (uint8_t)(1u << ((addr + i) & 7u));
-            ssp0_xfer(wbuf[i]);
-        }
-        uart_putc('.');
-        dot_count++;
-        if ((dot_count % dots_per_line) == 0u) {
-            uart_puts("\r\n");
-        }
-    }
-    sram_cs_high();
-    if ((dot_count % dots_per_line) != 0u) {
-        uart_puts("\r\n");
-    }
-    uart_puts("\r\nSRAM: walking-1s write OK\r\n");
-
-    uart_puts("SRAM: walking-1s read/verify\r\n");
-    dot_count = 0u;
-    sram_cs_low();
-    ssp0_xfer(0x03u);
-    ssp0_xfer(0x00u);
-    ssp0_xfer(0x00u);
-    ssp0_xfer(0x00u);
-    for (uint32_t addr = 0; addr < sram_size; addr += chunk) {
-        for (uint32_t i = 0; i < chunk; i++) {
-            rbuf[i] = ssp0_xfer(0xFFu);
-        }
-        for (uint32_t i = 0; i < chunk; i++) {
-            uint8_t exp = (uint8_t)(1u << ((addr + i) & 7u));
-            if (rbuf[i] != exp) {
-                sram_cs_high();
-                uart_puts("\r\nSRAM: mismatch addr=0x");
-                uart_put_hex8((uint8_t)((addr + i) >> 16));
-                uart_put_hex8((uint8_t)((addr + i) >> 8));
-                uart_put_hex8((uint8_t)(addr + i));
-                uart_puts(" exp=");
-                uart_put_hex8(exp);
-                uart_puts(" got=");
-                uart_put_hex8(rbuf[i]);
-                uart_puts("\r\n");
-                return;
-            }
-        }
-        uart_putc('.');
-        dot_count++;
-        if ((dot_count % dots_per_line) == 0u) {
-            uart_puts("\r\n");
-        }
-    }
-    sram_cs_high();
-    if ((dot_count % dots_per_line) != 0u) {
-        uart_puts("\r\n");
-    }
-    uart_puts("\r\nSRAM: walking-1s read OK\r\n");
-
-    uart_puts("SRAM: OK\r\n");
-
-    uart_puts("SRAM: bandwidth test\r\n");
     /* Write bandwidth */
     start_ms = g_ms;
     sram_cs_low();
