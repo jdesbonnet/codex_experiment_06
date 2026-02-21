@@ -24,10 +24,12 @@
 #define LPC_SYSCON_SYSPLLCLKUEN    (*(volatile uint32_t *)(LPC_SYSCON_BASE + 0x044))
 #define LPC_SYSCON_MAINCLKSEL      (*(volatile uint32_t *)(LPC_SYSCON_BASE + 0x070))
 #define LPC_SYSCON_MAINCLKUEN      (*(volatile uint32_t *)(LPC_SYSCON_BASE + 0x074))
+#define LPC_SYSCON_SYSAHBCLKDIV    (*(volatile uint32_t *)(LPC_SYSCON_BASE + 0x078))
 #define LPC_SYSCON_SYSOSCCTRL      (*(volatile uint32_t *)(LPC_SYSCON_BASE + 0x020))
 #define LPC_SYSCON_SYSPLLCTRL      (*(volatile uint32_t *)(LPC_SYSCON_BASE + 0x008))
 #define LPC_SYSCON_SYSPLLSTAT      (*(volatile uint32_t *)(LPC_SYSCON_BASE + 0x00C))
 #define LPC_SYSCON_PRESETCTRL      (*(volatile uint32_t *)(LPC_SYSCON_BASE + 0x004))
+#define LPC_SYSCON_PDRUNCFG        (*(volatile uint32_t *)(LPC_SYSCON_BASE + 0x238))
 #define LPC_SYSCON_UARTCLKDIV      (*(volatile uint32_t *)(LPC_SYSCON_BASE + 0x098))
 #define LPC_SYSCON_SSP0CLKDIV      (*(volatile uint32_t *)(LPC_SYSCON_BASE + 0x094))
 

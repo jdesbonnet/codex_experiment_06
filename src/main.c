@@ -3,7 +3,7 @@
 
 /*
  * Minimal main loop. Blinks PIO1_2 at ~2 Hz and prints a UART message.
- * Assumes default IRC clock (~12 MHz) and no PLL configuration.
+ * Assumes IRC + PLL configured to 48 MHz system clock.
  * References:
  * - UM10398 SYSAHBCLKCTRL bits 6 (GPIO), 12 (UART), 16 (IOCON).
  * - IOCON_PIO1_2 at 0x4004 4080.
@@ -29,12 +29,12 @@ static void uart_init_57600(void)
     /* 8N1, enable access to divisor latches. */
     LPC_UART_LCR = (1u << 7) | 0x3u;
 
-    /* Baud rate: PCLK=12MHz, divisor=13 -> 12e6/(16*13) ≈ 57692. */
-    LPC_UART_DLL = 13u;
+    /* Baud rate: PCLK=48MHz, divisor=49 with FDR (DIVADD=1, MUL=15). */
+    LPC_UART_DLL = 49u;
     LPC_UART_DLM = 0u;
 
-    /* Fractional divider: no fraction (DIVADD=0, MUL=1). */
-    LPC_UART_FDR = 0x10u;
+    /* Fractional divider: DIVADD=1, MUL=15. */
+    LPC_UART_FDR = 0xF1u;
 
     /* Disable divisor latch access, keep 8N1. */
     LPC_UART_LCR = 0x3u;
@@ -101,11 +101,42 @@ void SysTick_Handler(void)
 
 static void systick_init_1ms(void)
 {
-    /* 12 MHz IRC -> 1 ms tick. */
-    SYST_RVR = 12000u - 1u;
+    /* 48 MHz system clock -> 1 ms tick. */
+    SYST_RVR = 48000u - 1u;
     SYST_CVR = 0u;
     /* ENABLE | TICKINT | CLKSOURCE (processor clock). */
     SYST_CSR = (1u << 0) | (1u << 1) | (1u << 2);
+}
+
+static void clock_init_48mhz(void)
+{
+    /* Power up SYSPLL and ensure IRC is powered. Reserved bits per UM10398 Table 44. */
+    uint32_t pdruncfg = LPC_SYSCON_PDRUNCFG;
+    pdruncfg &= ~((1u << 7) | (1u << 1) | (1u << 0));
+    pdruncfg |= (1u << 8) | (1u << 10) | (1u << 11) | (7u << 13);
+    pdruncfg &= ~((1u << 9) | (1u << 12));
+    LPC_SYSCON_PDRUNCFG = pdruncfg;
+
+    /* Select IRC as PLL source. */
+    LPC_SYSCON_SYSPLLCLKSEL = 0x0u;
+    LPC_SYSCON_SYSPLLCLKUEN = 0x0u;
+    LPC_SYSCON_SYSPLLCLKUEN = 0x1u;
+
+    /* Configure PLL: M = 4 (MSEL=3), P = 2 (PSEL=1). */
+    LPC_SYSCON_SYSPLLCTRL = (3u << 0) | (1u << 5);
+
+    /* Wait for PLL lock. */
+    while ((LPC_SYSCON_SYSPLLSTAT & 0x1u) == 0u) {
+        /* spin */
+    }
+
+    /* Set main clock to SYSPLL clock out. */
+    LPC_SYSCON_MAINCLKSEL = 0x3u;
+    LPC_SYSCON_MAINCLKUEN = 0x0u;
+    LPC_SYSCON_MAINCLKUEN = 0x1u;
+
+    /* AHB divider = 1 (system clock = main clock). */
+    LPC_SYSCON_SYSAHBCLKDIV = 1u;
 }
 
 static void ssp0_init(void)
@@ -139,8 +170,8 @@ static void ssp0_init(void)
     /* 8-bit, SPI frame, CPOL=0, CPHA=0, SCR=0. */
     LPC_SSP0_CR0 = 0x7u;
 
-    /* Prescaler must be even and >=2. */
-    LPC_SSP0_CPSR = 2u;
+    /* Prescaler must be even and >=2. With 48 MHz PCLK: CPSR=4 => 12 MHz SCK. */
+    LPC_SSP0_CPSR = 4u;
 
     /* Enable SSP0 in master mode. */
     LPC_SSP0_CR1 = (1u << 1);
@@ -332,6 +363,7 @@ int main(void)
     /* Enable clocks for GPIO and IOCON blocks. */
     LPC_SYSCON_SYSAHBCLKCTRL |= (1u << 6) | (1u << 16);
 
+    clock_init_48mhz();
     systick_init_1ms();
     uart_init_57600();
     uart_puts("LPC1114 UART at 57600 8N1\r\n");
