@@ -1,6 +1,7 @@
 #![allow(dead_code)]
 
 use cortex_m_rt::exception;
+use core::ptr;
 
 static mut MS: u32 = 0;
 
@@ -29,10 +30,13 @@ pub fn init_1ms_12mhz() {
 }
 
 pub fn millis() -> u32 {
-    unsafe { MS }
+    unsafe { ptr::read_volatile(&raw const MS) }
 }
 
 #[exception]
 fn SysTick() {
-    unsafe { MS = MS.wrapping_add(1); }
+    unsafe {
+        let v = ptr::read_volatile(&raw const MS);
+        ptr::write_volatile(&raw mut MS, v.wrapping_add(1));
+    }
 }
