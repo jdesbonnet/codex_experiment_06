@@ -22,7 +22,7 @@ COMMON_SRCS := \
 	common/src/ssp.c \
 	common/src/sram23lc1024.c
 
-PROJECT_SRC := projects/$(PROJECT)/main.c
+PROJECT_SRC := projects/$(PROJECT)/c/main.c
 
 OBJS := \
 	$(COMMON_SRCS:%.c=$(BUILD_DIR)/%.o) \

@@ -46,6 +46,9 @@
 #define LPC_IOCON_PIO1_6            (*(volatile uint32_t *)(LPC_IOCON_BASE + 0x0A4))
 #define LPC_IOCON_PIO1_7            (*(volatile uint32_t *)(LPC_IOCON_BASE + 0x0A8))
 
+/* IOCON register for PIO1_0 (address 0x4004 4078). */
+#define LPC_IOCON_PIO1_0            (*(volatile uint32_t *)(LPC_IOCON_BASE + 0x078))
+
 /* IOCON registers for SPI0 pins. */
 #define LPC_IOCON_PIO0_2            (*(volatile uint32_t *)(LPC_IOCON_BASE + 0x01C))
 #define LPC_IOCON_PIO0_6            (*(volatile uint32_t *)(LPC_IOCON_BASE + 0x04C))

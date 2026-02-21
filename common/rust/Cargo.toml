@@ -1,0 +1,13 @@
+[package]
+name = "lpc1114_common"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+cortex-m = "0.7"
+cortex-m-rt = "0.6"
+panic-halt = "0.2"
+lpc11xx = { version = "0.2", features = ["rt"] }
