@@ -14,6 +14,11 @@
 #define LPC_UART_BASE        0x40008000u
 #define LPC_SSP0_BASE        0x40040000u
 
+/* Cortex-M0 SysTick registers. */
+#define SYST_CSR            (*(volatile uint32_t *)(0xE000E010u))
+#define SYST_RVR            (*(volatile uint32_t *)(0xE000E014u))
+#define SYST_CVR            (*(volatile uint32_t *)(0xE000E018u))
+
 #define LPC_SYSCON_SYSAHBCLKCTRL   (*(volatile uint32_t *)(LPC_SYSCON_BASE + 0x080))
 #define LPC_SYSCON_SYSPLLCLKSEL    (*(volatile uint32_t *)(LPC_SYSCON_BASE + 0x040))
 #define LPC_SYSCON_SYSPLLCLKUEN    (*(volatile uint32_t *)(LPC_SYSCON_BASE + 0x044))

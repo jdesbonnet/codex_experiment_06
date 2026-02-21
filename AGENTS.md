@@ -36,3 +36,7 @@ You will find software to talk to the debugging probe here: https://github.com/o
 - During the development phase we will add plenty of logging (except where that logging might affect timing).
 
 
+## Permission to perform actions without seeking confirmation
+
+- Agent has permission to run openocd on target device.
+- Agent has permission to open UART on /dev/ttyACM0 (or any /dev/ttyACMx device).
