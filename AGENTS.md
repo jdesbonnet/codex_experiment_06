@@ -1,0 +1,32 @@
+# Agent Instructions
+
+
+## Hardware setup:
+
+You are running on a Raspberry Pi 5 running 64bit Raspberry Pi OS based on Debian Trixie.
+
+Connected to the Raspberry Pi 5 via USB is a Raspberry Pi Pico 2 board running the official Raspberry Pi debugger probe software. You will find documentation on this in the datasheets directory file raspberrypi-3pin-debug-spec.pdf and general information about it at https://www.raspberrypi.com/documentation/microcontrollers/debug-probe.html. Keep in mind this is not the official Raspberry Pi debugger, but the debugger firmware running on a Pico 2 board.
+
+This debugger probe is connect to the target device: a LPC1114FN28/102 ARM Cortex-M0 chip (part of the LPC111X family) via the ARM Serial Wire Debug (SWD) port. The pinout of this chip is documented in fig 13 of the datasheet file LPC111X.pdf (in the datasheets directory). You will find information about programming it in file UM10398.pdf. There is no external crystal for timing, so you will be using the internal oscillator.
+
+There is a Microchip 23LC1024 SRAM chip connected to it via pins: 
+PIO0_2 (connected to 'CS' pin on 23LC1024 via white wire), 
+PIO0_6 (connected to 'SCK' pin on 23LC1024 via green wire), 
+PIO0_8 (connected to 'SO' pin on 23LC1024 via yellow wire), 
+PIO0_9 (connected to 'SI' pin on 23LC1024 via blue wire).
+
+Otherwise there are no other peripherals.
+
+## Software tools
+
+You will find software to talk to the debugging probe here: https://github.com/openocd-org/openocd
+
+
+## My code standards:
+
+- For timestamps use ISO-6801 in UTC using the 'Z' suffix. For internal calculations Java ms epoch time is preferred. If resources are constrained and whole second resolution is acceptable then unix epoch time in seconds is acceptable.
+- If performing calculations or implementing an algorithm it is important that references are documented in comments.
+- During the development phase we will add plenty of logging (except where that logging might affect timing).
+
+
+
