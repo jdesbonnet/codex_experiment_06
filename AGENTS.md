@@ -23,7 +23,19 @@ Otherwise there are no other peripherals.
 
 ## UART setup
 
-UART0 is connected to the Raspberry Pi debugger probe UART and is visible on the Pi as `/dev/ttyACM0`.
+UART0 is connected to the Raspberry Pi debugger probe UART.
+
+The probe firmware now exposes two CDC UART interfaces:
+- primary R/W interface (`CDC-ACM UART Interface`)
+- mirrored RX monitor interface (`CDC-ACM UART Mirror`)
+
+Device node numbering can change (`/dev/ttyACM*`). Detect current mapping with:
+`./tools/find_debugprobe_uart_ports.sh`
+
+Preferred workflow:
+- agent uses primary R/W port
+- user terminal monitor uses mirror port
+
 Use 57600 baud, 8N1, no flow control.
 
 ## Software tools

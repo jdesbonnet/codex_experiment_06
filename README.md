@@ -242,6 +242,32 @@ openocd -s /usr/share/openocd/scripts -f interface/cmsis-dap.cfg \
   -c "transport select swd; reset_config srst_only srst_open_drain connect_deassert_srst; init; adapter assert srst; sleep 500; adapter deassert srst; shutdown"
 ```
 
+## Pico 2 Debugprobe Dual-CDC UART Mirror
+
+The custom Pico 2 debugprobe firmware in use exposes two UART CDC interfaces:
+- `CDC-ACM UART Interface` (primary R/W)
+- `CDC-ACM UART Mirror` (monitor RX mirror, host TX ignored)
+
+This allows one terminal to monitor UART output while tooling uses a separate port.
+
+Detect current device mapping:
+
+```sh
+./tools/find_debugprobe_uart_ports.sh
+```
+
+Example output:
+- primary: `/dev/ttyACM0`
+- mirror: `/dev/ttyACM2`
+
+For scripting:
+
+```sh
+eval "$(./tools/find_debugprobe_uart_ports.sh --env)"
+echo "$DEBUGPROBE_UART_PRIMARY"
+echo "$DEBUGPROBE_UART_MIRROR"
+```
+
 ## Build
 
 C build:
