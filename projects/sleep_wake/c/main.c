@@ -69,9 +69,10 @@ static void timer_wake_init_seconds(uint32_t seconds)
     /* MR2 reset on match. */
     LPC_CT32B0_MCR = (1u << 7);
     LPC_CT32B0_IR = 0xFFu;
-    /* Set MAT2 high on match. */
-    LPC_CT32B0_EMR &= ~(0xFFu << 4);
-    LPC_CT32B0_EMR |= (0x2u << 8);
+    /* Force MAT2 low, then create a rising edge by setting high on match. */
+    LPC_CT32B0_EMR &= ~(1u << 2);   /* EM2 = 0 before each arm. */
+    LPC_CT32B0_EMR &= ~(0x3u << 8); /* Clear EMC2 action bits. */
+    LPC_CT32B0_EMR |= (0x2u << 8);  /* EMC2: set MAT2 high on match. */
 
     /* Enable wakeup interrupt for PIO0_1 (IRQ1). */
     LPC_SYSCON_STARTAPRP0 |= (1u << 1);

@@ -80,7 +80,7 @@ echo "Waiting for SLEEP/AWAKE keywords on ${UART_DEV}..."
 stty -F "$UART_DEV" 57600 -crtscts -ixon -ixoff raw -echo
 
 sleep_a=""
-wake_a=""
+awake_a=""
 started_epoch="$(date +%s)"
 
 while IFS= read -r line; do
@@ -97,30 +97,30 @@ while IFS= read -r line; do
     continue
   fi
 
-  if [[ -n "$sleep_a" && -z "$wake_a" && "$line" == *"AWAKE"* ]]; then
+  if [[ -n "$sleep_a" && -z "$awake_a" && "$line" == *"AWAKE"* ]]; then
     sleep "$DELAY_S"
-    wake_a="$(measure_once)"
+    awake_a="$(measure_once)"
     echo "Captured WAKE current."
     break
   fi
 done < <(timeout "$TIMEOUT_S" cat "$UART_DEV" | tr -d '\r')
 
-if [[ -z "$sleep_a" || -z "$wake_a" ]]; then
-  echo "Failed to capture both measurements. sleep='${sleep_a}' wake='${wake_a}'" >&2
+if [[ -z "$sleep_a" || -z "$awake_a" ]]; then
+  echo "Failed to capture both measurements. sleep='${sleep_a}' awake='${awake_a}'" >&2
   exit 1
 fi
 
 sleep_ma="$(amps_to_milliamps "$sleep_a")"
-wake_ma="$(amps_to_milliamps "$wake_a")"
+awake_ma="$(amps_to_milliamps "$awake_a")"
 
 ts="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
 echo "SLEEP: ${sleep_ma} mA"
-echo "AWAKE: ${wake_ma} mA"
+echo "AWAKE: ${awake_ma} mA"
 
 if [[ -n "$CSV_OUT" ]]; then
   if [[ ! -e "$CSV_OUT" ]]; then
-    echo "timestamp_utc,sleep_mA,wake_mA,sleep_A,wake_A" > "$CSV_OUT"
+    echo "timestamp_utc,sleep_mA,awake_mA,sleep_A,awake_A" > "$CSV_OUT"
   fi
-  echo "${ts},${sleep_ma},${wake_ma},${sleep_a},${wake_a}" >> "$CSV_OUT"
+  echo "${ts},${sleep_ma},${awake_ma},${sleep_a},${awake_a}" >> "$CSV_OUT"
   echo "Wrote CSV row to ${CSV_OUT}"
 fi
