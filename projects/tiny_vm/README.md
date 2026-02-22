@@ -14,7 +14,7 @@ Upload frame format:
 - payload: bytecode
 - checksum: `sum(payload) & 0xff`
 
-Both runtimes wait 5 seconds after boot for an upload, then continue waiting for frames.
+Both runtimes wait 15 seconds after boot for an upload, then continue waiting for frames.
 
 ## Host tools
 
@@ -48,6 +48,12 @@ Upload bytecode to LPC1114 primary UART:
 Prime demo upload:
 ```sh
 ./tools/vm_upload.py /tmp/primes1000.bin --port /dev/ttyACM1 --baud 57600
+```
+
+Compile Collatz max-step demo (range 1..100):
+```sh
+./tools/vm_cc.py projects/tiny_vm/collatz_max.cvm.c -o /tmp/collatz_max.bin
+./tools/vm_upload.py /tmp/collatz_max.bin --port /dev/ttyACM1 --baud 57600
 ```
 
 ## C-like language subset (v1)

@@ -370,6 +370,10 @@ Upload frame format:
 - payload: bytecode
 - checksum: `sum(payload) & 0xff`
 
+Runtime behavior:
+- 15-second boot upload window after reset
+- then continuous wait for the next valid upload frame
+
 Host tools:
 - assembler: `tools/vm_asm.py`
 - minimal C-like frontend: `tools/vm_cc.py`
@@ -393,4 +397,10 @@ Prime demo:
 ```sh
 ./tools/vm_cc.py projects/tiny_vm/primes1000.cvm.c -o /tmp/primes1000.bin
 ./tools/vm_upload.py /tmp/primes1000.bin --port /dev/ttyACM1 --baud 57600
+```
+
+Collatz max-step demo:
+```sh
+./tools/vm_cc.py projects/tiny_vm/collatz_max.cvm.c -o /tmp/collatz_max.bin
+./tools/vm_upload.py /tmp/collatz_max.bin --port /dev/ttyACM1 --baud 57600
 ```

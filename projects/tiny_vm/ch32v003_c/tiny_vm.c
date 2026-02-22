@@ -11,7 +11,7 @@
 #define VM_UPLOAD_MAGIC2 'M'
 #define VM_UPLOAD_MAGIC3 '1'
 
-#define BOOT_UPLOAD_WINDOW_MS 5000u
+#define BOOT_UPLOAD_WINDOW_MS 15000u
 #define BYTE_TIMEOUT_MS 250u
 #define WAIT_FOREVER_MS 0xFFFFFFFFu
 
@@ -170,12 +170,10 @@ int main(void)
 	tiny_vm_init(&vm, vm_host_call, 0);
 
 	printf("tiny_vm: upload frame TVM1+len+code+sum\r\n");
-	printf("tiny_vm: boot window 5s\r\n");
+	printf("tiny_vm: boot window 15s\r\n");
 
 	rc = vm_receive_program(&vm, BOOT_UPLOAD_WINDOW_MS);
-	if (rc == 0) {
-		printf("tiny_vm: no image in boot window\r\n");
-	} else if (rc < 0) {
+	if (rc < 0) {
 		printf("tiny_vm: boot upload failed\r\n");
 	} else {
 		printf("tiny_vm: image loaded\r\n");
