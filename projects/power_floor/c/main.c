@@ -130,21 +130,12 @@ static void configure_deep_sleep_power_domains(void)
      *   0 = keep block powered in deep-sleep
      */
 
-    /* Start from current run config and request max shutdown in deep-sleep. */
-    uint32_t pds = LPC_SYSCON_PDRUNCFG;
-    pds |= (1u << PD_SYSOSC_BIT);
-    pds |= (1u << PD_WDTOSC_BIT);
-    pds |= (1u << PD_SYSPLL_BIT);
-    pds |= (1u << PD_ADC_BIT);
-    pds |= (1u << PD_BOD_BIT);
-
     /*
-     * UM10398 requires reserved bits [15:13] to read as written (keep set).
-     * Preserve that convention to avoid undefined behavior.
+     * Use datasheet characterization setting for minimum deep-sleep current:
+     * PDSLEEPCFG = 0x000018FF
+     * (BOD disabled; oscillators/analog blocks disabled in deep-sleep).
      */
-    pds |= (7u << 13);
-
-    LPC_SYSCON_PDSLEEPCFG = pds;
+    LPC_SYSCON_PDSLEEPCFG = 0x000018FFu;
 
     /* Restore normal run-time power defaults immediately after wake (if any wake occurs). */
     LPC_SYSCON_PDAWAKECFG = LPC_SYSCON_PDRUNCFG;
@@ -178,6 +169,12 @@ int main(void)
     uart_wait_tx_idle();
 
     /*
+     * Stop SysTick before deep-sleep entry. Leaving SysTick running can
+     * continuously wake the core and inflate measured current.
+     */
+    SYST_CSR = 0u;
+
+    /*
      * 1) Drive external interface pins into static, low-leakage states.
      * 2) Remove peripheral clocks that are not required for deep-sleep entry.
      * 3) Configure deep-sleep power domain shutdown.
@@ -194,7 +191,11 @@ int main(void)
      */
     LPC_PMU_PCON &= ~(1u << 1);
 
-    /* Enter deep-sleep and remain in WFI loop. */
+    /*
+     * Enter deep-sleep and remain in WFI loop.
+     * Disable interrupts to avoid accidental wake from stray enabled IRQs.
+     */
+    __asm__ volatile ("cpsid i");
     SCB_SCR |= (1u << 2); /* SLEEPDEEP = 1 */
     while (1) {
         __asm__ volatile ("wfi");
