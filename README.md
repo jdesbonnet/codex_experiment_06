@@ -98,3 +98,4 @@ Rust default profile is `release` (override with `RUST_PROFILE=debug`).
 - `sram_test`: SRAM tests + bandwidth
 - `uart_smoke`: simple UART message
 - `blink`: toggles PIO1_0
+- `power_floor`: deep-sleep floor-current characterization image

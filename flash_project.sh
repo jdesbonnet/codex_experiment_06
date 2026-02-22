@@ -8,7 +8,7 @@ PROJECT_CFG=${PROJECT_CFG:-./openocd/base.cfg}
 RUST_TARGET=${RUST_TARGET:-thumbv6m-none-eabi}
 RUST_PROFILE=${RUST_PROFILE:-release}
 
-projects=("sram_test" "uart_smoke" "uart_counter" "sleep_wake" "blink")
+projects=("sram_test" "uart_smoke" "uart_counter" "sleep_wake" "blink" "power_floor")
 
 usage() {
   echo "usage: $0 [project] [lang]" >&2
