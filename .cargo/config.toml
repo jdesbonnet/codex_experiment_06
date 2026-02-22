@@ -1,0 +1,8 @@
+[build]
+target = "thumbv6m-none-eabi"
+
+[target.thumbv6m-none-eabi]
+linker = "arm-none-eabi-gcc"
+
+ # cortex-m-rt provides link.x; memory.x is supplied by each project build.rs
+rustflags = ["-C", "link-arg=-Tlink.x", "-C", "link-arg=-nostartfiles"]

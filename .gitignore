@@ -1,0 +1,20 @@
+build/
+target/
+debug_logs/
+probe_logs/
+backups/
+*.log
+LPC1114_ECG_firmware/
+
+# CH32 ch32fun per-project build outputs
+projects/*/ch32fun/*.elf
+projects/*/ch32fun/*.bin
+projects/*/ch32fun/*_ext.bin
+projects/*/ch32fun/*.hex
+projects/*/ch32fun/*.lst
+projects/*/ch32fun/*.map
+
+# Local third-party/build artifacts
+tools/wch-openocd/
+third_party/wch-openocd/
+third_party/ch32fun/
