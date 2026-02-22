@@ -192,7 +192,19 @@ By default, the 3-pin debug cable does not carry target reset. To control LPC111
 
 ### Build custom debugprobe firmware (Pico 2)
 
-This build path enables `PROBE_PIN_RESET` in the Pico board config (`GPIO1`).
+Required source-level setting:
+- `debugprobe/include/board_pico_config.h` must contain:
+```c
+#define PROBE_PIN_RESET 1
+```
+- This maps target reset control to Pico GPIO1 (active-low/open-drain behavior in firmware).
+
+Quick check:
+```sh
+grep -n "PROBE_PIN_RESET" debugprobe/include/board_pico_config.h
+```
+
+If the line is missing, add it and rebuild.
 
 ```sh
 sudo apt update
