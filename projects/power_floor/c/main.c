@@ -63,6 +63,19 @@ static void uart_wait_tx_idle(void)
     }
 }
 
+static void iocon_set_gpio_no_pull(volatile uint32_t *reg)
+{
+    /*
+     * IOCON common fields on LPC111x:
+     * - FUNC  [2:0] : 0 selects GPIO function (where available)
+     * - MODE  [4:3] : 00 inactive (no pull-up / no pull-down)
+     * - OD    [10]  : open-drain disable when 0
+     */
+    *reg &= ~0x7u;           /* FUNC = 0 (GPIO). */
+    *reg &= ~(0x3u << 3);    /* MODE = inactive. */
+    *reg &= ~(1u << 10);     /* Open-drain disabled. */
+}
+
 static void configure_external_pins_for_low_leakage(void)
 {
     /*
@@ -76,22 +89,47 @@ static void configure_external_pins_for_low_leakage(void)
      *   - Keep MISO as input (it is driven by SRAM when selected; otherwise high-Z).
      */
 
-    LPC_IOCON_PIO0_2 &= ~0x7u;
-    LPC_IOCON_PIO0_6 &= ~0x7u;
-    LPC_IOCON_PIO0_8 &= ~0x7u;
-    LPC_IOCON_PIO0_9 &= ~0x7u;
+    /*
+     * Keep SWD debug pins untouched so the part remains easy to recover:
+     * - SWDIO/SWCLK are not modified here.
+     */
 
+    /* Park all currently defined non-essential pins in benign GPIO mode. */
+    iocon_set_gpio_no_pull(&LPC_IOCON_PIO0_1);
+    iocon_set_gpio_no_pull(&LPC_IOCON_PIO0_2);
+    iocon_set_gpio_no_pull(&LPC_IOCON_PIO0_6);
+    iocon_set_gpio_no_pull(&LPC_IOCON_PIO0_8);
+    iocon_set_gpio_no_pull(&LPC_IOCON_PIO0_9);
+    iocon_set_gpio_no_pull(&LPC_IOCON_PIO1_0);
+    iocon_set_gpio_no_pull(&LPC_IOCON_PIO1_2);
+    iocon_set_gpio_no_pull(&LPC_IOCON_PIO1_6);
+    iocon_set_gpio_no_pull(&LPC_IOCON_PIO1_7);
+
+    /*
+     * Port 0 parking:
+     * - PIO0_2 (SRAM CS) as output HIGH (deselect)
+     * - PIO0_6 (SRAM SCK) as output LOW
+     * - PIO0_9 (SRAM SI)  as output LOW
+     * - PIO0_8 (SRAM SO)  as input
+     * - PIO0_1 as input (unused in this test)
+     */
     LPC_GPIO0_DIR |= (1u << 2) | (1u << 6) | (1u << 9);
-    LPC_GPIO0_DIR &= ~(1u << 8);
+    LPC_GPIO0_DIR &= ~((1u << 1) | (1u << 8));
 
     LPC_GPIO0_DATA |= (1u << 2);                 /* CS high (deselect SRAM). */
     LPC_GPIO0_DATA &= ~((1u << 6) | (1u << 9)); /* SCK/SI low. */
 
     /*
-     * LED pin PIO1_2: force low to avoid LED current during floor measurements.
+     * Port 1 parking:
+     * - PIO1_2 LED output LOW to avoid LED current.
+     * - PIO1_0, PIO1_6, PIO1_7 as inputs.
+     *
+     * Rationale:
+     * Driving UART pins against an attached probe can increase current if the
+     * external side idles high. Inputs avoid this contention current.
      */
-    LPC_IOCON_PIO1_2 &= ~0x7u;
     LPC_GPIO1_DIR |= (1u << 2);
+    LPC_GPIO1_DIR &= ~((1u << 0) | (1u << 6) | (1u << 7));
     LPC_GPIO1_DATA &= ~(1u << 2);
 }
 
