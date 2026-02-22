@@ -31,6 +31,8 @@ typedef enum {
     TINY_OP_LSET = 0x0B,
     TINY_OP_EQ = 0x0C,
     TINY_OP_LT = 0x0D,
+    TINY_OP_PUSH16 = 0x0E,
+    TINY_OP_MOD = 0x0F,
     TINY_OP_HALT = 0xFF
 } tiny_vm_opcode_t;
 

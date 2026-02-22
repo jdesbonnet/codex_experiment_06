@@ -89,6 +89,20 @@ int tiny_vm_exec(tiny_vm_t *vm, uint32_t step_budget)
                 return rc;
             }
             break;
+        case TINY_OP_PUSH16:
+            rc = vm_read_u8(vm, &lo);
+            if (rc < 0) {
+                return rc;
+            }
+            rc = vm_read_u8(vm, &hi);
+            if (rc < 0) {
+                return rc;
+            }
+            rc = tiny_vm_push(vm, (int32_t)(int16_t)(((uint16_t)hi << 8) | lo));
+            if (rc < 0) {
+                return rc;
+            }
+            break;
         case TINY_OP_ADD:
             rc = tiny_vm_pop(vm, &b);
             if (rc < 0) {
@@ -241,6 +255,23 @@ int tiny_vm_exec(tiny_vm_t *vm, uint32_t step_budget)
                 return rc;
             }
             rc = tiny_vm_push(vm, (a < b) ? 1 : 0);
+            if (rc < 0) {
+                return rc;
+            }
+            break;
+        case TINY_OP_MOD:
+            rc = tiny_vm_pop(vm, &b);
+            if (rc < 0) {
+                return rc;
+            }
+            rc = tiny_vm_pop(vm, &a);
+            if (rc < 0) {
+                return rc;
+            }
+            if (b == 0) {
+                return TINY_VM_ERR_HOST;
+            }
+            rc = tiny_vm_push(vm, a % b);
             if (rc < 0) {
                 return rc;
             }

@@ -30,6 +30,11 @@ Compile sample source:
 ./tools/vm_cc.py projects/tiny_vm/count10.cvm.c -o /tmp/count10.bin
 ```
 
+Compile prime-number demo (up to 1000):
+```sh
+./tools/vm_cc.py projects/tiny_vm/primes1000.cvm.c -o /tmp/primes1000.bin
+```
+
 Flash tiny_vm runtime (LPC1114):
 ```sh
 ./tools/flash.sh --target lpc1114 --lang c --project tiny_vm
@@ -38,6 +43,11 @@ Flash tiny_vm runtime (LPC1114):
 Upload bytecode to LPC1114 primary UART:
 ```sh
 ./tools/vm_upload.py /tmp/count10.bin --port /dev/ttyACM1 --baud 57600
+```
+
+Prime demo upload:
+```sh
+./tools/vm_upload.py /tmp/primes1000.bin --port /dev/ttyACM1 --baud 57600
 ```
 
 ## C-like language subset (v1)
@@ -57,4 +67,9 @@ Upload bytecode to LPC1114 primary UART:
 - `host(const_expr, expr);`
 - expressions:
 - literals, vars, consts
-- `+`, `-`, `<`, `>`, `==`
+- `+`, `-`, `%`, `<`, `>`, `==`
+
+Assembler/VM opcodes now include:
+- `PUSH8`, `PUSH16`
+- arithmetic/comparison: `ADD`, `SUB`, `MOD`, `EQ`, `LT`
+- locals: `LGET`, `LSET`

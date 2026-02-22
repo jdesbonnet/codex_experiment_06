@@ -376,10 +376,21 @@ Host tools:
 - uploader: `tools/vm_upload.py`
 - host regression tests: `tools/test_vm_tools.py`
 
+Current VM includes:
+- immediates: `PUSH8`, `PUSH16`
+- arithmetic/comparison: `ADD`, `SUB`, `MOD`, `EQ`, `LT`
+- locals: `LGET`, `LSET`
+
 Example flow:
 
 ```sh
 ./tools/vm_cc.py projects/tiny_vm/count10.cvm.c -o /tmp/count10.bin
 ./tools/flash.sh --target lpc1114 --lang c --project tiny_vm
 ./tools/vm_upload.py /tmp/count10.bin --port /dev/ttyACM1 --baud 57600
+```
+
+Prime demo:
+```sh
+./tools/vm_cc.py projects/tiny_vm/primes1000.cvm.c -o /tmp/primes1000.bin
+./tools/vm_upload.py /tmp/primes1000.bin --port /dev/ttyACM1 --baud 57600
 ```

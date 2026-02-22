@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-tiny_vm minimal C-like compiler (v1).
+tiny_vm minimal C-like compiler (v2).
 
 Supported subset:
   - const int NAME = <number>;
@@ -15,7 +15,7 @@ Supported subset:
       print_u32(expr);
       host(const_expr, expr);
   - expressions over int literals/vars/constants:
-      +, -, <, >, ==
+      +, -, %, <, >, ==
 """
 
 from __future__ import annotations
@@ -53,7 +53,7 @@ def lex(src: str) -> list[Token]:
             tokens.append(Token("SYM", "=="))
             i += 2
             continue
-        if ch in "{}();,=+-<>":
+        if ch in "{}();,=+-<>%":
             tokens.append(Token("SYM", ch))
             i += 1
             continue
@@ -191,8 +191,16 @@ class Parser:
         return node
 
     def parse_add(self) -> dict:
-        node = self.parse_term()
+        node = self.parse_mul()
         while self.peek().kind == "SYM" and self.peek().text in {"+", "-"}:
+            op = self.take().text
+            rhs = self.parse_mul()
+            node = {"kind": "bin", "op": op, "l": node, "r": rhs}
+        return node
+
+    def parse_mul(self) -> dict:
+        node = self.parse_term()
+        while self.peek().kind == "SYM" and self.peek().text == "%":
             op = self.take().text
             rhs = self.parse_term()
             node = {"kind": "bin", "op": op, "l": node, "r": rhs}
@@ -255,6 +263,10 @@ class Compiler:
                 return l + r
             if op == "-":
                 return l - r
+            if op == "%":
+                if r == 0:
+                    raise ValueError("mod by zero in const expression")
+                return l % r
             if op == "==":
                 return 1 if l == r else 0
             if op == "<":
@@ -263,15 +275,18 @@ class Compiler:
                 return 1 if l > r else 0
         raise ValueError("unsupported const expression")
 
-    def emit_push8(self, value: int) -> None:
-        if value < -128 or value > 127:
-            raise ValueError(f"value out of PUSH8 range: {value}")
-        self.emit(f"PUSH8 {value}")
+    def emit_push_imm(self, value: int) -> None:
+        if -128 <= value <= 127:
+            self.emit(f"PUSH8 {value}")
+        elif -32768 <= value <= 32767:
+            self.emit(f"PUSH16 {value}")
+        else:
+            raise ValueError(f"literal out of PUSH16 range: {value}")
 
     def emit_expr(self, node: dict) -> None:
         kind = node["kind"]
         if kind == "num":
-            self.emit_push8(int(node["value"]))
+            self.emit_push_imm(int(node["value"]))
             return
         if kind == "name":
             name = node["value"]
@@ -279,7 +294,7 @@ class Compiler:
                 self.emit(f"LGET {self.vars[name]}")
                 return
             if name in self.consts:
-                self.emit_push8(self.consts[name])
+                self.emit_push_imm(self.consts[name])
                 return
             raise ValueError(f"unknown symbol '{name}'")
         if kind == "bin":
@@ -295,6 +310,8 @@ class Compiler:
                 self.emit("ADD")
             elif op == "-":
                 self.emit("SUB")
+            elif op == "%":
+                self.emit("MOD")
             elif op == "==":
                 self.emit("EQ")
             elif op == "<":

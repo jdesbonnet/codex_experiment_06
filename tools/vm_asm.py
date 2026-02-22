@@ -8,8 +8,9 @@ Syntax:
   - instructions:
       NOP
       PUSH8 <int8>
+      PUSH16 <int16>
       ADD | SUB | DUP | DROP | SWAP | HALT
-      EQ | LT
+      EQ | LT | MOD
       HOST <u8>
       LGET <u8>
       LSET <u8>
@@ -40,10 +41,13 @@ OPCODES = {
     "LSET": 0x0B,
     "EQ": 0x0C,
     "LT": 0x0D,
+    "PUSH16": 0x0E,
+    "MOD": 0x0F,
     "HALT": 0xFF,
 }
 
 ONE_U8 = {"PUSH8", "HOST", "LGET", "LSET"}
+ONE_I16 = {"PUSH16"}
 ONE_U16 = {"JMP", "JZ"}
 
 
@@ -88,6 +92,10 @@ def first_pass(lines: list[str]) -> dict[str, int]:
             if len(parts) != 2:
                 raise ValueError(f"{op} requires one operand")
             pc += 1
+        elif op in ONE_I16:
+            if len(parts) != 2:
+                raise ValueError(f"{op} requires one operand")
+            pc += 2
         elif op in ONE_U16:
             if len(parts) != 2:
                 raise ValueError(f"{op} requires one operand")
@@ -117,6 +125,11 @@ def second_pass(lines: list[str], labels: dict[str, int]) -> bytes:
                 if value < 0 or value > 0xFF:
                     raise ValueError(f"{op} out of range: {value}")
                 out.append(value)
+        elif op in ONE_I16:
+            value = parse_int(parts[1])
+            if value < -32768 or value > 32767:
+                raise ValueError(f"{op} out of range: {value}")
+            out.extend(struct.pack("<h", value))
         elif op in ONE_U16:
             target_token = parts[1]
             if target_token in labels:

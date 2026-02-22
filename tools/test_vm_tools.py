@@ -14,7 +14,7 @@ def run(cmd: list[str]) -> None:
 
 
 def test_vm_asm_basic() -> None:
-    src = "PUSH8 1\nPUSH8 2\nADD\nHALT\n"
+    src = "PUSH8 1\nPUSH16 300\nMOD\nHALT\n"
     with tempfile.TemporaryDirectory() as td:
         tdp = pathlib.Path(td)
         asm = tdp / "t.vm"
@@ -22,7 +22,7 @@ def test_vm_asm_basic() -> None:
         asm.write_text(src, encoding="utf-8")
         run(["./tools/vm_asm.py", str(asm), "-o", str(out)])
         got = out.read_bytes()
-        exp = bytes([0x01, 0x01, 0x01, 0x02, 0x02, 0xFF])
+        exp = bytes([0x01, 0x01, 0x0E, 0x2C, 0x01, 0x0F, 0xFF])
         if got != exp:
             raise AssertionError(f"vm_asm mismatch: got {got.hex()} exp {exp.hex()}")
 
@@ -51,9 +51,24 @@ while (i < N) {
             raise AssertionError("compiler produced empty binary")
 
 
+def test_vm_cc_primes_uses_mod_push16() -> None:
+    with tempfile.TemporaryDirectory() as td:
+        tdp = pathlib.Path(td)
+        asm = tdp / "p.vm"
+        out = tdp / "p.bin"
+        run(["./tools/vm_cc.py", "projects/tiny_vm/primes1000.cvm.c", "-S", str(asm), "-o", str(out)])
+        text = asm.read_text(encoding="utf-8")
+        for marker in ("PUSH16 1001", "MOD", "HOST 2"):
+            if marker not in text:
+                raise AssertionError(f"expected marker {marker!r} in generated asm")
+        if len(out.read_bytes()) == 0:
+            raise AssertionError("compiler produced empty binary")
+
+
 def main() -> int:
     test_vm_asm_basic()
     test_vm_cc_while_if()
+    test_vm_cc_primes_uses_mod_push16()
     print("vm tool tests: OK")
     return 0
 
