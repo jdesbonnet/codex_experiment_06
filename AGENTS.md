@@ -5,9 +5,11 @@
 
 You are running on a Raspberry Pi 5 running 64bit Raspberry Pi OS based on Debian Trixie.
 
-Connected to the Raspberry Pi 5 via USB is a Raspberry Pi Pico 2 board running the official Raspberry Pi debugger probe software. You will find documentation on this in the datasheets directory file raspberrypi-3pin-debug-spec.pdf and general information about it at https://www.raspberrypi.com/documentation/microcontrollers/debug-probe.html. Keep in mind this is not the official Raspberry Pi debugger, but the debugger firmware running on a Pico 2 board.
+Connected to the Raspberry Pi 5 via USB is a Raspberry Pi Pico 2 board running Raspberry Pi debugprobe firmware. The firmware currently in use is a custom `debugprobe_on_pico2` build with reset-line support enabled (`PROBE_PIN_RESET` on Pico 2 `GPIO1`). You will find documentation on the 3-pin interface in the datasheets directory file `raspberrypi-3pin-debug-spec.pdf` and general information at https://www.raspberrypi.com/documentation/microcontrollers/debug-probe.html. Keep in mind this is not the official Raspberry Pi Debug Probe hardware, but debugprobe firmware running on a Pico 2 board.
 
-This debugger probe is connect to the target device: a LPC1114FN28/102 ARM Cortex-M0 chip (part of the LPC111X family) via the ARM Serial Wire Debug (SWD) port. The pinout of this chip is documented in fig 13 of the datasheet file LPC111X.pdf (in the datasheets directory). You will find information about programming it in file UM10398.pdf. There is no external crystal for timing, so you will be using the internal oscillator.
+This debugger probe is connected to the target device: an LPC1114FN28/102 ARM Cortex-M0 chip (part of the LPC111X family) via the ARM Serial Wire Debug (SWD) port. The pinout of this chip is documented in fig 13 of the datasheet file `LPC111X.pdf` (in the datasheets directory). You will find information about programming it in file `UM10398.pdf`. There is no external crystal for timing, so you will be using the internal oscillator.
+
+In addition to SWD and UART, there is now a dedicated reset wire from Pico 2 `GPIO1` (physical pin 2) to LPC1114 `nRESET` (`RESET/PIO0_0`). This allows OpenOCD to control target SRST for reliable hardware reset pulses.
 
 There is a Microchip 23LC1024 SRAM chip connected to it via pins: 
 PIO0_2 (connected to 'CS' pin on 23LC1024 via white wire), 
