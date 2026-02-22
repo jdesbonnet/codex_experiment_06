@@ -42,6 +42,22 @@ source $HOME/.cargo/env
 rustup target add thumbv6m-none-eabi
 ```
 
+## Multimeter (SDM3065X)
+
+The SDM3065X appears as a USBTMC device (usually `/dev/usbtmc0`). A udev rule is used to allow non-root access:
+
+```
+/etc/udev/rules.d/99-sdm3065x-usbtmc.rules
+SUBSYSTEM=="usbmisc", KERNEL=="usbtmc*", ATTRS{idVendor}=="f4ec", ATTRS{idProduct}=="1208", MODE="0666", TAG+="uaccess"
+```
+
+Reload rules (or replug the device) after changes:
+
+```sh
+sudo udevadm control --reload-rules
+sudo udevadm trigger
+```
+
 ## Build
 
 C build:

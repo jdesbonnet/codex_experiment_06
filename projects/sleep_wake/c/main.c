@@ -3,9 +3,12 @@
 #include "systick.h"
 #include "uart.h"
 
-#define WDT_OSC_FREQ_HZ   600000u
-#define WDT_OSC_DIVSEL    31u
+#define WDT_OSC_FREQ_HZ   600000u  /* FREQSEL=1 per UM10398. */
+#define WDT_OSC_DIVSEL    31u      /* Divide by 64. */
+#define WDT_OSC_DIVIDER   (2u * (1u + WDT_OSC_DIVSEL))
+#define WDT_OSC_CLK_HZ    (WDT_OSC_FREQ_HZ / WDT_OSC_DIVIDER)
 #define WDT_CLKSEL_WDTOSC 2u
+#define PDSLEEPCFG_WDTOSC_ON_BOD_OFF 0x000018BFu
 static volatile uint32_t g_wake = 0u;
 
 void WAKEUP_IRQHandler(void)
@@ -38,7 +41,7 @@ static void timer_wake_init_10s(void)
     LPC_SYSCON_PDRUNCFG = pdrun;
 
     /* Deep-sleep config: WDT osc on, BOD off (matches reference). */
-    LPC_SYSCON_PDSLEEPCFG = 0x000018BFu;
+    LPC_SYSCON_PDSLEEPCFG = PDSLEEPCFG_WDTOSC_ON_BOD_OFF;
 
     /* Configure WDT oscillator: FREQSEL=1 (0.6 MHz), DIVSEL=31 (divide by 64). */
     LPC_SYSCON_WDTOSCCTRL = (1u << 5) | WDT_OSC_DIVSEL;
@@ -55,8 +58,7 @@ static void timer_wake_init_10s(void)
     LPC_IOCON_PIO0_1 &= ~((0x3u << 3) | (1u << 10));
 
     /* Timer setup for ~10s using WDT oscillator as main clock. */
-    uint32_t clk_hz = WDT_OSC_FREQ_HZ / (2u * (1u + WDT_OSC_DIVSEL));
-    uint32_t ticks = clk_hz * 10u;
+    uint32_t ticks = WDT_OSC_CLK_HZ * 10u;
 
     LPC_CT32B0_TCR = 0x02u; /* reset */
     LPC_CT32B0_PR = 0u;
@@ -97,12 +99,7 @@ int main(void)
     uart_init_57600();
 
     /* Boot diagnostics. */
-    uart_puts("Boot: WDMOD=0x");
-    uart_put_hex8((uint8_t)((LPC_WDT_WDMOD >> 24) & 0xFFu));
-    uart_put_hex8((uint8_t)((LPC_WDT_WDMOD >> 16) & 0xFFu));
-    uart_put_hex8((uint8_t)((LPC_WDT_WDMOD >> 8) & 0xFFu));
-    uart_put_hex8((uint8_t)(LPC_WDT_WDMOD & 0xFFu));
-    uart_puts(" SYSRSTSTAT=0x");
+    uart_puts("Boot: SYSRSTSTAT=0x");
     uart_put_hex8((uint8_t)((LPC_SYSCON_SYSRSTSTAT >> 24) & 0xFFu));
     uart_put_hex8((uint8_t)((LPC_SYSCON_SYSRSTSTAT >> 16) & 0xFFu));
     uart_put_hex8((uint8_t)((LPC_SYSCON_SYSRSTSTAT >> 8) & 0xFFu));
@@ -127,11 +124,13 @@ int main(void)
         uart_puts("Sleep: awake again\r\n");
     }
 
-    uart_puts("Sleep: starting in 10s...\r\n");
+    uart_puts("starting in 10s...\r\n");
     delay_ms(10000u);
 
     while (1) {
-        uart_puts("Sleep: entering deep-sleep for ~10s\r\n\r\n");
+        uart_puts("SLEEP\r\n");
+        delay_ms(100u);  // allow time for UART buffer to empty.
+
         g_wake = 0u;
 
         /* Prepare for deep-sleep wake via CT32B0 match interrupt. */
@@ -152,7 +151,7 @@ int main(void)
         systick_init_1ms();
         uart_init_57600();
 
-        uart_puts("Sleep: awake again\r\n");
-        delay_ms(5000u);
+        uart_puts("AWAKE\r\n");
+        delay_ms(10000u);
     }
 }
