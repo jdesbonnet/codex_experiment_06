@@ -1,0 +1,22 @@
+[target]
+id = "ch32v003"
+arch = "riscv32"
+cpu = "rv32ec"
+
+[toolchain.c]
+cc = "riscv-none-elf-gcc"
+objcopy = "riscv-none-elf-objcopy"
+size = "riscv-none-elf-size"
+
+[toolchain.rust]
+triple = "riscv32ec-unknown-none-elf"
+default_profile = "release"
+
+[flash]
+method = "openocd"
+interface = "wch-linke"
+openocd_cfg = "targets/ch32v003/openocd/base.cfg"
+default_adapter_khz = 4000
+
+[notes]
+summary = "C build/flash supported via ch32fun project Makefiles. Rust support remains scaffolded."

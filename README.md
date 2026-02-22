@@ -7,7 +7,12 @@ This repository supports multiple small projects in both C and Rust, sharing com
 - `common/` shared drivers and utilities
   - `common/include` and `common/src` (C)
   - `common/rust` (Rust shared crate)
+  - `common/protocols` (target-agnostic protocol helpers)
+  - `common/test_patterns` (reusable test logic)
 - `projects/` per-project `main.c` and Rust `main.rs`
+- `targets/` target-specific packages
+  - `targets/lpc1114` (active target metadata + scaffold)
+  - `targets/ch32v003` (scaffold for future support)
 - `linker/` linker script
 
 ## Dependencies (C)
@@ -41,6 +46,111 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 source $HOME/.cargo/env
 rustup target add thumbv6m-none-eabi
 ```
+
+## CH32V003 (WCH-Link + OpenOCD)
+
+The CH32V003 uses WCH's single-wire debug interface. The stock `openocd` package from Raspberry Pi OS typically does not include WCH-Link scripts/driver support, so CH32V003 attach fails even when the probe is detected on USB.
+
+### CH32V003 host dependencies
+
+```sh
+sudo apt update
+sudo apt install -y \
+  build-essential git pkg-config \
+  autoconf automake libtool texinfo \
+  cmake ninja-build \
+  libusb-1.0-0-dev libhidapi-dev libjim-dev
+```
+
+### Probe CH32V003 support from this repo
+
+Use:
+
+```sh
+./tools/probe_ch32v003.sh
+```
+
+What it checks:
+
+- WCH-Link USB presence (`1a86:8010`)
+- optional UART presence (default `/dev/ttyACM1`)
+- availability of CH32/WCH OpenOCD scripts
+- attach attempt (`init; reset halt; shutdown`) when scripts are found
+
+If probe attach fails with `LIBUSB_ERROR_ACCESS`, add a udev rule for WCH-Link:
+
+```sh
+sudo tee /etc/udev/rules.d/99-wch-link.rules >/dev/null <<'EOF'
+SUBSYSTEM=="usb", ATTR{idVendor}=="1a86", ATTR{idProduct}=="8010", MODE="0666", TAG+="uaccess"
+EOF
+sudo udevadm control --reload-rules
+sudo udevadm trigger
+```
+
+You can override paths:
+
+```sh
+./tools/probe_ch32v003.sh \
+  --openocd ./tools/wch-openocd/bin/openocd \
+  --scripts ./tools/wch-openocd/share/openocd/scripts \
+  --khz 4000 \
+  --uart /dev/ttyACM1
+```
+
+### Build a WCH-capable OpenOCD (open-source fork)
+
+One open-source fork with WCH-Link support is `cjacker/wch-openocd`.
+
+```sh
+mkdir -p third_party
+git clone --recursive https://github.com/cjacker/wch-openocd.git third_party/wch-openocd
+./tools/setup_wch_openocd.sh
+```
+
+## CH32V003 via ch32fun (recommended app flow)
+
+For CH32V003 applications, this repo now supports `ch32fun` as the primary C framework.
+
+Install CH32 toolchain prerequisites:
+
+```sh
+sudo apt update
+sudo apt install -y \
+  gcc-riscv64-unknown-elf \
+  binutils-riscv64-unknown-elf \
+  libusb-1.0-0-dev \
+  libudev-dev
+```
+
+Current convention:
+- CH32 C project sources live in `projects/<name>/ch32fun`
+- each CH32 project has its own `Makefile` including `third_party/ch32fun/ch32fun/ch32fun.mk`
+- each CH32 project also includes a local `funconfig.h` (required by `ch32fun.h`)
+- flashing uses `minichlink` through ch32fun (`cv_flash`) by default
+
+If `third_party/ch32fun` is missing:
+
+```sh
+git clone --depth 1 https://github.com/cnlohr/ch32fun.git third_party/ch32fun
+```
+
+Example (already scaffolded):
+- `projects/blink/ch32fun`
+
+Then probe with the locally installed binary/scripts:
+
+```sh
+./tools/probe_ch32v003.sh \
+  --openocd ./tools/wch-openocd/bin/openocd \
+  --scripts ./tools/wch-openocd/share/openocd/scripts
+```
+
+Current repo status for CH32V003:
+
+- target package exists at `targets/ch32v003`
+- OpenOCD probing helper exists at `tools/probe_ch32v003.sh`
+- local WCH OpenOCD setup helper exists at `tools/setup_wch_openocd.sh`
+- flash wrapper can program a CH32V003 image via `tools/flash.sh --target ch32v003 ... --image <file>`
 
 ## Multimeter (SDM3065X)
 
@@ -139,6 +249,14 @@ Outputs:
 - C: `build/<project>/<project>.elf`
 - Rust: `projects/<project>/rust/target/thumbv6m-none-eabi/<profile>/<project>_rust`
 
+Target-aware build wrapper:
+
+```sh
+./tools/build.sh --target lpc1114 --lang c --project blink
+./tools/build.sh --target lpc1114 --lang rust --project blink --profile release
+./tools/build.sh --target ch32v003 --lang c --project blink
+```
+
 ## Flash
 
 Interactive:
@@ -155,6 +273,23 @@ Non-interactive:
 ```
 
 Rust default profile is `release` (override with `RUST_PROFILE=debug`).
+
+Target-aware flash wrapper:
+
+```sh
+./tools/flash.sh --target lpc1114 --lang c --project sleep_wake
+./tools/flash.sh --target lpc1114 --lang rust --project blink --profile release
+./tools/flash.sh --target ch32v003 --lang c --project blink
+./tools/flash.sh --target ch32v003 --lang c --project blink --image ./build/ch32v003/blink/blink.elf
+```
+
+For `ch32v003`:
+- default path is ch32fun `cv_flash` when `projects/<project>/ch32fun/Makefile` exists and `--image` is not provided
+- OpenOCD image flashing path is still available with `--image`
+- if using OpenOCD mode and `--image` is omitted, wrapper checks:
+- `build/ch32v003/<project>/<project>.elf`
+- `build/ch32v003/<project>/<project>.bin`
+- `build/ch32v003/<project>/<project>.hex`
 
 ## Projects
 

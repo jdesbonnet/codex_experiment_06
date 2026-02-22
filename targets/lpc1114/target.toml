@@ -1,0 +1,22 @@
+[target]
+id = "lpc1114"
+arch = "armv6m"
+cpu = "cortex-m0"
+
+[toolchain.c]
+cc = "arm-none-eabi-gcc"
+objcopy = "arm-none-eabi-objcopy"
+size = "arm-none-eabi-size"
+
+[toolchain.rust]
+triple = "thumbv6m-none-eabi"
+default_profile = "release"
+
+[flash]
+method = "openocd"
+interface = "cmsis-dap"
+openocd_cfg = "openocd/base.cfg"
+default_adapter_khz = 1000
+
+[notes]
+summary = "Existing LPC1114 implementation with C and partial Rust project coverage."
