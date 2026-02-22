@@ -9,7 +9,7 @@
 #define WDT_OSC_CLK_HZ    (WDT_OSC_FREQ_HZ / WDT_OSC_DIVIDER)
 #define WDT_CLKSEL_WDTOSC 2u
 #define PDSLEEPCFG_WDTOSC_ON_BOD_OFF 0x000018BFu
-#define SLEEP_DURATION_SECONDS 5u
+#define SLEEP_DURATION_SECONDS 10u
 static volatile uint32_t g_wake = 0u;
 
 void WAKEUP_IRQHandler(void)
@@ -94,6 +94,47 @@ static void delay_ms(uint32_t ms)
     }
 }
 
+static void sram_pins_idle_for_sleep(void)
+{
+    /*
+     * Put external SRAM interface in a guaranteed low-power state:
+     * - CS high (deselect 23LC1024 so it can stay in standby mode)
+     * - SCK low
+     * - SI low
+     * - SO as input
+     */
+    LPC_IOCON_PIO0_2 &= ~0x7u;
+    LPC_IOCON_PIO0_6 &= ~0x7u;
+    LPC_IOCON_PIO0_8 &= ~0x7u;
+    LPC_IOCON_PIO0_9 &= ~0x7u;
+
+    LPC_IOCON_PIO0_2 &= ~((0x3u << 3) | (1u << 10));
+    LPC_IOCON_PIO0_6 &= ~((0x3u << 3) | (1u << 10));
+    LPC_IOCON_PIO0_8 &= ~((0x3u << 3) | (1u << 10));
+    LPC_IOCON_PIO0_9 &= ~((0x3u << 3) | (1u << 10));
+
+    LPC_GPIO0_DIR |= (1u << 2) | (1u << 6) | (1u << 9);
+    LPC_GPIO0_DIR &= ~(1u << 8);
+
+    LPC_GPIO0_DATA |= (1u << 2);                 /* CS high (standby). */
+    LPC_GPIO0_DATA &= ~((1u << 6) | (1u << 9)); /* SCK/SI low. */
+}
+
+static void led_pin_idle_for_sleep(void)
+{
+    /*
+     * PIO1_2 has an LED to ground through a resistor.
+     * Force a deterministic low-leakage state before deep-sleep:
+     * - GPIO function
+     * - no pull-up/down, open-drain disabled
+     * - output low (no LED current)
+     */
+    LPC_IOCON_PIO1_2 &= ~0x7u;
+    LPC_IOCON_PIO1_2 &= ~((0x3u << 3) | (1u << 10));
+    LPC_GPIO1_DIR |= (1u << 2);
+    LPC_GPIO1_DATA &= ~(1u << 2);
+}
+
 int main(void)
 {
     clock_init_48mhz();
@@ -134,6 +175,8 @@ int main(void)
         delay_ms(100u);  // allow time for UART buffer to empty.
 
         g_wake = 0u;
+        sram_pins_idle_for_sleep();
+        led_pin_idle_for_sleep();
 
         /* Prepare for deep-sleep wake via CT32B0 match interrupt. */
         timer_wake_init_seconds(SLEEP_DURATION_SECONDS);
