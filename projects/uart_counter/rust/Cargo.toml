@@ -1,0 +1,10 @@
+[package]
+name = "uart_counter_rust"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+cortex-m = "0.7"
+cortex-m-rt = "0.6"
+panic-halt = "0.2"
+lpc1114_common = { path = "../../../common/rust" }
