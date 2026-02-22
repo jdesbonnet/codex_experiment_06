@@ -356,3 +356,22 @@ For `ch32v003`:
 - `uart_smoke`: simple UART message
 - `blink`: toggles PIO1_0
 - `power_floor`: deep-sleep floor-current characterization image
+- `tiny_vm`: planned tiny interpreted VM project (cross-target LPC1114 + CH32V003)
+
+## tiny_vm design (planned)
+
+The repository now includes scaffold directories for a small interpreted VM project:
+- `projects/tiny_vm/lpc1114_c`
+- `projects/tiny_vm/ch32v003_c`
+
+Design direction:
+- stack-based bytecode VM (Forth-like execution model)
+- fixed-size memory only (deterministic footprint for MCU constraints)
+- target-specific hardware operations behind a common HAL
+- host-side assembler tool to generate bytecode images
+
+Planned v1 opcodes:
+- stack: `PUSH`, `DROP`, `DUP`, `SWAP`, `OVER`
+- ALU: `ADD`, `SUB`, `AND`, `OR`, `XOR`, `SHL`, `SHR`, `EQ`, `LT`, `GT`
+- control flow: `JMP`, `JZ`, `JNZ`, `CALL`, `RET`, `HALT`
+- hardware: `DELAY_MS`, `PIN_MODE`, `PIN_WRITE`, `PIN_READ`, `UART_PUTC`, `SLEEP_MS`
