@@ -20,6 +20,7 @@ Examples:
   ./tools/build.sh --target lpc1114 --lang c --project blink
   ./tools/build.sh --target lpc1114 --lang rust --project blink --profile debug
   ./tools/build.sh --target ch32v003 --lang c --project blink
+  ./tools/build.sh --target ch32v003 --lang rust --project blink
 EOF
 }
 
@@ -65,23 +66,34 @@ case "$TARGET" in
     fi
     ;;
   ch32v003)
-    if [[ "$LANG" != "c" ]]; then
-      echo "Target '${TARGET}' currently supports C via ch32fun only." >&2
-      exit 3
-    fi
-
-    CH32FUN_DIR="projects/${PROJECT}/ch32fun"
-    if [[ ! -f "${CH32FUN_DIR}/Makefile" ]]; then
-      echo "CH32 ch32fun project not found: ${CH32FUN_DIR}/Makefile" >&2
+    if [[ "$LANG" == "c" ]]; then
+      CH32FUN_DIR="projects/${PROJECT}/ch32fun"
+      if [[ ! -f "${CH32FUN_DIR}/Makefile" ]]; then
+        echo "CH32 ch32fun project not found: ${CH32FUN_DIR}/Makefile" >&2
+        exit 2
+      fi
+      if ! have_riscv_toolchain; then
+        echo "Missing RISC-V GCC toolchain (expected one of: riscv64-elf-gcc, riscv64-unknown-elf-gcc, riscv-none-elf-gcc)." >&2
+        echo "On Raspberry Pi OS/Debian: sudo apt install gcc-riscv64-unknown-elf binutils-riscv64-unknown-elf" >&2
+        exit 2
+      fi
+      make -C "${CH32FUN_DIR}" build
+    elif [[ "$LANG" == "rust" ]]; then
+      CH32FUN_RUST_DIR="projects/${PROJECT}/ch32fun_rust"
+      if [[ ! -f "${CH32FUN_RUST_DIR}/Makefile" ]]; then
+        echo "CH32 Rust shim project not found: ${CH32FUN_RUST_DIR}/Makefile" >&2
+        exit 2
+      fi
+      if ! have_riscv_toolchain; then
+        echo "Missing RISC-V GCC toolchain (expected one of: riscv64-elf-gcc, riscv64-unknown-elf-gcc, riscv-none-elf-gcc)." >&2
+        echo "On Raspberry Pi OS/Debian: sudo apt install gcc-riscv64-unknown-elf binutils-riscv64-unknown-elf" >&2
+        exit 2
+      fi
+      make -C "${CH32FUN_RUST_DIR}" build
+    else
+      echo "Invalid --lang '$LANG' (expected c or rust)" >&2
       exit 2
     fi
-    if ! have_riscv_toolchain; then
-      echo "Missing RISC-V GCC toolchain (expected one of: riscv64-elf-gcc, riscv64-unknown-elf-gcc, riscv-none-elf-gcc)." >&2
-      echo "On Raspberry Pi OS/Debian: sudo apt install gcc-riscv64-unknown-elf binutils-riscv64-unknown-elf" >&2
-      exit 2
-    fi
-
-    make -C "${CH32FUN_DIR}" build
     ;;
   *)
     echo "Unknown target: $TARGET" >&2

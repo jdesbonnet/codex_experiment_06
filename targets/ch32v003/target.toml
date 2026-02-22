@@ -19,4 +19,4 @@ openocd_cfg = "targets/ch32v003/openocd/base.cfg"
 default_adapter_khz = 4000
 
 [notes]
-summary = "C build/flash supported via ch32fun project Makefiles. Rust support remains scaffolded."
+summary = "C build/flash supported via ch32fun project Makefiles. Rust blink is supported via rust staticlib + ch32fun shim."

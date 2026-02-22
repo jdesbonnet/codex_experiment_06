@@ -1,0 +1,13 @@
+[package]
+name = "blink_ch32v003_rust"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "blink_ch32v003_rust"
+path = "src/lib.rs"
+crate-type = ["staticlib"]
+
+[dependencies]
+ch32v0 = { version = "0.2", features = ["ch32v003", "rt"] }
+panic-halt = "0.2"

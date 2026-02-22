@@ -127,6 +127,15 @@ Current convention:
 - each CH32 project has its own `Makefile` including `third_party/ch32fun/ch32fun/ch32fun.mk`
 - each CH32 project also includes a local `funconfig.h` (required by `ch32fun.h`)
 - flashing uses `minichlink` through ch32fun (`cv_flash`) by default
+- CH32 Rust uses a Rust static library (`projects/<name>/rust_ch32v003`) linked via a ch32fun shim project (`projects/<name>/ch32fun_rust`)
+
+Rust prerequisites for CH32:
+
+```sh
+source "$HOME/.cargo/env"
+rustup toolchain install nightly --profile minimal
+rustup +nightly component add rust-src
+```
 
 If `third_party/ch32fun` is missing:
 
@@ -136,6 +145,8 @@ git clone --depth 1 https://github.com/cnlohr/ch32fun.git third_party/ch32fun
 
 Example (already scaffolded):
 - `projects/blink/ch32fun`
+- `projects/blink/rust_ch32v003`
+- `projects/blink/ch32fun_rust`
 
 Then probe with the locally installed binary/scripts:
 
@@ -255,6 +266,7 @@ Target-aware build wrapper:
 ./tools/build.sh --target lpc1114 --lang c --project blink
 ./tools/build.sh --target lpc1114 --lang rust --project blink --profile release
 ./tools/build.sh --target ch32v003 --lang c --project blink
+./tools/build.sh --target ch32v003 --lang rust --project blink
 ```
 
 ## Flash
@@ -280,11 +292,13 @@ Target-aware flash wrapper:
 ./tools/flash.sh --target lpc1114 --lang c --project sleep_wake
 ./tools/flash.sh --target lpc1114 --lang rust --project blink --profile release
 ./tools/flash.sh --target ch32v003 --lang c --project blink
+./tools/flash.sh --target ch32v003 --lang rust --project blink
 ./tools/flash.sh --target ch32v003 --lang c --project blink --image ./build/ch32v003/blink/blink.elf
 ```
 
 For `ch32v003`:
 - default path is ch32fun `cv_flash` when `projects/<project>/ch32fun/Makefile` exists and `--image` is not provided
+- Rust path uses ch32fun shim `cv_flash` when `projects/<project>/ch32fun_rust/Makefile` exists and `--image` is not provided
 - OpenOCD image flashing path is still available with `--image`
 - if using OpenOCD mode and `--image` is omitted, wrapper checks:
 - `build/ch32v003/<project>/<project>.elf`

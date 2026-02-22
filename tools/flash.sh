@@ -25,6 +25,7 @@ Examples:
   ./tools/flash.sh --target lpc1114 --lang c --project sleep_wake
   ./tools/flash.sh --target lpc1114 --lang rust --project blink --profile release
   ./tools/flash.sh --target ch32v003 --lang c --project blink
+  ./tools/flash.sh --target ch32v003 --lang rust --project blink
   ./tools/flash.sh --target ch32v003 --lang c --project blink --image ./build/ch32/blink.elf
 EOF
 }
@@ -57,6 +58,7 @@ case "$TARGET" in
     ;;
   ch32v003)
     CH32FUN_DIR="projects/${PROJECT}/ch32fun"
+    CH32FUN_RUST_DIR="projects/${PROJECT}/ch32fun_rust"
 
     # Preferred path: ch32fun + minichlink for CH32V003 projects.
     if [[ -z "$IMAGE" && -f "${CH32FUN_DIR}/Makefile" && "$LANG" == "c" ]]; then
@@ -69,9 +71,19 @@ case "$TARGET" in
       exit 0
     fi
 
-    if [[ "$LANG" != "c" ]]; then
-      echo "Target '${TARGET}' currently supports C flashing only." >&2
-      exit 3
+    if [[ -z "$IMAGE" && -f "${CH32FUN_RUST_DIR}/Makefile" && "$LANG" == "rust" ]]; then
+      if ! have_riscv_toolchain; then
+        echo "Missing RISC-V GCC toolchain (expected one of: riscv64-elf-gcc, riscv64-unknown-elf-gcc, riscv-none-elf-gcc)." >&2
+        echo "On Raspberry Pi OS/Debian: sudo apt install gcc-riscv64-unknown-elf binutils-riscv64-unknown-elf" >&2
+        exit 2
+      fi
+      make -C "${CH32FUN_RUST_DIR}" cv_flash
+      exit 0
+    fi
+
+    if [[ "$LANG" != "c" && "$LANG" != "rust" ]]; then
+      echo "Invalid --lang '$LANG' (expected c or rust)." >&2
+      exit 2
     fi
 
     # Prefer local WCH-capable OpenOCD by default.

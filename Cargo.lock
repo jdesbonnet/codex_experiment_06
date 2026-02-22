@@ -33,10 +33,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "bit_field"
+version = "0.10.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1e4b40c7323adcfc0a41c4b88143ed58346ff65a288fc144329c5c45e05d70c6"
+
+[[package]]
 name = "bitfield"
 version = "0.13.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "46afbd2983a5d5a7bd740ccb198caf5b82f45c40c09c0eed36052d91cb92e719"
+
+[[package]]
+name = "blink_ch32v003_rust"
+version = "0.1.0"
+dependencies = [
+ "ch32v0",
+ "panic-halt",
+]
 
 [[package]]
 name = "blink_rust"
@@ -46,6 +60,16 @@ dependencies = [
  "cortex-m-rt",
  "lpc1114_common",
  "panic-halt",
+]
+
+[[package]]
+name = "ch32v0"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "28ab3136fa3e2b9d430a5d4a3a3bcfa9484eeb677e5970cf0247fb2cf8f8999b"
+dependencies = [
+ "riscv",
+ "vcell",
 ]
 
 [[package]]
@@ -93,6 +117,12 @@ dependencies = [
  "quote",
  "syn",
 ]
+
+[[package]]
+name = "critical-section"
+version = "1.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "790eea4361631c5e7d22598ecd5723ff611904e3344ce8720784c93e3d83d40b"
 
 [[package]]
 name = "embedded-hal"
@@ -198,6 +228,17 @@ name = "r0"
 version = "0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e2a38df5b15c8d5c7e8654189744d8e396bddc18ad48041a500ce52d6948941f"
+
+[[package]]
+name = "riscv"
+version = "0.10.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "aa3145d2fae3778b1e31ec2e827b228bdc6abd9b74bb5705ba46dcb82069bc4f"
+dependencies = [
+ "bit_field",
+ "critical-section",
+ "embedded-hal",
+]
 
 [[package]]
 name = "rustc_version"

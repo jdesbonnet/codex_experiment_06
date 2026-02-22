@@ -13,6 +13,13 @@ projects/*/ch32fun/*_ext.bin
 projects/*/ch32fun/*.hex
 projects/*/ch32fun/*.lst
 projects/*/ch32fun/*.map
+projects/*/ch32fun_rust/*.elf
+projects/*/ch32fun_rust/*.bin
+projects/*/ch32fun_rust/*_ext.bin
+projects/*/ch32fun_rust/*.hex
+projects/*/ch32fun_rust/*.lst
+projects/*/ch32fun_rust/*.map
+projects/*/rust_ch32v003/target/
 
 # Local third-party/build artifacts
 tools/wch-openocd/
