@@ -11,8 +11,8 @@ Planned content:
 - `rust_bsp/`: Rust PAC/HAL wrapper
 
 Current state:
-- CH32 C app build/flash is enabled via `ch32fun` project directories at `projects/<name>/ch32fun`.
-- CH32 Rust app build/flash is enabled via `projects/<name>/rust_ch32v003` plus `projects/<name>/ch32fun_rust`.
+- CH32 C app build/flash is enabled via `ch32fun` project directories at `projects/<name>/ch32v003_c`.
+- CH32 Rust app build/flash is enabled via `projects/<name>/ch32v003_rust` plus `projects/<name>/ch32v003_rust_shim`.
 - `tools/build.sh --target ch32v003 --lang c --project <name>` calls the project-local ch32fun Makefile.
 - `tools/build.sh --target ch32v003 --lang rust --project <name>` calls the project-local ch32fun Rust shim Makefile.
 - `tools/flash.sh --target ch32v003 --lang c --project <name>` uses ch32fun `cv_flash` by default.

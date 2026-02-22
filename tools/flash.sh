@@ -57,8 +57,14 @@ case "$TARGET" in
     RUST_PROFILE="$RUST_PROFILE" ./flash_project.sh "$PROJECT" "$LANG"
     ;;
   ch32v003)
-    CH32FUN_DIR="projects/${PROJECT}/ch32fun"
-    CH32FUN_RUST_DIR="projects/${PROJECT}/ch32fun_rust"
+    CH32FUN_DIR="projects/${PROJECT}/ch32v003_c"
+    CH32FUN_RUST_DIR="projects/${PROJECT}/ch32v003_rust_shim"
+    if [[ ! -f "${CH32FUN_DIR}/Makefile" ]]; then
+      CH32FUN_DIR="projects/${PROJECT}/ch32fun"
+    fi
+    if [[ ! -f "${CH32FUN_RUST_DIR}/Makefile" ]]; then
+      CH32FUN_RUST_DIR="projects/${PROJECT}/ch32fun_rust"
+    fi
 
     # Preferred path: ch32fun + minichlink for CH32V003 projects.
     if [[ -z "$IMAGE" && -f "${CH32FUN_DIR}/Makefile" && "$LANG" == "c" ]]; then

@@ -6,8 +6,8 @@ members = [
   "projects/sram_test/rust",
   "projects/uart_counter/rust",
   "projects/uart_smoke/rust",
-  "projects/blink/rust",
-  "projects/blink/rust_ch32v003",
+  "projects/blink/lpc1114_rust",
+  "projects/blink/ch32v003_rust",
 ]
 
 [profile.dev]

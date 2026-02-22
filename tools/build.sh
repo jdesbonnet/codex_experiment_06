@@ -54,8 +54,12 @@ case "$TARGET" in
         # shellcheck source=/dev/null
         source "${HOME}/.cargo/env"
       fi
-      if [[ ! -f "projects/${PROJECT}/rust/Cargo.toml" ]]; then
-        echo "Rust project not found: projects/${PROJECT}/rust/Cargo.toml" >&2
+      RUST_DIR="projects/${PROJECT}/lpc1114_rust"
+      if [[ ! -f "${RUST_DIR}/Cargo.toml" ]]; then
+        RUST_DIR="projects/${PROJECT}/rust"
+      fi
+      if [[ ! -f "${RUST_DIR}/Cargo.toml" ]]; then
+        echo "Rust project not found: projects/${PROJECT}/lpc1114_rust/Cargo.toml (or legacy projects/${PROJECT}/rust/Cargo.toml)" >&2
         exit 2
       fi
       if [[ "$RUST_PROFILE" == "release" ]]; then
@@ -67,9 +71,12 @@ case "$TARGET" in
     ;;
   ch32v003)
     if [[ "$LANG" == "c" ]]; then
-      CH32FUN_DIR="projects/${PROJECT}/ch32fun"
+      CH32FUN_DIR="projects/${PROJECT}/ch32v003_c"
       if [[ ! -f "${CH32FUN_DIR}/Makefile" ]]; then
-        echo "CH32 ch32fun project not found: ${CH32FUN_DIR}/Makefile" >&2
+        CH32FUN_DIR="projects/${PROJECT}/ch32fun"
+      fi
+      if [[ ! -f "${CH32FUN_DIR}/Makefile" ]]; then
+        echo "CH32 C project not found: projects/${PROJECT}/ch32v003_c/Makefile (or legacy projects/${PROJECT}/ch32fun/Makefile)" >&2
         exit 2
       fi
       if ! have_riscv_toolchain; then
@@ -79,9 +86,12 @@ case "$TARGET" in
       fi
       make -C "${CH32FUN_DIR}" build
     elif [[ "$LANG" == "rust" ]]; then
-      CH32FUN_RUST_DIR="projects/${PROJECT}/ch32fun_rust"
+      CH32FUN_RUST_DIR="projects/${PROJECT}/ch32v003_rust_shim"
       if [[ ! -f "${CH32FUN_RUST_DIR}/Makefile" ]]; then
-        echo "CH32 Rust shim project not found: ${CH32FUN_RUST_DIR}/Makefile" >&2
+        CH32FUN_RUST_DIR="projects/${PROJECT}/ch32fun_rust"
+      fi
+      if [[ ! -f "${CH32FUN_RUST_DIR}/Makefile" ]]; then
+        echo "CH32 Rust shim project not found: projects/${PROJECT}/ch32v003_rust_shim/Makefile (or legacy projects/${PROJECT}/ch32fun_rust/Makefile)" >&2
         exit 2
       fi
       if ! have_riscv_toolchain; then

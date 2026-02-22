@@ -4,8 +4,8 @@ TARGET_EXT := c
 
 RUST_TARGET := riscv32e-unknown-none-elf
 RUST_PROFILE := release
-RUST_MANIFEST := ../rust_ch32v003/Cargo.toml
-CARGO_TARGET_DIR := ../rust_ch32v003/target
+RUST_MANIFEST := ../ch32v003_rust/Cargo.toml
+CARGO_TARGET_DIR := ../ch32v003_rust/target
 RUST_LIB_DIR := $(CARGO_TARGET_DIR)/$(RUST_TARGET)/$(RUST_PROFILE)
 RUST_LIB := $(RUST_LIB_DIR)/libblink_ch32v003_rust.a
 

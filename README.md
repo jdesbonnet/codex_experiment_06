@@ -15,6 +15,13 @@ This repository supports multiple small projects in both C and Rust, sharing com
   - `targets/ch32v003` (scaffold for future support)
 - `linker/` linker script
 
+Project implementation directories use `hardware_language_variant` (variant optional). Examples:
+- `lpc1114_c`
+- `lpc1114_rust`
+- `ch32v003_c`
+- `ch32v003_rust`
+- `ch32v003_rust_shim`
+
 ## Dependencies (C)
 
 - `gcc-arm-none-eabi`
@@ -123,11 +130,11 @@ sudo apt install -y \
 ```
 
 Current convention:
-- CH32 C project sources live in `projects/<name>/ch32fun`
+- CH32 C project sources live in `projects/<name>/ch32v003_c`
 - each CH32 project has its own `Makefile` including `third_party/ch32fun/ch32fun/ch32fun.mk`
 - each CH32 project also includes a local `funconfig.h` (required by `ch32fun.h`)
 - flashing uses `minichlink` through ch32fun (`cv_flash`) by default
-- CH32 Rust uses a Rust static library (`projects/<name>/rust_ch32v003`) linked via a ch32fun shim project (`projects/<name>/ch32fun_rust`)
+- CH32 Rust uses a Rust static library (`projects/<name>/ch32v003_rust`) linked via a ch32fun shim project (`projects/<name>/ch32v003_rust_shim`)
 
 Rust prerequisites for CH32:
 
@@ -144,9 +151,9 @@ git clone --depth 1 https://github.com/cnlohr/ch32fun.git third_party/ch32fun
 ```
 
 Example (already scaffolded):
-- `projects/blink/ch32fun`
-- `projects/blink/rust_ch32v003`
-- `projects/blink/ch32fun_rust`
+- `projects/blink/ch32v003_c`
+- `projects/blink/ch32v003_rust`
+- `projects/blink/ch32v003_rust_shim`
 
 Then probe with the locally installed binary/scripts:
 
@@ -284,7 +291,7 @@ Rust build (helper script):
 
 Outputs:
 - C: `build/<project>/<project>.elf`
-- Rust: `projects/<project>/rust/target/thumbv6m-none-eabi/<profile>/<project>_rust`
+- Rust: `target/thumbv6m-none-eabi/<profile>/<project>_rust`
 
 Target-aware build wrapper:
 
@@ -323,8 +330,8 @@ Target-aware flash wrapper:
 ```
 
 For `ch32v003`:
-- default path is ch32fun `cv_flash` when `projects/<project>/ch32fun/Makefile` exists and `--image` is not provided
-- Rust path uses ch32fun shim `cv_flash` when `projects/<project>/ch32fun_rust/Makefile` exists and `--image` is not provided
+- default path is ch32fun `cv_flash` when `projects/<project>/ch32v003_c/Makefile` exists and `--image` is not provided
+- Rust path uses ch32fun shim `cv_flash` when `projects/<project>/ch32v003_rust_shim/Makefile` exists and `--image` is not provided
 - OpenOCD image flashing path is still available with `--image`
 - if using OpenOCD mode and `--image` is omitted, wrapper checks:
 - `build/ch32v003/<project>/<project>.elf`

@@ -7,6 +7,21 @@ backups/
 LPC1114_ECG_firmware/
 
 # CH32 ch32fun per-project build outputs
+projects/*/ch32v003_c/*.elf
+projects/*/ch32v003_c/*.bin
+projects/*/ch32v003_c/*_ext.bin
+projects/*/ch32v003_c/*.hex
+projects/*/ch32v003_c/*.lst
+projects/*/ch32v003_c/*.map
+projects/*/ch32v003_rust_shim/*.elf
+projects/*/ch32v003_rust_shim/*.bin
+projects/*/ch32v003_rust_shim/*_ext.bin
+projects/*/ch32v003_rust_shim/*.hex
+projects/*/ch32v003_rust_shim/*.lst
+projects/*/ch32v003_rust_shim/*.map
+projects/*/ch32v003_rust/target/
+
+# Legacy CH32 names
 projects/*/ch32fun/*.elf
 projects/*/ch32fun/*.bin
 projects/*/ch32fun/*_ext.bin

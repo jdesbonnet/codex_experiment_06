@@ -42,6 +42,12 @@ Use 57600 baud, 8N1, no flow control.
 
 You will find software to talk to the debugging probe here: https://github.com/openocd-org/openocd
 
+## Project naming convention
+
+For per-project implementation directories under `projects/<project>/`, use:
+- `hardware_language_variant` (variant optional)
+- examples: `lpc1114_c`, `lpc1114_rust`, `ch32v003_c`, `ch32v003_rust`, `ch32v003_rust_shim`
+
 
 ## My code standards:
 
