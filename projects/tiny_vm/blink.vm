@@ -1,0 +1,12 @@
+# tiny_vm blink loop (matches smoke firmware behavior)
+
+loop:
+PUSH8 1
+HOST 0
+PUSH8 125
+HOST 1
+PUSH8 0
+HOST 0
+PUSH8 125
+HOST 1
+JMP loop

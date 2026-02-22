@@ -356,22 +356,30 @@ For `ch32v003`:
 - `uart_smoke`: simple UART message
 - `blink`: toggles PIO1_0
 - `power_floor`: deep-sleep floor-current characterization image
-- `tiny_vm`: planned tiny interpreted VM project (cross-target LPC1114 + CH32V003)
+- `tiny_vm`: tiny interpreted VM project (cross-target LPC1114 + CH32V003)
 
-## tiny_vm design (planned)
+## tiny_vm
 
-The repository now includes scaffold directories for a small interpreted VM project:
+Runtime now exists on both targets and executes uploaded bytecode frames:
 - `projects/tiny_vm/lpc1114_c`
 - `projects/tiny_vm/ch32v003_c`
 
-Design direction:
-- stack-based bytecode VM (Forth-like execution model)
-- fixed-size memory only (deterministic footprint for MCU constraints)
-- target-specific hardware operations behind a common HAL
-- host-side assembler tool to generate bytecode images
+Upload frame format:
+- magic: `TVM1`
+- length: little-endian `uint16`
+- payload: bytecode
+- checksum: `sum(payload) & 0xff`
 
-Planned v1 opcodes:
-- stack: `PUSH`, `DROP`, `DUP`, `SWAP`, `OVER`
-- ALU: `ADD`, `SUB`, `AND`, `OR`, `XOR`, `SHL`, `SHR`, `EQ`, `LT`, `GT`
-- control flow: `JMP`, `JZ`, `JNZ`, `CALL`, `RET`, `HALT`
-- hardware: `DELAY_MS`, `PIN_MODE`, `PIN_WRITE`, `PIN_READ`, `UART_PUTC`, `SLEEP_MS`
+Host tools:
+- assembler: `tools/vm_asm.py`
+- minimal C-like frontend: `tools/vm_cc.py`
+- uploader: `tools/vm_upload.py`
+- host regression tests: `tools/test_vm_tools.py`
+
+Example flow:
+
+```sh
+./tools/vm_cc.py projects/tiny_vm/count10.cvm.c -o /tmp/count10.bin
+./tools/flash.sh --target lpc1114 --lang c --project tiny_vm
+./tools/vm_upload.py /tmp/count10.bin --port /dev/ttyACM1 --baud 57600
+```

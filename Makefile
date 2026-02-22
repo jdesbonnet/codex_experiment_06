@@ -20,7 +20,8 @@ COMMON_SRCS := \
 	common/src/systick.c \
 	common/src/uart.c \
 	common/src/ssp.c \
-	common/src/sram23lc1024.c
+	common/src/sram23lc1024.c \
+	common/src/tiny_vm.c
 
 PROJECT_SRC := $(if $(wildcard projects/$(PROJECT)/lpc1114_c/main.c),projects/$(PROJECT)/lpc1114_c/main.c,projects/$(PROJECT)/c/main.c)
 
