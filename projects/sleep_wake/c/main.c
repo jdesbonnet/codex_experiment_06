@@ -9,6 +9,7 @@
 #define WDT_OSC_CLK_HZ    (WDT_OSC_FREQ_HZ / WDT_OSC_DIVIDER)
 #define WDT_CLKSEL_WDTOSC 2u
 #define PDSLEEPCFG_WDTOSC_ON_BOD_OFF 0x000018BFu
+#define SLEEP_DURATION_SECONDS 5u
 static volatile uint32_t g_wake = 0u;
 
 void WAKEUP_IRQHandler(void)
@@ -31,7 +32,7 @@ static void wdt_clock_init(void)
     }
 }
 
-static void timer_wake_init_10s(void)
+static void timer_wake_init_seconds(uint32_t seconds)
 {
     /* Power up WDT oscillator and keep reserved bits as required. */
     uint32_t pdrun = LPC_SYSCON_PDRUNCFG;
@@ -57,8 +58,8 @@ static void timer_wake_init_10s(void)
     LPC_IOCON_PIO0_1 |= 0x2u;
     LPC_IOCON_PIO0_1 &= ~((0x3u << 3) | (1u << 10));
 
-    /* Timer setup for ~10s using WDT oscillator as main clock. */
-    uint32_t ticks = WDT_OSC_CLK_HZ * 10u;
+    /* Timer setup for requested seconds using WDT oscillator as main clock. */
+    uint32_t ticks = WDT_OSC_CLK_HZ * seconds;
 
     LPC_CT32B0_TCR = 0x02u; /* reset */
     LPC_CT32B0_PR = 0u;
@@ -134,7 +135,7 @@ int main(void)
         g_wake = 0u;
 
         /* Prepare for deep-sleep wake via CT32B0 match interrupt. */
-        timer_wake_init_10s();
+        timer_wake_init_seconds(SLEEP_DURATION_SECONDS);
 
         /* Ensure deep power-down is disabled. */
         LPC_PMU_PCON &= ~(1u << 1);
