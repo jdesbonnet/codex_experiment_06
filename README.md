@@ -404,3 +404,6 @@ Collatz max-step demo:
 ./tools/vm_cc.py projects/tiny_vm/collatz_max.cvm.c -o /tmp/collatz_max.bin
 ./tools/vm_upload.py /tmp/collatz_max.bin --port /dev/ttyACM1 --baud 57600
 ```
+
+Web debugger visualization proposal:
+- `docs/web_debugger_visualization_proposal.md`
