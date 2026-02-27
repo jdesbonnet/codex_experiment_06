@@ -156,3 +156,71 @@ Transport:
 - Can halt/run/step from browser controls
 - Can inspect VM-relevant state (`pc`, stack pointer, selected RAM addresses)
 - Can capture and review event timeline for one debug run
+
+## Milestones and Turn Estimate
+
+Terminology:
+- `turn` = one user-assistant exchange in this chat.
+
+Estimated effort for a usable MVP:
+- ~34 to 52 turns total, depending on protocol/debug surprises.
+
+### Milestone 1 - Design Lock and Contracts (4-6 turns)
+
+Scope:
+- freeze single-owner control model
+- define backend API and WebSocket JSON schemas
+- define first target scope (LPC1114 first, CH32V003 deferred)
+
+Acceptance checks:
+- interface contract documented in this repo
+- message schema examples for `session_status`, `register_snapshot`, `memory_snapshot`, `event`
+- clear non-goals listed for MVP
+
+### Milestone 2 - Backend Session Core (8-12 turns)
+
+Scope:
+- backend process manager for OpenOCD + GDB/MI session
+- deterministic session state machine (`disconnected`, `connected`, `running`, `halted`, `error`)
+- command endpoints: `connect`, `disconnect`, `run`, `halt`, `step`, `reset`
+
+Acceptance checks:
+- backend can connect/disconnect target repeatedly without manual cleanup
+- backend can run/halt/step/reset LPC1114 from API calls
+- session transitions logged and externally visible
+
+### Milestone 3 - State Sampling and Normalization (8-12 turns)
+
+Scope:
+- periodic register and watched-memory polling
+- normalized architecture-neutral payloads (with arch-specific fields where needed)
+- event queue for breakpoint/watchpoint/reset/fault notifications
+
+Acceptance checks:
+- stable 5-20 Hz register snapshots while halted
+- memory watch regions update with changed-byte markers
+- dropped-sample metric reported when overloaded
+
+### Milestone 4 - Frontend MVP (8-12 turns)
+
+Scope:
+- HTML5 single-page UI
+- live views: registers, watched memory, execution status
+- controls: connect/run/halt/step/reset
+
+Acceptance checks:
+- browser reflects backend state transitions in near real time
+- register/memory views update without full-page refresh
+- controls are serialized via backend lock (no conflicting actions)
+
+### Milestone 5 - Integration, Reliability, Documentation (6-10 turns)
+
+Scope:
+- end-to-end validation on real hardware sessions
+- timeout/reconnect/error handling
+- operator docs and troubleshooting guide
+
+Acceptance checks:
+- scripted smoke test passes on LPC1114 session start -> step -> run -> halt -> disconnect
+- common failure modes documented (probe busy, OpenOCD down, stale session)
+- README links to runbook and architecture doc
