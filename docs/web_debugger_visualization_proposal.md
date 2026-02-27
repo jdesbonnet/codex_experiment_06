@@ -30,7 +30,33 @@ flowchart LR
     F --> G[HTML5 Frontend]
     G --> H[Views<br/>Registers / Memory / VM State / Timeline]
     G --> I[Control Panel<br/>halt/run/step/watchpoints]
+    J[gdb Client Optional] --> C
 ```
+
+## Control Model (Single Owner)
+
+Use a single-owner debug model:
+- backend service is the only component that owns target control
+- backend talks to OpenOCD/GDB adapter and probe
+- web UI and optional CLI/gdb clients use backend APIs/endpoints only
+
+Why:
+- avoids multi-controller conflicts (run/halt/step races, breakpoint/watchpoint desync)
+- keeps one authoritative session state for UI + automation
+
+## Backend Debug Interfaces
+
+Recommended protocol stack:
+- backend <-> OpenOCD:
+- OpenOCD TCL command socket (read/write commands)
+- optional OpenOCD process control/stdio
+
+- backend <-> gdb client (optional):
+- backend exposes a GDB-server-compatible endpoint/proxy
+- gdb connects to backend endpoint (not directly to probe)
+
+- backend <-> web frontend:
+- WebSocket (JSON snapshots/events; binary optional later)
 
 ## Data Model (Initial)
 
