@@ -90,6 +90,49 @@
       flex-wrap: wrap;
       margin-bottom: 12px;
     }
+    .topology {
+      display: grid;
+      grid-template-columns: minmax(80px, 1fr) auto minmax(80px, 1fr) auto minmax(80px, 1fr);
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .node {
+      text-align: center;
+      padding: 10px 8px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fffdf7;
+      font-weight: 600;
+    }
+    .link {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      min-width: 120px;
+    }
+    .link-line {
+      width: 100%;
+      height: 4px;
+      border-radius: 999px;
+      background: var(--line);
+      transition: background-color 120ms ease;
+    }
+    .link-line.live {
+      background: #1d8a5a;
+    }
+    .link-line.stale {
+      background: #c48b1a;
+    }
+    .link-line.down {
+      background: #b44336;
+    }
+    .link-label {
+      font-size: 0.85rem;
+      color: var(--muted);
+      text-align: center;
+    }
     .badge {
       display: inline-block;
       padding: 4px 10px;
@@ -192,6 +235,23 @@
     <h1>Web Debugger MVP</h1>
     <p class="subtitle">Single-owner LPC1114 control with live halted-state snapshots.</p>
 
+    <section class="panel">
+      <h2>Connection Topology</h2>
+      <div class="topology">
+        <div class="node">Browser UI</div>
+        <div class="link">
+          <div id="uiBackendLine" class="link-line down"></div>
+          <div id="uiBackendLabel" class="link-label">WS: disconnected</div>
+        </div>
+        <div class="node">Backend</div>
+        <div class="link">
+          <div id="backendTargetLine" class="link-line down"></div>
+          <div id="backendTargetLabel" class="link-label">Target: disconnected</div>
+        </div>
+        <div class="node">Target</div>
+      </div>
+    </section>
+
     <div class="toolbar">
       <button id="connectBtn">Connect</button>
       <button id="disconnectBtn" class="warn">Disconnect</button>
@@ -282,6 +342,10 @@
     const uartSummary = document.getElementById("uartSummary");
     const uartLog = document.getElementById("uartLog");
     const toggleUartPauseBtn = document.getElementById("toggleUartPauseBtn");
+    const uiBackendLine = document.getElementById("uiBackendLine");
+    const uiBackendLabel = document.getElementById("uiBackendLabel");
+    const backendTargetLine = document.getElementById("backendTargetLine");
+    const backendTargetLabel = document.getElementById("backendTargetLabel");
 
     const watchedMemory = new Map();
     const previousMemoryHex = new Map();
@@ -292,11 +356,19 @@
     let uartPaused = false;
     let uartPath = null;
     let uartStatus = "disabled";
+    let wsState = "disconnected";
+    let sessionState = "disconnected";
+    let lastBackendMessageMs = 0;
+    let lastTargetUpdateMs = 0;
 
     function appendLog(line) {
       const ts = new Date().toISOString();
       eventLog.textContent = `${eventLog.textContent}${ts} ${line}\n`.slice(-6000);
       eventLog.scrollTop = eventLog.scrollHeight;
+    }
+
+    function nowMs() {
+      return Date.now();
     }
 
     async function apiPost(path, body = {}) {
@@ -336,17 +408,39 @@
       }
       const proto = location.protocol === "https:" ? "wss" : "ws";
       socket = new WebSocket(`${proto}://${location.host}/ws`);
-      socket.onopen = () => appendLog("websocket connected");
-      socket.onclose = () => appendLog("websocket closed");
-      socket.onerror = () => appendLog("websocket error");
+      wsState = "connecting";
+      renderTopology();
+      socket.onopen = () => {
+        wsState = "live";
+        lastBackendMessageMs = nowMs();
+        renderTopology();
+        appendLog("websocket connected");
+      };
+      socket.onclose = () => {
+        wsState = "disconnected";
+        renderTopology();
+        appendLog("websocket closed");
+      };
+      socket.onerror = () => {
+        wsState = "error";
+        renderTopology();
+        appendLog("websocket error");
+      };
       socket.onmessage = (event) => {
         const msg = JSON.parse(event.data);
+        lastBackendMessageMs = nowMs();
+        if (wsState !== "live") {
+          wsState = "live";
+        }
         handleMessage(msg);
+        renderTopology();
       };
     }
 
     function handleMessage(msg) {
       if (msg.type === "session_status") {
+        sessionState = msg.state;
+        lastTargetUpdateMs = nowMs();
         stateBadge.textContent = msg.state;
         targetLabel.textContent = `target: ${msg.target || "none"}`;
         appendLog(`session ${msg.reason} -> ${msg.state}`);
@@ -383,6 +477,72 @@
       if (msg.type === "event") {
         appendLog(`event ${msg.event}: ${msg.detail || ""}`.trim());
       }
+    }
+
+    function setLinkState(element, state) {
+      element.classList.remove("live", "stale", "down");
+      if (state === "live") {
+        element.classList.add("live");
+        return;
+      }
+      if (state === "stale") {
+        element.classList.add("stale");
+        return;
+      }
+      element.classList.add("down");
+    }
+
+    function renderTopology() {
+      const now = nowMs();
+
+      let uiBackendState = "down";
+      let uiBackendText = "WS: disconnected";
+      if (wsState === "connecting") {
+        uiBackendState = "stale";
+        uiBackendText = "WS: connecting";
+      } else if (wsState === "error") {
+        uiBackendState = "down";
+        uiBackendText = "WS: error";
+      } else if (wsState === "live") {
+        const age = now - lastBackendMessageMs;
+        if (age < 2000) {
+          uiBackendState = "live";
+          uiBackendText = "WS: live";
+        } else if (age < 5000) {
+          uiBackendState = "stale";
+          uiBackendText = `WS: stale ${Math.round(age / 1000)}s`;
+        } else {
+          uiBackendState = "down";
+          uiBackendText = "WS: timed out";
+        }
+      }
+      setLinkState(uiBackendLine, uiBackendState);
+      uiBackendLabel.textContent = uiBackendText;
+
+      let backendTargetState = "down";
+      let backendTargetText = "Target: disconnected";
+      if (sessionState === "running" || sessionState === "halted") {
+        const age = now - lastTargetUpdateMs;
+        if (age < 5000) {
+          backendTargetState = "live";
+        } else if (age < 10000) {
+          backendTargetState = "stale";
+        } else {
+          backendTargetState = "down";
+        }
+        backendTargetText = `Target: ${sessionState}`;
+        if (backendTargetState === "stale") {
+          backendTargetText += " (stale)";
+        }
+      } else if (sessionState === "connecting") {
+        backendTargetState = "stale";
+        backendTargetText = "Target: connecting";
+      } else if (sessionState === "error") {
+        backendTargetState = "down";
+        backendTargetText = "Target: error";
+      }
+      setLinkState(backendTargetLine, backendTargetState);
+      backendTargetLabel.textContent = backendTargetText;
     }
 
     function renderRegisters(registers) {
@@ -567,6 +727,8 @@
     refreshConfig().catch((err) => appendLog(`config refresh: ${err.message}`));
     renderDisplaySummary();
     renderUartSummary();
+    renderTopology();
+    window.setInterval(renderTopology, 1000);
   </script>
 </body>
 </html>
