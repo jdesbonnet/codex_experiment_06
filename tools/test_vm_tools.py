@@ -149,6 +149,27 @@ print_hex32(ror32(rol32(X, 8), 8));
             raise AssertionError("compiler produced empty binary")
 
 
+def test_vm_cc_mem32_supported() -> None:
+    src = """
+const int X = 0x12345678;
+store32le(4, X);
+print_hex32(load32le(4));
+"""
+    with tempfile.TemporaryDirectory() as td:
+        tdp = pathlib.Path(td)
+        asm = tdp / "mem32.vm"
+        out = tdp / "mem32.bin"
+        cvm = tdp / "mem32.cvm.c"
+        cvm.write_text(src, encoding="utf-8")
+        run(["./tools/vm_cc.py", str(cvm), "-S", str(asm), "-o", str(out)])
+        text = asm.read_text(encoding="utf-8")
+        for marker in ("PUSH32", "MSET32", "MGET32", "HOST 3"):
+            if marker not in text:
+                raise AssertionError(f"expected marker {marker!r} in generated asm")
+        if len(out.read_bytes()) == 0:
+            raise AssertionError("compiler produced empty binary")
+
+
 def main() -> int:
     test_vm_asm_basic()
     test_vm_cc_while_if()
@@ -157,6 +178,7 @@ def main() -> int:
     test_vm_cc_mem_access_supported()
     test_vm_cc_bitwise_supported()
     test_vm_cc_rotate_supported()
+    test_vm_cc_mem32_supported()
     print("vm tool tests: OK")
     return 0
 

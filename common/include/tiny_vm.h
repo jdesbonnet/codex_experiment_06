@@ -47,13 +47,15 @@ typedef enum {
     TINY_OP_SHR = 0x1A,
     TINY_OP_ROL = 0x1B,
     TINY_OP_ROR = 0x1C,
+    TINY_OP_MGET32 = 0x1D,
+    TINY_OP_MSET32 = 0x1E,
     TINY_OP_HALT = 0xFF
 } tiny_vm_opcode_t;
 
 #define TINY_VM_STACK_MAX 16u
-#define TINY_VM_CODE_MAX 256u
+#define TINY_VM_CODE_MAX 512u
 #define TINY_VM_LOCALS_MAX 16u
-#define TINY_VM_MEM_MAX 64u
+#define TINY_VM_MEM_MAX 128u
 
 struct tiny_vm;
 typedef int (*tiny_vm_host_call_t)(struct tiny_vm *vm, uint8_t id, void *ctx);

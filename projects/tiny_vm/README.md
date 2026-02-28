@@ -249,6 +249,119 @@ Program layout:
 - regression-style finite test programs: `projects/tiny_vm/tests/`
 - long-running or manual demos: `projects/tiny_vm/demos/`
 
+## SHA-1 Feasibility And Next Step
+
+The VM is now close to the minimum arithmetic feature set needed for a real hash:
+- 32-bit literals (`PUSH32`)
+- bitwise boolean ops
+- shifts
+- rotates
+- bounded scratch memory
+
+That means the main remaining constraints are no longer arithmetic. They are:
+- bytecode size
+- scratch-memory layout
+- efficient 32-bit word access inside the message schedule
+
+### What SHA-1 Needs
+
+For a practical SHA-1 implementation in this VM, the runtime/compiler need to support:
+- loading a 512-bit message block (`64` bytes)
+- building and updating the SHA-1 message schedule
+- five 32-bit working registers (`a`, `b`, `c`, `d`, `e`)
+- 80 rounds of bounded integer work
+
+A compact SHA-1 implementation does not need to store all 80 schedule words.
+It can use a rolling 16-word schedule buffer:
+- `w[i] = rol1(w[i-3] xor w[i-8] xor w[i-14] xor w[i-16])`
+- only the most recent 16 words need to be retained
+
+This is the right target for `tiny_vm` because it avoids over-designing the runtime around one large algorithm.
+
+### Why The Current Limits Are Tight
+
+Current limits:
+- `TINY_VM_CODE_MAX = 512`
+- `TINY_VM_MEM_MAX = 128`
+
+These are the current preparatory limits for SHA-1 work.
+
+Reasoning:
+- `64` bytes of scratch memory is enough for one message block only
+- a rolling 16-word schedule buffer also needs `64` bytes if stored as 32-bit words
+- so a clean single-block SHA-1 design wants about `128` bytes of scratch just for:
+  - input block bytes
+  - 16-word rolling schedule
+- `512` bytes of bytecode is a more realistic starting point once the compiler emits:
+  - message setup
+  - schedule expansion
+  - 80-round compression loop
+  - final output
+
+### Recommended Preparatory Change
+
+This preparatory change is now in place:
+- `TINY_VM_CODE_MAX` increased from `256` to `512`
+- `TINY_VM_MEM_MAX` increased from `64` to `128`
+
+Why this is a good trade:
+- it directly addresses the real constraint
+- it does not add architectural complexity
+- it keeps the runtime small
+- it avoids adding one-off opcodes just to squeeze around arbitrary limits
+
+Impact:
+- mostly RAM footprint, not flash footprint
+- code buffer grows by `256` bytes
+- scratch memory grows by `64` bytes
+- total VM state increase is about `320` bytes
+
+This is acceptable relative to the current LPC1114 runtime size, which is still well below the `<16 kB` flash target.
+
+### Still Missing For A Clean SHA-1 Implementation
+
+Even after increasing the limits, one capability is still missing for a clean implementation:
+- efficient 32-bit word access in scratch memory
+
+Current scratch memory now supports both byte and little-endian 32-bit word access:
+- `store8(index, value)`
+- `load8(index)`
+- `store32le(index, value)`
+- `load32le(index)`
+
+This is enough for early SHA-1 implementation work because the schedule is naturally word-oriented.
+
+Semantics:
+- `index` addresses the first byte of a 32-bit little-endian word in scratch memory
+- out-of-range access remains a bounded VM runtime error
+
+This keeps the design coherent:
+- byte access for byte-oriented protocols
+- word access for word-oriented algorithms
+
+### Recommended SHA-1 Path
+
+The current recommended order is:
+1. use the new `CODE_MAX=512`, `MEM_MAX=128` limits
+2. use bounded `load32le()` / `store32le()` primitives
+3. add a single-block SHA-1 regression test with a fixed known vector
+4. only after that, decide whether multi-block SHA-1 is worth the extra complexity
+
+Recommended first SHA-1 regression style:
+- fixed message
+- deterministic UART output
+- halts cleanly
+
+Example candidate:
+- input: `"abc"`
+- expected SHA-1:
+  - `A9993E364706816ABA3E25717850C26C9CD0D89D`
+
+This keeps the next step aligned with the project goal:
+- real capability growth
+- bounded complexity
+- strong regression coverage
+
 ## Runtime protocol
 
 Targets now execute uploaded bytecode (no built-in hardcoded program).
@@ -493,6 +606,18 @@ Expected output:
 78123456
 ```
 
+Compile 32-bit scratch-memory demo:
+```sh
+./tools/vm_cc.py projects/tiny_vm/tests/mem32.cvm.c -o /tmp/mem32.bin
+./tools/vm_upload.py /tmp/mem32.bin --port /dev/ttyACM1 --baud 57600
+```
+
+Expected output:
+```text
+12345678
+A5A5A5A5
+```
+
 ## Hardware Regression
 
 Run all finite-output LPC1114 demo regressions:
@@ -515,6 +640,7 @@ Notes:
   - `checksum8`
   - `crc32`
   - `rotate32`
+  - `mem32`
 - `demos/blink.cvm.c` is intentionally excluded because it does not emit UART output and does not halt
 
 ## Demos
@@ -540,9 +666,11 @@ Current long-running/manual demo:
 - `print_hex32(expr);`
 - `host(const_expr, expr);`
 - `store8(index_expr, value_expr);`
+- `store32le(index_expr, value_expr);`
 - expressions:
 - literals, vars, consts
 - `load8(index_expr)`
+- `load32le(index_expr)`
 - `and32(a, b)`, `or32(a, b)`, `xor32(a, b)`, `not32(a)`
 - `shl32(a, b)`, `shr32(a, b)`
 - `rol32(a, b)`, `ror32(a, b)`
@@ -553,11 +681,13 @@ Assembler/VM opcodes now include:
 - arithmetic/comparison: `ADD`, `SUB`, `MUL`, `DIV`, `MOD`, `EQ`, `LT`
 - bitwise/shift: `AND`, `OR`, `XOR`, `NOT`, `SHL`, `SHR`, `ROL`, `ROR`
 - locals: `LGET`, `LSET`
-- scratch memory: `MGET`, `MSET`
+- scratch memory: `MGET`, `MSET`, `MGET32`, `MSET32`
 
 Scratch memory notes:
 - the runtime provides a bounded byte-addressable scratch region
-- current size: `64` bytes (`TINY_VM_MEM_MAX`)
+- current size: `128` bytes (`TINY_VM_MEM_MAX`)
 - `store8()` truncates written values to 8 bits
 - `load8()` returns the selected byte as a non-negative integer
+- `store32le()` stores a 32-bit value in little-endian order
+- `load32le()` reconstructs a 32-bit little-endian value
 - out-of-range access is a VM runtime error

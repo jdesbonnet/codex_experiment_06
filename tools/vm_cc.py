@@ -16,9 +16,11 @@ Supported subset:
       print_hex32(expr);
       host(const_expr, expr);
       store8(index_expr, value_expr);
+      store32le(index_expr, value_expr);
   - expressions over int literals/vars/constants:
       +, -, *, /, %, <, >, ==
       load8(index_expr)
+      load32le(index_expr)
       and32(a,b), or32(a,b), xor32(a,b), not32(a)
       shl32(a,b), shr32(a,b)
       rol32(a,b), ror32(a,b)
@@ -325,6 +327,12 @@ class Compiler:
                 self.emit_expr(args[0])
                 self.emit("MGET")
                 return
+            if name == "load32le":
+                if len(args) != 1:
+                    raise ValueError("load32le expects 1 arg")
+                self.emit_expr(args[0])
+                self.emit("MGET32")
+                return
             if name == "and32":
                 if len(args) != 2:
                     raise ValueError("and32 expects 2 args")
@@ -500,6 +508,13 @@ class Compiler:
             self.emit_expr(args[0])
             self.emit_expr(args[1])
             self.emit("MSET")
+            return
+        if name == "store32le":
+            if len(args) != 2:
+                raise ValueError("store32le expects 2 args")
+            self.emit_expr(args[0])
+            self.emit_expr(args[1])
+            self.emit("MSET32")
             return
         raise ValueError(f"unsupported function '{name}'")
 

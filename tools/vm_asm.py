@@ -11,7 +11,7 @@ Syntax:
       PUSH16 <int16>
       PUSH32 <int32>
       ADD | SUB | DUP | DROP | SWAP | HALT
-      EQ | LT | MOD | MUL | DIV | MGET | MSET
+      EQ | LT | MOD | MUL | DIV | MGET | MSET | MGET32 | MSET32
       AND | OR | XOR | NOT | SHL | SHR | ROL | ROR
       HOST <u8>
       LGET <u8>
@@ -58,6 +58,8 @@ OPCODES = {
     "SHR": 0x1A,
     "ROL": 0x1B,
     "ROR": 0x1C,
+    "MGET32": 0x1D,
+    "MSET32": 0x1E,
     "HALT": 0xFF,
 }
 

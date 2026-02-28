@@ -370,6 +370,45 @@ int tiny_vm_exec(tiny_vm_t *vm, uint32_t step_budget)
             }
             vm->mem[(uint8_t)a] = (uint8_t)(b & 0xFF);
             break;
+        case TINY_OP_MGET32: {
+            uint32_t value;
+            rc = tiny_vm_pop(vm, &a);
+            if (rc < 0) {
+                return rc;
+            }
+            if (a < 0 || a > (int32_t)(TINY_VM_MEM_MAX - 4u)) {
+                return TINY_VM_ERR_MEM_OOB;
+            }
+            value = (uint32_t)vm->mem[(uint8_t)a];
+            value |= (uint32_t)vm->mem[(uint8_t)a + 1u] << 8;
+            value |= (uint32_t)vm->mem[(uint8_t)a + 2u] << 16;
+            value |= (uint32_t)vm->mem[(uint8_t)a + 3u] << 24;
+            rc = tiny_vm_push(vm, (int32_t)value);
+            if (rc < 0) {
+                return rc;
+            }
+            break;
+        }
+        case TINY_OP_MSET32: {
+            uint32_t value;
+            rc = tiny_vm_pop(vm, &b);
+            if (rc < 0) {
+                return rc;
+            }
+            rc = tiny_vm_pop(vm, &a);
+            if (rc < 0) {
+                return rc;
+            }
+            if (a < 0 || a > (int32_t)(TINY_VM_MEM_MAX - 4u)) {
+                return TINY_VM_ERR_MEM_OOB;
+            }
+            value = (uint32_t)b;
+            vm->mem[(uint8_t)a] = (uint8_t)(value & 0xFFu);
+            vm->mem[(uint8_t)a + 1u] = (uint8_t)((value >> 8) & 0xFFu);
+            vm->mem[(uint8_t)a + 2u] = (uint8_t)((value >> 16) & 0xFFu);
+            vm->mem[(uint8_t)a + 3u] = (uint8_t)((value >> 24) & 0xFFu);
+            break;
+        }
         case TINY_OP_AND:
             rc = tiny_vm_pop(vm, &b);
             if (rc < 0) {

@@ -61,6 +61,8 @@ class TestCase:
             return ["CBF43926"]
         if self.name == "rotate32":
             return ["34567812", "78123456"]
+        if self.name == "mem32":
+            return ["12345678", "A5A5A5A5"]
         raise ValueError(f"unknown test case {self.name}")
 
 
@@ -71,6 +73,7 @@ TEST_CASES = [
     TestCase("checksum8", ROOT / "projects" / "tiny_vm" / "tests" / "checksum8.cvm.c", 8.0),
     TestCase("crc32", ROOT / "projects" / "tiny_vm" / "tests" / "crc32.cvm.c", 10.0),
     TestCase("rotate32", ROOT / "projects" / "tiny_vm" / "tests" / "rotate32.cvm.c", 8.0),
+    TestCase("mem32", ROOT / "projects" / "tiny_vm" / "tests" / "mem32.cvm.c", 8.0),
 ]
 
 
