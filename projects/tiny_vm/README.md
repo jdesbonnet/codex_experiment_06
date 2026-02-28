@@ -738,6 +738,51 @@ Assembler/VM opcodes now include:
 - locals: `LGET`, `LSET`
 - scratch memory: `MGET`, `MSET`, `MGET32`, `MSET32`
 
+## Bytecode Table
+
+Current opcode assignments:
+
+| Mnemonic | Hex | Operands | Notes |
+| --- | --- | --- | --- |
+| `NOP` | `0x00` | none | no operation |
+| `PUSH8` | `0x01` | `int8` | push signed 8-bit immediate |
+| `ADD` | `0x02` | none | pop `b`, pop `a`, push `a + b` |
+| `SUB` | `0x03` | none | pop `b`, pop `a`, push `a - b` |
+| `DUP` | `0x04` | none | duplicate top of stack |
+| `DROP` | `0x05` | none | discard top of stack |
+| `SWAP` | `0x06` | none | swap top two stack items |
+| `JMP` | `0x07` | `u16` | absolute jump to bytecode offset |
+| `JZ` | `0x08` | `u16` | pop condition, jump if zero |
+| `HOST` | `0x09` | `u8` | host call with 8-bit host function id |
+| `LGET` | `0x0A` | `u8` | push local slot value |
+| `LSET` | `0x0B` | `u8` | pop and store into local slot |
+| `EQ` | `0x0C` | none | push `1` if equal, else `0` |
+| `LT` | `0x0D` | none | push `1` if `a < b`, else `0` |
+| `PUSH16` | `0x0E` | `int16` | push signed 16-bit immediate |
+| `MOD` | `0x0F` | none | pop `b`, pop `a`, push `a % b` |
+| `MUL` | `0x10` | none | pop `b`, pop `a`, push `a * b` |
+| `DIV` | `0x11` | none | pop `b`, pop `a`, push `a / b` |
+| `MGET` | `0x12` | none | pop byte index, push `mem[index]` |
+| `MSET` | `0x13` | none | pop value, pop index, store low 8 bits |
+| `PUSH32` | `0x14` | `int32` | push signed 32-bit immediate |
+| `AND` | `0x15` | none | 32-bit bitwise and |
+| `OR` | `0x16` | none | 32-bit bitwise or |
+| `XOR` | `0x17` | none | 32-bit bitwise xor |
+| `NOT` | `0x18` | none | 32-bit bitwise not |
+| `SHL` | `0x19` | none | logical left shift, count masked with `31` |
+| `SHR` | `0x1A` | none | logical right shift, count masked with `31` |
+| `ROL` | `0x1B` | none | 32-bit rotate left, count masked with `31` |
+| `ROR` | `0x1C` | none | 32-bit rotate right, count masked with `31` |
+| `MGET32` | `0x1D` | none | pop byte index, push little-endian 32-bit word |
+| `MSET32` | `0x1E` | none | pop value, pop byte index, store little-endian 32-bit word |
+| `HALT` | `0xFF` | none | stop execution and return `TINY_VM_HALT` |
+
+Encoding notes:
+- `u8` is one unsigned byte
+- `u16` is little-endian
+- `int16` is little-endian two's-complement
+- `int32` is little-endian two's-complement
+
 Scratch memory notes:
 - the runtime provides a bounded byte-addressable scratch region
 - current size: `128` bytes (`TINY_VM_MEM_MAX`)
