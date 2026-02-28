@@ -362,6 +362,14 @@ Current status:
   - `projects/tiny_vm/tests/sha1_abc.cvm.c`
 - it uses a fixed `"abc"` block and prints the five 32-bit digest words as uppercase hex
 - this proves the current VM core can execute a real cryptographic hash for at least a fixed, bounded regression case
+- a host-side generator also exists:
+  - `tools/gen_tiny_vm_sha1_case.py`
+  - it can emit a single-block SHA-1 `.cvm.c` case for any message up to `55` bytes
+
+Current limitation:
+- `tiny_vm_load()` clears scratch memory on image load
+- so a truly generic "load block externally, then run one reusable SHA-1 bytecode image" flow is not possible yet
+- that still requires a future upload/runtime contract change
 
 This keeps the next step aligned with the project goal:
 - real capability growth
@@ -385,6 +393,7 @@ Both runtimes wait 15 seconds after boot for an upload, then continue waiting fo
 - assembler: `tools/vm_asm.py`
 - minimal C-like compiler: `tools/vm_cc.py`
 - uploader: `tools/vm_upload.py`
+- SHA-1 case generator: `tools/gen_tiny_vm_sha1_case.py`
 - host regression tests: `tools/test_vm_tools.py`
 - hardware UART regression tests: `tools/test_tiny_vm_hardware.py`
 
@@ -500,6 +509,30 @@ Use it when:
 - changing the compiler
 - changing the assembler
 - adding new opcodes or syntax
+- changing helper generators such as `tools/gen_tiny_vm_sha1_case.py`
+
+### `tools/gen_tiny_vm_sha1_case.py`
+
+Purpose:
+- generate a single-block SHA-1 tiny_vm test program for a specific message
+
+What it does:
+- enforces the single-block SHA-1 limit (`<= 55` bytes of message)
+- computes the expected SHA-1 on the host
+- emits a `.cvm.c` program that:
+  - writes the padded message block into scratch memory
+  - runs the SHA-1 compression logic
+  - prints the five 32-bit digest words as uppercase hex
+
+Typical usage:
+```sh
+python3 tools/gen_tiny_vm_sha1_case.py abc -o /tmp/sha1_abc.cvm.c
+./tools/vm_cc.py /tmp/sha1_abc.cvm.c -o /tmp/sha1_abc.bin
+```
+
+Use it when:
+- you want a new fixed-vector SHA-1 regression case
+- you want to test the current VM hash capability without changing the runtime protocol
 
 ### `tools/test_tiny_vm_hardware.py`
 

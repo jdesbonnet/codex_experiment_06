@@ -1,5 +1,6 @@
-/* SHA-1 single-block regression over the ASCII string "abc".
+/* SHA-1 single-block regression over a fixed message.
  * Reference: FIPS PUB 180-4, Secure Hash Standard (SHS), SHA-1.
+ * Message: 'abc'
  * Expected output:
  *   A9993E36
  *   4706816A
@@ -42,7 +43,8 @@ while (i < 64) {
 }
 
 store32le(0, 0x61626380);
-store32le(60, 24);
+
+store32le(60, 0x00000018);
 
 h0 = H0_INIT;
 h1 = H1_INIT;

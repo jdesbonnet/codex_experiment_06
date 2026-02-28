@@ -170,6 +170,22 @@ print_hex32(load32le(4));
             raise AssertionError("compiler produced empty binary")
 
 
+def test_sha1_generator_smoke() -> None:
+    with tempfile.TemporaryDirectory() as td:
+        tdp = pathlib.Path(td)
+        cvm = tdp / "sha1_abc.cvm.c"
+        asm = tdp / "sha1_abc.vm"
+        out = tdp / "sha1_abc.bin"
+        run(["python3", "tools/gen_tiny_vm_sha1_case.py", "abc", "-o", str(cvm)])
+        text = cvm.read_text(encoding="utf-8")
+        for marker in ("Message: 'abc'", "A9993E36", "store32le(0, 0x61626380);"):
+            if marker not in text:
+                raise AssertionError(f"expected marker {marker!r} in generated source")
+        run(["./tools/vm_cc.py", str(cvm), "-S", str(asm), "-o", str(out)])
+        if len(out.read_bytes()) == 0:
+            raise AssertionError("generated sha1 compiler output is empty")
+
+
 def main() -> int:
     test_vm_asm_basic()
     test_vm_cc_while_if()
@@ -179,6 +195,7 @@ def main() -> int:
     test_vm_cc_bitwise_supported()
     test_vm_cc_rotate_supported()
     test_vm_cc_mem32_supported()
+    test_sha1_generator_smoke()
     print("vm tool tests: OK")
     return 0
 
