@@ -36,6 +36,7 @@ from urllib.parse import parse_qs, urlparse
 WS_MAGIC = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
 TCL_TERM = b"\x1a"
 REPO_ROOT = Path(__file__).resolve().parents[2]
+STATIC_DIR = Path(__file__).resolve().parent / "static"
 HALTED_SAMPLE_INTERVAL_S = 0.1
 RUNNING_METRICS_INTERVAL_S = 1.0
 REGISTER_ORDER = [
@@ -619,6 +620,9 @@ class DebugHTTPRequestHandler(BaseHTTPRequestHandler):
 
     def _do_get(self) -> None:
         parsed = urlparse(self.path)
+        if parsed.path in ("/", "/index.html"):
+            self._serve_static("index.html", "text/html; charset=utf-8")
+            return
         if parsed.path == "/ws" and self.headers.get("Upgrade", "").lower() == "websocket":
             self._handle_websocket()
             return
@@ -731,6 +735,19 @@ class DebugHTTPRequestHandler(BaseHTTPRequestHandler):
         self.send_header("Cache-Control", "no-store")
         self.end_headers()
         self.wfile.write(encoded)
+
+    def _serve_static(self, name: str, content_type: str) -> None:
+        path = STATIC_DIR / name
+        if not path.is_file():
+            self._json_response(HTTPStatus.NOT_FOUND, {"ok": False, "error": "not_found"})
+            return
+        body = path.read_bytes()
+        self.send_response(HTTPStatus.OK)
+        self.send_header("Content-Type", content_type)
+        self.send_header("Content-Length", str(len(body)))
+        self.send_header("Cache-Control", "no-store")
+        self.end_headers()
+        self.wfile.write(body)
 
     def _handle_websocket(self) -> None:
         key = self.headers.get("Sec-WebSocket-Key")

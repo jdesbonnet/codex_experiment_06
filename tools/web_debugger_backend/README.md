@@ -21,9 +21,13 @@ python3 tools/web_debugger_backend/server.py
 Default bind:
 - `127.0.0.1:8765`
 
+UI:
+- open `http://127.0.0.1:8765/` for the minimal built-in frontend
+
 ## Useful Endpoints
 
 - `GET /api/v1/session`
+- `GET /` (minimal HTML UI)
 - `POST /api/v1/session/connect`
 - `POST /api/v1/session/disconnect`
 - `POST /api/v1/target/run`
