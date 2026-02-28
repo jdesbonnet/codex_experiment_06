@@ -28,6 +28,7 @@ UI:
 
 - `GET /api/v1/session`
 - `GET /` (minimal HTML UI)
+- `GET /api/v1/config`
 - `GET /api/v1/watches`
 - `POST /api/v1/session/connect`
 - `POST /api/v1/session/disconnect`
@@ -38,6 +39,7 @@ UI:
 - `GET /api/v1/target/registers`
 - `GET /api/v1/target/memory?address=0x10000000&length=16`
 - `POST /api/v1/watch`
+- `POST /api/v1/config`
 - `DELETE /api/v1/watch?name=<watch-name>`
 - `GET /ws` (WebSocket upgrade)
 

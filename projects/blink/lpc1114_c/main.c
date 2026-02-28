@@ -14,6 +14,7 @@ static void delay_ms(uint32_t ms)
 int main(void)
 {
     const uint32_t pin_mask = (1u << 0);
+    uint32_t iteration = 0;
 
     LPC_SYSCON_SYSAHBCLKCTRL |= (1u << 6) | (1u << 16);
     clock_init_48mhz();
@@ -27,8 +28,11 @@ int main(void)
     LPC_GPIO1_DIR |= pin_mask;
 
     while (1) {
+        iteration++;
         LPC_GPIO1_DATA ^= pin_mask;
-        uart_puts("PIO1_0=");
+        uart_puts("blink ");
+        uart_put_dec_u32(iteration);
+        uart_puts(" PIO1_0=");
         uart_putc((LPC_GPIO1_DATA & pin_mask) ? '1' : '0');
         uart_puts("\r\n");
         delay_ms(500);

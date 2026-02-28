@@ -1,0 +1,523 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Web Debugger MVP</title>
+  <style>
+    :root {
+      --bg: #f4f1ea;
+      --panel: #fffaf0;
+      --ink: #1b1b1b;
+      --accent: #0d6b57;
+      --muted: #6b6b6b;
+      --line: #d9cfbf;
+      --warn: #8a3b12;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top right, #e3efe6 0, transparent 35%),
+        radial-gradient(circle at bottom left, #efe3dc 0, transparent 35%),
+        var(--bg);
+    }
+    main {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 24px 16px 48px;
+    }
+    h1 {
+      margin: 0 0 8px;
+      font-size: 2rem;
+      letter-spacing: -0.03em;
+    }
+    .subtitle {
+      margin: 0 0 20px;
+      color: var(--muted);
+    }
+    .toolbar, .grid {
+      display: grid;
+      gap: 16px;
+    }
+    .toolbar {
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      margin-bottom: 16px;
+    }
+    .grid {
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    }
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 16px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
+    }
+    .panel h2 {
+      margin: 0 0 12px;
+      font-size: 1rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    button {
+      width: 100%;
+      border: 0;
+      border-radius: 10px;
+      padding: 12px 14px;
+      font: inherit;
+      font-weight: 600;
+      background: var(--accent);
+      color: white;
+      cursor: pointer;
+    }
+    button.secondary {
+      background: #4b5f88;
+    }
+    button.warn {
+      background: var(--warn);
+    }
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .status {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: #e7f4ef;
+      color: var(--accent);
+      font-weight: 600;
+    }
+    .meta {
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: "IBM Plex Mono", "Consolas", monospace;
+      font-size: 0.92rem;
+    }
+    th, td {
+      text-align: left;
+      padding: 6px 0;
+      border-bottom: 1px solid var(--line);
+    }
+    th {
+      color: var(--muted);
+      font-weight: 600;
+    }
+    .memory-block {
+      margin-bottom: 16px;
+    }
+    .memory-name {
+      margin: 0 0 6px;
+      font-weight: 600;
+      font-family: "IBM Plex Mono", "Consolas", monospace;
+    }
+    .memory-dump {
+      margin: 0;
+      padding: 12px;
+      border-radius: 10px;
+      background: #f1ecdf;
+      border: 1px solid var(--line);
+      overflow: auto;
+      font-family: "IBM Plex Mono", "Consolas", monospace;
+      font-size: 0.9rem;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .byte {
+      display: inline-block;
+      min-width: 1.7em;
+      text-align: center;
+      border-radius: 4px;
+      margin-right: 0.2em;
+      transition: background-color 120ms ease;
+    }
+    .byte.changed {
+      background: #ffd98a;
+      color: #5c3200;
+      font-weight: 700;
+    }
+    pre {
+      margin: 0;
+      padding: 12px;
+      border-radius: 10px;
+      background: #f1ecdf;
+      border: 1px solid var(--line);
+      overflow: auto;
+      font-family: "IBM Plex Mono", "Consolas", monospace;
+      font-size: 0.9rem;
+      line-height: 1.4;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .log {
+      max-height: 220px;
+      overflow: auto;
+    }
+    .watch-form {
+      display: grid;
+      gap: 10px;
+    }
+    .control-form {
+      display: grid;
+      gap: 10px;
+    }
+    input {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 10px 12px;
+      font: inherit;
+      background: #fffdf7;
+      color: var(--ink);
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Web Debugger MVP</h1>
+    <p class="subtitle">Single-owner LPC1114 control with live halted-state snapshots.</p>
+
+    <div class="toolbar">
+      <button id="connectBtn">Connect</button>
+      <button id="disconnectBtn" class="warn">Disconnect</button>
+      <button id="runBtn">Run</button>
+      <button id="haltBtn">Halt</button>
+      <button id="stepBtn" class="secondary">Step</button>
+      <button id="resetBtn" class="secondary">Reset Halt</button>
+    </div>
+
+    <div class="grid">
+      <section class="panel">
+        <h2>Session</h2>
+        <div class="status">
+          <span class="badge" id="stateBadge">disconnected</span>
+          <span class="meta" id="targetLabel">target: none</span>
+        </div>
+        <div class="meta" id="metricsLine">sample_hz: 0 latency_ms: 0 dropped: 0</div>
+      </section>
+
+      <section class="panel">
+        <h2>Watch Control</h2>
+        <div class="watch-form">
+          <input id="watchName" type="text" placeholder="name" value="ram0">
+          <input id="watchAddress" type="text" placeholder="address" value="0x10000000">
+          <input id="watchLength" type="number" min="1" step="1" placeholder="length" value="16">
+          <button id="addWatchBtn" class="secondary">Add Watch</button>
+          <button id="removeWatchBtn" class="warn">Remove Watch</button>
+        </div>
+        <div class="meta" id="watchSummary">Configured watches: none</div>
+      </section>
+
+      <section class="panel">
+        <h2>Display Control</h2>
+        <div class="control-form">
+          <input id="sampleRateInput" type="number" min="1" max="20" step="1" value="10">
+          <button id="applyRateBtn" class="secondary">Apply Sample Rate</button>
+          <button id="togglePauseBtn" class="warn">Pause Display</button>
+        </div>
+        <div class="meta" id="displaySummary">Display live. halted_sample_hz: 10</div>
+      </section>
+
+      <section class="panel">
+        <h2>Registers</h2>
+        <table>
+          <thead>
+            <tr><th>Register</th><th>Value</th></tr>
+          </thead>
+          <tbody id="registerBody"></tbody>
+        </table>
+      </section>
+
+      <section class="panel">
+        <h2>Watched Memory</h2>
+        <div id="memoryContainer" class="meta">No watched regions yet.</div>
+      </section>
+
+      <section class="panel">
+        <h2>Event Log</h2>
+        <pre id="eventLog" class="log"></pre>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    const stateBadge = document.getElementById("stateBadge");
+    const targetLabel = document.getElementById("targetLabel");
+    const metricsLine = document.getElementById("metricsLine");
+    const registerBody = document.getElementById("registerBody");
+    const memoryContainer = document.getElementById("memoryContainer");
+    const eventLog = document.getElementById("eventLog");
+    const watchSummary = document.getElementById("watchSummary");
+    const watchNameInput = document.getElementById("watchName");
+    const watchAddressInput = document.getElementById("watchAddress");
+    const watchLengthInput = document.getElementById("watchLength");
+    const sampleRateInput = document.getElementById("sampleRateInput");
+    const displaySummary = document.getElementById("displaySummary");
+    const togglePauseBtn = document.getElementById("togglePauseBtn");
+
+    const watchedMemory = new Map();
+    const previousMemoryHex = new Map();
+    const configuredWatches = new Map();
+    let socket = null;
+    let displayPaused = false;
+    let haltedSampleHz = 10;
+
+    function appendLog(line) {
+      const ts = new Date().toISOString();
+      eventLog.textContent = `${eventLog.textContent}${ts} ${line}\n`.slice(-6000);
+      eventLog.scrollTop = eventLog.scrollHeight;
+    }
+
+    async function apiPost(path, body = {}) {
+      const res = await fetch(path, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json();
+      if (!res.ok || data.ok === false) {
+        throw new Error(data.detail || data.error || "request failed");
+      }
+      return data;
+    }
+
+    async function apiGet(path) {
+      const res = await fetch(path);
+      const data = await res.json();
+      if (!res.ok || data.ok === false) {
+        throw new Error(data.detail || data.error || "request failed");
+      }
+      return data;
+    }
+
+    async function apiDelete(path) {
+      const res = await fetch(path, { method: "DELETE" });
+      const data = await res.json();
+      if (!res.ok || data.ok === false) {
+        throw new Error(data.detail || data.error || "request failed");
+      }
+      return data;
+    }
+
+    function connectSocket() {
+      if (socket && (socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CONNECTING)) {
+        return;
+      }
+      const proto = location.protocol === "https:" ? "wss" : "ws";
+      socket = new WebSocket(`${proto}://${location.host}/ws`);
+      socket.onopen = () => appendLog("websocket connected");
+      socket.onclose = () => appendLog("websocket closed");
+      socket.onerror = () => appendLog("websocket error");
+      socket.onmessage = (event) => {
+        const msg = JSON.parse(event.data);
+        handleMessage(msg);
+      };
+    }
+
+    function handleMessage(msg) {
+      if (msg.type === "session_status") {
+        stateBadge.textContent = msg.state;
+        targetLabel.textContent = `target: ${msg.target || "none"}`;
+        appendLog(`session ${msg.reason} -> ${msg.state}`);
+        return;
+      }
+      if (msg.type === "register_snapshot") {
+        if (displayPaused) {
+          return;
+        }
+        renderRegisters(msg.registers);
+        return;
+      }
+      if (msg.type === "memory_snapshot") {
+        if (displayPaused) {
+          return;
+        }
+        watchedMemory.set(msg.name, msg);
+        renderMemory();
+        return;
+      }
+      if (msg.type === "metrics") {
+        metricsLine.textContent = `sample_hz: ${msg.sample_hz} latency_ms: ${msg.backend_latency_ms} dropped: ${msg.dropped_frames}`;
+        return;
+      }
+      if (msg.type === "event") {
+        appendLog(`event ${msg.event}: ${msg.detail || ""}`.trim());
+      }
+    }
+
+    function renderRegisters(registers) {
+      const order = [
+        "r0","r1","r2","r3","r4","r5","r6","r7",
+        "r8","r9","r10","r11","r12","sp","lr","pc","xpsr"
+      ];
+      registerBody.innerHTML = "";
+      for (const name of order) {
+        if (!(name in registers)) continue;
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td>${name}</td><td>${registers[name]}</td>`;
+        registerBody.appendChild(tr);
+      }
+    }
+
+    function hexToGroups(hex) {
+      const groups = [];
+      for (let i = 0; i < hex.length; i += 2) {
+        groups.push(hex.slice(i, i + 2));
+      }
+      return groups;
+    }
+
+    function renderMemory() {
+      if (watchedMemory.size === 0) {
+        memoryContainer.textContent = "No watched regions yet.";
+        return;
+      }
+      memoryContainer.innerHTML = "";
+      for (const [name, snap] of watchedMemory.entries()) {
+        const block = document.createElement("div");
+        block.className = "memory-block";
+        const title = document.createElement("div");
+        title.className = "memory-name";
+        title.textContent = `${name} @ ${snap.address} (${snap.length} bytes)`;
+        const body = document.createElement("div");
+        body.className = "memory-dump";
+        const currentBytes = hexToGroups(snap.data_hex);
+        const previousBytes = hexToGroups(previousMemoryHex.get(name) || "");
+        currentBytes.forEach((byte, index) => {
+          if (index > 0 && index % 16 === 0) {
+            body.appendChild(document.createElement("br"));
+          }
+          const span = document.createElement("span");
+          span.className = "byte";
+          if (previousBytes[index] && previousBytes[index] !== byte) {
+            span.classList.add("changed");
+          }
+          span.textContent = byte;
+          body.appendChild(span);
+        });
+        previousMemoryHex.set(name, snap.data_hex);
+        block.appendChild(title);
+        block.appendChild(body);
+        memoryContainer.appendChild(block);
+      }
+    }
+
+    function renderWatchSummary() {
+      if (configuredWatches.size === 0) {
+        watchSummary.textContent = "Configured watches: none";
+        return;
+      }
+      const parts = [];
+      for (const watch of configuredWatches.values()) {
+        parts.push(`${watch.name}@${watch.address}/${watch.length}`);
+      }
+      watchSummary.textContent = `Configured watches: ${parts.join(", ")}`;
+    }
+
+    function renderDisplaySummary() {
+      const mode = displayPaused ? "Display paused." : "Display live.";
+      displaySummary.textContent = `${mode} halted_sample_hz: ${haltedSampleHz}`;
+      togglePauseBtn.textContent = displayPaused ? "Resume Display" : "Pause Display";
+    }
+
+    async function refreshWatches() {
+      const data = await apiGet("/api/v1/watches");
+      configuredWatches.clear();
+      const validNames = new Set();
+      for (const watch of data.watches) {
+        configuredWatches.set(watch.name, watch);
+        validNames.add(watch.name);
+      }
+      for (const name of Array.from(watchedMemory.keys())) {
+        if (!validNames.has(name)) {
+          watchedMemory.delete(name);
+          previousMemoryHex.delete(name);
+        }
+      }
+      renderWatchSummary();
+      renderMemory();
+    }
+
+    async function refreshConfig() {
+      const data = await apiGet("/api/v1/config");
+      haltedSampleHz = data.halted_sample_hz;
+      sampleRateInput.value = String(haltedSampleHz);
+      renderDisplaySummary();
+    }
+
+    async function runAction(label, fn) {
+      try {
+        await fn();
+        appendLog(`${label}: ok`);
+      } catch (err) {
+        appendLog(`${label}: ${err.message}`);
+      }
+    }
+
+    document.getElementById("connectBtn").addEventListener("click", () => runAction("connect", async () => {
+      connectSocket();
+      await apiPost("/api/v1/session/connect", { target: "lpc1114", transport: "swd" });
+    }));
+    document.getElementById("disconnectBtn").addEventListener("click", () => runAction("disconnect", async () => {
+      await apiPost("/api/v1/session/disconnect");
+    }));
+    document.getElementById("runBtn").addEventListener("click", () => runAction("run", async () => {
+      await apiPost("/api/v1/target/run");
+    }));
+    document.getElementById("haltBtn").addEventListener("click", () => runAction("halt", async () => {
+      await apiPost("/api/v1/target/halt");
+    }));
+    document.getElementById("stepBtn").addEventListener("click", () => runAction("step", async () => {
+      await apiPost("/api/v1/target/step", { count: 1 });
+    }));
+    document.getElementById("resetBtn").addEventListener("click", () => runAction("reset", async () => {
+      await apiPost("/api/v1/target/reset", { mode: "halt" });
+    }));
+    document.getElementById("addWatchBtn").addEventListener("click", () => runAction("add watch", async () => {
+      const payload = {
+        name: watchNameInput.value.trim(),
+        address: watchAddressInput.value.trim(),
+        length: Number(watchLengthInput.value),
+      };
+      await apiPost("/api/v1/watch", payload);
+      await refreshWatches();
+    }));
+    document.getElementById("removeWatchBtn").addEventListener("click", () => runAction("remove watch", async () => {
+      const name = watchNameInput.value.trim();
+      await apiDelete(`/api/v1/watch?name=${encodeURIComponent(name)}`);
+      await refreshWatches();
+    }));
+    document.getElementById("applyRateBtn").addEventListener("click", () => runAction("apply sample rate", async () => {
+      const halted_sample_hz = Number(sampleRateInput.value);
+      const data = await apiPost("/api/v1/config", { halted_sample_hz });
+      haltedSampleHz = data.halted_sample_hz;
+      renderDisplaySummary();
+    }));
+    togglePauseBtn.addEventListener("click", () => {
+      displayPaused = !displayPaused;
+      renderDisplaySummary();
+      appendLog(displayPaused ? "display paused" : "display resumed");
+    });
+
+    connectSocket();
+    refreshWatches().catch((err) => appendLog(`watch refresh: ${err.message}`));
+    refreshConfig().catch((err) => appendLog(`config refresh: ${err.message}`));
+    renderDisplaySummary();
+  </script>
+</body>
+</html>

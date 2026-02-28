@@ -39,6 +39,8 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 STATIC_DIR = Path(__file__).resolve().parent / "static"
 HALTED_SAMPLE_INTERVAL_S = 0.1
 RUNNING_METRICS_INTERVAL_S = 1.0
+MIN_HALTED_SAMPLE_HZ = 1
+MAX_HALTED_SAMPLE_HZ = 20
 REGISTER_ORDER = [
     "r0",
     "r1",
@@ -394,6 +396,47 @@ class DebugSession:
                 "registers": registers,
             }
 
+    def sample_halted(self) -> Optional[Dict[str, object]]:
+        """Take one coherent halted-state sample under a single session lock.
+
+        This avoids racing a run/halt transition between separate register and
+        memory reads, which can desynchronize the OpenOCD Tcl stream.
+        """
+        with self.lock:
+            self._require_connected_locked()
+            if self.state != "halted":
+                return None
+
+            registers = self._read_registers_locked()
+            seq = self.next_seq()
+            register_snapshot = {
+                "type": "register_snapshot",
+                "ts": iso8601_utc_now(),
+                "arch": self.arch,
+                "seq": seq,
+                "registers": registers,
+            }
+
+            memory_snapshots: List[Dict] = []
+            for name, watch in self.watches.items():
+                data = self._read_memory_bytes_locked(watch["address"], watch["length"])
+                memory_snapshots.append(
+                    {
+                        "type": "memory_snapshot",
+                        "ts": iso8601_utc_now(),
+                        "seq": seq,
+                        "name": name,
+                        "address": f"0x{watch['address']:08x}",
+                        "length": watch["length"],
+                        "data_hex": data.hex(),
+                    }
+                )
+
+            return {
+                "register_snapshot": register_snapshot,
+                "memory_snapshots": memory_snapshots,
+            }
+
     def read_memory(self, address: int, length: int) -> bytes:
         if length < 0:
             raise SessionError("bad_request", "memory length must not be negative")
@@ -497,6 +540,8 @@ class AppState:
         self.session = DebugSession()
         self.clients: List[WebSocketClient] = []
         self.clients_lock = threading.Lock()
+        self.halted_sample_hz = int(round(1.0 / HALTED_SAMPLE_INTERVAL_S))
+        self.config_lock = threading.Lock()
         self.stop_event = threading.Event()
         self.sampler_thread = threading.Thread(target=self._sampler_loop, name="backend-sampler", daemon=True)
         self.sampler_thread.start()
@@ -537,6 +582,20 @@ class AppState:
         self.stop_event.set()
         self.sampler_thread.join(timeout=1.0)
 
+    def get_config(self) -> Dict[str, int]:
+        with self.config_lock:
+            return {"halted_sample_hz": self.halted_sample_hz}
+
+    def set_config(self, halted_sample_hz: int) -> Dict[str, int]:
+        if halted_sample_hz < MIN_HALTED_SAMPLE_HZ or halted_sample_hz > MAX_HALTED_SAMPLE_HZ:
+            raise SessionError(
+                "bad_request",
+                f"halted_sample_hz must be in range {MIN_HALTED_SAMPLE_HZ}..{MAX_HALTED_SAMPLE_HZ}",
+            )
+        with self.config_lock:
+            self.halted_sample_hz = halted_sample_hz
+            return {"halted_sample_hz": self.halted_sample_hz}
+
     def _sampler_loop(self) -> None:
         last_running_metrics_ts = 0.0
         while not self.stop_event.is_set():
@@ -546,10 +605,12 @@ class AppState:
 
             state = self.session.state
             if state == "halted":
+                config = self.get_config()
+                sample_hz_target = config["halted_sample_hz"]
+                interval_s = 1.0 / max(sample_hz_target, 1)
                 start = time.monotonic()
                 try:
-                    register_snapshot = self.session.register_snapshot()
-                    memory_snapshots = self.session.memory_snapshots()
+                    sample = self.session.sample_halted()
                 except SessionError as exc:
                     self.broadcast(
                         {
@@ -559,17 +620,23 @@ class AppState:
                             "detail": exc.detail,
                         }
                     )
-                    self.stop_event.wait(HALTED_SAMPLE_INTERVAL_S)
+                    self.stop_event.wait(interval_s)
                     continue
 
+                if sample is None:
+                    self.stop_event.wait(interval_s)
+                    continue
+
+                register_snapshot = sample["register_snapshot"]
+                memory_snapshots = sample["memory_snapshots"]
                 self.broadcast(register_snapshot)
                 for snapshot in memory_snapshots:
                     self.broadcast(snapshot)
 
                 elapsed_ms = int((time.monotonic() - start) * 1000)
-                sample_hz = 0
-                if elapsed_ms < int(HALTED_SAMPLE_INTERVAL_S * 1000):
-                    sample_hz = int(round(1.0 / HALTED_SAMPLE_INTERVAL_S))
+                sample_hz = sample_hz_target
+                if elapsed_ms > int(interval_s * 1000) and elapsed_ms > 0:
+                    sample_hz = max(1, int(round(1000.0 / elapsed_ms)))
                 self.broadcast(
                     {
                         "type": "metrics",
@@ -579,7 +646,7 @@ class AppState:
                         "dropped_frames": 0,
                     }
                 )
-                self.stop_event.wait(HALTED_SAMPLE_INTERVAL_S)
+                self.stop_event.wait(interval_s)
                 continue
 
             now = time.monotonic()
@@ -614,11 +681,13 @@ class DebugHTTPRequestHandler(BaseHTTPRequestHandler):
         try:
             self._do_get()
         except SessionError as exc:
+            self.log_message('api error "%s %s": %s (%s)', self.command, self.path, exc.error, exc.detail)
             self._json_response(
                 HTTPStatus.BAD_REQUEST,
                 {"ok": False, "error": exc.error, "detail": exc.detail},
             )
         except Exception as exc:
+            self.log_message('api exception "%s %s": %s', self.command, self.path, str(exc))
             self._json_response(
                 HTTPStatus.INTERNAL_SERVER_ERROR,
                 {"ok": False, "error": "internal_error", "detail": str(exc)},
@@ -628,11 +697,13 @@ class DebugHTTPRequestHandler(BaseHTTPRequestHandler):
         try:
             self._do_post()
         except SessionError as exc:
+            self.log_message('api error "%s %s": %s (%s)', self.command, self.path, exc.error, exc.detail)
             self._json_response(
                 HTTPStatus.BAD_REQUEST,
                 {"ok": False, "error": exc.error, "detail": exc.detail},
             )
         except Exception as exc:
+            self.log_message('api exception "%s %s": %s', self.command, self.path, str(exc))
             self._json_response(
                 HTTPStatus.INTERNAL_SERVER_ERROR,
                 {"ok": False, "error": "internal_error", "detail": str(exc)},
@@ -643,11 +714,13 @@ class DebugHTTPRequestHandler(BaseHTTPRequestHandler):
             self._do_delete()
         except SessionError as exc:
             status = HTTPStatus.NOT_FOUND if exc.error == "not_found" else HTTPStatus.BAD_REQUEST
+            self.log_message('api error "%s %s": %s (%s)', self.command, self.path, exc.error, exc.detail)
             self._json_response(
                 status,
                 {"ok": False, "error": exc.error, "detail": exc.detail},
             )
         except Exception as exc:
+            self.log_message('api exception "%s %s": %s', self.command, self.path, str(exc))
             self._json_response(
                 HTTPStatus.INTERNAL_SERVER_ERROR,
                 {"ok": False, "error": "internal_error", "detail": str(exc)},
@@ -666,6 +739,9 @@ class DebugHTTPRequestHandler(BaseHTTPRequestHandler):
             return
         if parsed.path == "/api/v1/target/memory":
             self._handle_get_memory(parsed.query)
+            return
+        if parsed.path == "/api/v1/config":
+            self._json_response(HTTPStatus.OK, {"ok": True, **APP.get_config()})
             return
         if parsed.path == "/api/v1/watches":
             self._json_response(HTTPStatus.OK, {"ok": True, "watches": APP.session.list_watches()})
@@ -735,6 +811,14 @@ class DebugHTTPRequestHandler(BaseHTTPRequestHandler):
                 raise SessionError("bad_request", "name, address, length required")
             result = APP.session.set_watch(name, address, length)
             self._json_response(HTTPStatus.OK, result)
+            return
+        if parsed.path == "/api/v1/config":
+            try:
+                halted_sample_hz = int(body["halted_sample_hz"])
+            except (KeyError, ValueError, TypeError):
+                raise SessionError("bad_request", "halted_sample_hz integer required")
+            result = APP.set_config(halted_sample_hz)
+            self._json_response(HTTPStatus.OK, {"ok": True, **result})
             return
         self._json_response(HTTPStatus.NOT_FOUND, {"ok": False, "error": "not_found"})
 
