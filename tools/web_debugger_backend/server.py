@@ -19,11 +19,14 @@ import argparse
 import base64
 import hashlib
 import json
+import os
 import re
+import select
 import socket
 import subprocess
 import threading
 import time
+import termios
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from http import HTTPStatus
@@ -542,9 +545,13 @@ class AppState:
         self.clients_lock = threading.Lock()
         self.halted_sample_hz = int(round(1.0 / HALTED_SAMPLE_INTERVAL_S))
         self.config_lock = threading.Lock()
+        self.uart_path = self._detect_uart_mirror_path()
+        self.uart_status = "disabled" if self.uart_path is None else "idle"
         self.stop_event = threading.Event()
         self.sampler_thread = threading.Thread(target=self._sampler_loop, name="backend-sampler", daemon=True)
+        self.uart_thread = threading.Thread(target=self._uart_loop, name="backend-uart", daemon=True)
         self.sampler_thread.start()
+        self.uart_thread.start()
 
     def add_client(self, client: WebSocketClient) -> None:
         with self.clients_lock:
@@ -581,10 +588,15 @@ class AppState:
     def stop(self) -> None:
         self.stop_event.set()
         self.sampler_thread.join(timeout=1.0)
+        self.uart_thread.join(timeout=1.0)
 
-    def get_config(self) -> Dict[str, int]:
+    def get_config(self) -> Dict[str, object]:
         with self.config_lock:
-            return {"halted_sample_hz": self.halted_sample_hz}
+            return {
+                "halted_sample_hz": self.halted_sample_hz,
+                "uart_path": self.uart_path,
+                "uart_status": self.uart_status,
+            }
 
     def set_config(self, halted_sample_hz: int) -> Dict[str, int]:
         if halted_sample_hz < MIN_HALTED_SAMPLE_HZ or halted_sample_hz > MAX_HALTED_SAMPLE_HZ:
@@ -595,6 +607,128 @@ class AppState:
         with self.config_lock:
             self.halted_sample_hz = halted_sample_hz
             return {"halted_sample_hz": self.halted_sample_hz}
+
+    def _set_uart_status(self, status: str) -> None:
+        with self.config_lock:
+            self.uart_status = status
+
+    def _uart_loop(self) -> None:
+        fd: Optional[int] = None
+        open_path: Optional[str] = None
+        while not self.stop_event.is_set():
+            if not self._has_clients():
+                if fd is not None:
+                    os.close(fd)
+                    fd = None
+                    open_path = None
+                    self._set_uart_status("idle")
+                self.stop_event.wait(0.25)
+                continue
+
+            path = self.uart_path
+            if not path:
+                self._set_uart_status("disabled")
+                self.stop_event.wait(0.5)
+                continue
+
+            if fd is None or open_path != path:
+                if fd is not None:
+                    os.close(fd)
+                    fd = None
+                try:
+                    fd = self._open_uart_fd(path)
+                    open_path = path
+                    self._set_uart_status("streaming")
+                except OSError as exc:
+                    self._set_uart_status(f"error: {exc}")
+                    self.stop_event.wait(1.0)
+                    continue
+
+            try:
+                ready, _, _ = select.select([fd], [], [], 0.2)
+            except (OSError, ValueError) as exc:
+                self._set_uart_status(f"error: {exc}")
+                if fd is not None:
+                    os.close(fd)
+                    fd = None
+                    open_path = None
+                self.stop_event.wait(0.5)
+                continue
+
+            if not ready:
+                continue
+
+            try:
+                chunk = os.read(fd, 256)
+            except BlockingIOError:
+                continue
+            except OSError as exc:
+                self._set_uart_status(f"error: {exc}")
+                if fd is not None:
+                    os.close(fd)
+                    fd = None
+                    open_path = None
+                self.stop_event.wait(0.5)
+                continue
+
+            if not chunk:
+                self._set_uart_status("idle")
+                if fd is not None:
+                    os.close(fd)
+                    fd = None
+                    open_path = None
+                self.stop_event.wait(0.25)
+                continue
+
+            self.broadcast(
+                {
+                    "type": "uart_rx",
+                    "ts": iso8601_utc_now(),
+                    "path": path,
+                    "text": chunk.decode("utf-8", errors="replace"),
+                }
+            )
+
+        if fd is not None:
+            os.close(fd)
+
+    def _detect_uart_mirror_path(self) -> Optional[str]:
+        script = REPO_ROOT / "tools" / "find_debugprobe_uart_ports.sh"
+        if not script.is_file():
+            return None
+        try:
+            result = subprocess.run(
+                ["bash", str(script), "--env"],
+                cwd=str(REPO_ROOT),
+                capture_output=True,
+                text=True,
+                timeout=2.0,
+                check=True,
+            )
+        except (OSError, subprocess.SubprocessError):
+            return None
+
+        for line in result.stdout.splitlines():
+            if line.startswith("DEBUGPROBE_UART_MIRROR="):
+                value = line.split("=", 1)[1].strip()
+                return value or None
+        return None
+
+    def _open_uart_fd(self, path: str) -> int:
+        fd = os.open(path, os.O_RDONLY | os.O_NOCTTY | os.O_NONBLOCK)
+        attrs = termios.tcgetattr(fd)
+        attrs[0] = 0
+        attrs[1] = 0
+        attrs[2] = attrs[2] | termios.CLOCAL | termios.CREAD | termios.CS8
+        attrs[2] = attrs[2] & ~(termios.PARENB | termios.CSTOPB | termios.CRTSCTS)
+        attrs[3] = 0
+        attrs[4] = termios.B57600
+        attrs[5] = termios.B57600
+        attrs[6][termios.VMIN] = 0
+        attrs[6][termios.VTIME] = 0
+        termios.tcsetattr(fd, termios.TCSANOW, attrs)
+        termios.tcflush(fd, termios.TCIFLUSH)
+        return fd
 
     def _sampler_loop(self) -> None:
         last_running_metrics_ts = 0.0

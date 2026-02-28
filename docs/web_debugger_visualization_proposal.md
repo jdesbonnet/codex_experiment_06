@@ -81,6 +81,10 @@ Transport:
   - watched regions by address
   - word/byte views with changed-byte highlighting
 
+- UART panel:
+  - RX-only text stream from the debugprobe mirror UART
+  - pause/clear display controls
+
 - Execution panel:
   - run/halt/step/reset controls
   - current PC, halt reason, last breakpoint/watchpoint

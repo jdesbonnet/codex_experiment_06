@@ -10,6 +10,7 @@ Current status:
 - LPC1114 target operations use a real OpenOCD process plus the Tcl socket
 - register and memory reads are live OpenOCD queries
 - halted-state background sampling now publishes register snapshots and watched memory snapshots over WebSocket
+- debugprobe UART mirror RX is streamed over WebSocket when a UI client is connected
 - running-state WebSocket traffic is metrics-only for now
 
 ## Run
@@ -23,6 +24,7 @@ Default bind:
 
 UI:
 - open `http://127.0.0.1:8765/` for the minimal built-in frontend
+- the UI now includes a UART RX panel fed from the debugprobe mirror CDC port
 
 ## Useful Endpoints
 
@@ -48,3 +50,13 @@ UI:
 Extend `tools/web_debugger_backend/server.py` with:
 - explicit OpenOCD error classification and recovery
 - optional GDB/MI integration or proxy layer once the single-owner control path is stable
+
+## UART Notes
+
+- The backend auto-detects the debugprobe mirror UART using:
+  - `tools/find_debugprobe_uart_ports.sh --env`
+- The backend opens the mirror UART in RX-only mode at `57600 8N1`.
+- To avoid serial-read contention, only one process should read a given `/dev/ttyACM*` device node.
+- Recommended split:
+  - backend/UI reads the mirror port
+  - any manual terminal session uses the primary UART port

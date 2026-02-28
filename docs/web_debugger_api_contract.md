@@ -305,6 +305,17 @@ Rules:
 }
 ```
 
+### Message: `uart_rx`
+
+```json
+{
+  "type": "uart_rx",
+  "ts": "2026-02-28T12:00:03Z",
+  "path": "/dev/ttyACM2",
+  "text": "blink 42 PIO1_0=1\r\n"
+}
+```
+
 ## Sampling Policy (MVP)
 
 Default modes:
@@ -345,6 +356,7 @@ The following are deliberately excluded from the first implementation:
 - multiple frontends issuing independent control commands
 - long-running historical recording or database storage
 - exact protocol compatibility with a raw GDB remote server
+- UART transmit from the browser
 
 ## Next Implementation Step
 

@@ -234,6 +234,16 @@
       </section>
 
       <section class="panel">
+        <h2>UART RX</h2>
+        <div class="control-form">
+          <button id="toggleUartPauseBtn" class="secondary">Pause UART</button>
+          <button id="clearUartBtn" class="warn">Clear UART</button>
+        </div>
+        <div class="meta" id="uartSummary">UART idle.</div>
+        <pre id="uartLog" class="log"></pre>
+      </section>
+
+      <section class="panel">
         <h2>Registers</h2>
         <table>
           <thead>
@@ -269,6 +279,9 @@
     const sampleRateInput = document.getElementById("sampleRateInput");
     const displaySummary = document.getElementById("displaySummary");
     const togglePauseBtn = document.getElementById("togglePauseBtn");
+    const uartSummary = document.getElementById("uartSummary");
+    const uartLog = document.getElementById("uartLog");
+    const toggleUartPauseBtn = document.getElementById("toggleUartPauseBtn");
 
     const watchedMemory = new Map();
     const previousMemoryHex = new Map();
@@ -276,6 +289,9 @@
     let socket = null;
     let displayPaused = false;
     let haltedSampleHz = 10;
+    let uartPaused = false;
+    let uartPath = null;
+    let uartStatus = "disabled";
 
     function appendLog(line) {
       const ts = new Date().toISOString();
@@ -353,6 +369,15 @@
       }
       if (msg.type === "metrics") {
         metricsLine.textContent = `sample_hz: ${msg.sample_hz} latency_ms: ${msg.backend_latency_ms} dropped: ${msg.dropped_frames}`;
+        return;
+      }
+      if (msg.type === "uart_rx") {
+        if (uartPaused) {
+          return;
+        }
+        uartPath = msg.path;
+        appendUart(msg.text);
+        renderUartSummary();
         return;
       }
       if (msg.type === "event") {
@@ -435,6 +460,18 @@
       togglePauseBtn.textContent = displayPaused ? "Resume Display" : "Pause Display";
     }
 
+    function appendUart(text) {
+      uartLog.textContent = `${uartLog.textContent}${text}`.slice(-12000);
+      uartLog.scrollTop = uartLog.scrollHeight;
+    }
+
+    function renderUartSummary() {
+      const mode = uartPaused ? "paused" : "live";
+      const path = uartPath || "not configured";
+      uartSummary.textContent = `UART ${mode}. path: ${path}. status: ${uartStatus}`;
+      toggleUartPauseBtn.textContent = uartPaused ? "Resume UART" : "Pause UART";
+    }
+
     async function refreshWatches() {
       const data = await apiGet("/api/v1/watches");
       configuredWatches.clear();
@@ -456,8 +493,11 @@
     async function refreshConfig() {
       const data = await apiGet("/api/v1/config");
       haltedSampleHz = data.halted_sample_hz;
+      uartPath = data.uart_path;
+      uartStatus = data.uart_status;
       sampleRateInput.value = String(haltedSampleHz);
       renderDisplaySummary();
+      renderUartSummary();
     }
 
     async function runAction(label, fn) {
@@ -513,11 +553,20 @@
       renderDisplaySummary();
       appendLog(displayPaused ? "display paused" : "display resumed");
     });
+    toggleUartPauseBtn.addEventListener("click", () => {
+      uartPaused = !uartPaused;
+      renderUartSummary();
+      appendLog(uartPaused ? "uart display paused" : "uart display resumed");
+    });
+    document.getElementById("clearUartBtn").addEventListener("click", () => {
+      uartLog.textContent = "";
+    });
 
     connectSocket();
     refreshWatches().catch((err) => appendLog(`watch refresh: ${err.message}`));
     refreshConfig().catch((err) => appendLog(`config refresh: ${err.message}`));
     renderDisplaySummary();
+    renderUartSummary();
   </script>
 </body>
 </html>
