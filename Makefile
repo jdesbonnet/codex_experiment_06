@@ -11,6 +11,7 @@ SIZE := arm-none-eabi-size
 CFLAGS := -mcpu=cortex-m0 -mthumb -Og -g -ffunction-sections -fdata-sections \
 	-Wall -Wextra -Werror -std=c11
 CFLAGS += -Icommon/include
+CFLAGS += -MMD -MP
 
 LDFLAGS := -T linker/lpc1114.ld -nostartfiles -Wl,--gc-sections
 
@@ -28,6 +29,8 @@ PROJECT_SRC := $(if $(wildcard projects/$(PROJECT)/lpc1114_c/main.c),projects/$(
 OBJS := \
 	$(COMMON_SRCS:%.c=$(BUILD_DIR)/%.o) \
 	$(BUILD_DIR)/$(PROJECT_SRC:.c=.o)
+
+DEPS := $(OBJS:.o=.d)
 
 .PHONY: all clean
 
@@ -49,3 +52,5 @@ $(BUILD_DIR)/$(PROJECT).bin: $(BUILD_DIR)/$(PROJECT).elf
 
 clean:
 	rm -rf build
+
+-include $(DEPS)

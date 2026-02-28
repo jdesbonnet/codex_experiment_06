@@ -357,6 +357,12 @@ Example candidate:
 - expected SHA-1:
   - `A9993E364706816ABA3E25717850C26C9CD0D89D`
 
+Current status:
+- the first single-block SHA-1 regression is now implemented as:
+  - `projects/tiny_vm/tests/sha1_abc.cvm.c`
+- it uses a fixed `"abc"` block and prints the five 32-bit digest words as uppercase hex
+- this proves the current VM core can execute a real cryptographic hash for at least a fixed, bounded regression case
+
 This keeps the next step aligned with the project goal:
 - real capability growth
 - bounded complexity
@@ -618,6 +624,21 @@ Expected output:
 A5A5A5A5
 ```
 
+Compile SHA-1 `"abc"` regression:
+```sh
+./tools/vm_cc.py projects/tiny_vm/tests/sha1_abc.cvm.c -o /tmp/sha1_abc.bin
+./tools/vm_upload.py /tmp/sha1_abc.bin --port /dev/ttyACM1 --baud 57600
+```
+
+Expected output:
+```text
+A9993E36
+4706816A
+BA3E2571
+7850C26C
+9CD0D89D
+```
+
 ## Hardware Regression
 
 Run all finite-output LPC1114 demo regressions:
@@ -641,6 +662,7 @@ Notes:
   - `crc32`
   - `rotate32`
   - `mem32`
+  - `sha1_abc`
 - `demos/blink.cvm.c` is intentionally excluded because it does not emit UART output and does not halt
 
 ## Demos
