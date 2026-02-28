@@ -128,7 +128,7 @@ Transport:
 ## Implementation Plan
 
 1. Backend MVP
-- Node.js or Python service on Pi
+- Node.js or Python service on Pi [prefer python]
 - OpenOCD/GDB MI adapter for LPC1114
 - WebSocket endpoint + basic JSON schema
 
