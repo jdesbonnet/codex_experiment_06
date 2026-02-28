@@ -70,3 +70,13 @@ Extend `tools/web_debugger_backend/server.py` with:
 - Recommended split:
   - backend/UI reads the mirror port
   - any manual terminal session uses the primary UART port
+
+## Known Issue
+
+- Intermittent `POST /api/v1/target/run` failures can occur with:
+  - `openocd_timeout (Tcl command timed out: resume)`
+- This leaves the current OpenOCD transport unusable.
+- Current mitigation:
+  - the backend now tears down the broken session automatically
+  - the UI can recover by issuing `Connect` again
+- Root cause is still under investigation and likely relates to OpenOCD transport state around `resume`.

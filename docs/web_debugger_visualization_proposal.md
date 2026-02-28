@@ -29,6 +29,10 @@ Not implemented yet:
 - GDB proxying through the backend
 - durable trace/session recording
 
+Known issue:
+- intermittent `POST /api/v1/target/run` failures can occur with `openocd_timeout (Tcl command timed out: resume)`, especially after longer interactive UI sessions
+- current mitigation: the backend now tears down the broken OpenOCD session and marks the target session `error`, so the operator can recover by pressing `Connect` again without restarting the backend process
+
 ## Why This Is Feasible
 
 This approach is established in pieces:
@@ -162,6 +166,7 @@ Transport:
 - intrusive polling can perturb timing-sensitive tests
 - CH32V003 toolchain/debug feature parity may be weaker than LPC1114 path
 - concurrent terminal/debug use can cause serial contention if not managed carefully
+- OpenOCD `resume` can still intermittently time out in the current implementation; root cause is not fully characterized yet
 
 ## Mitigations
 

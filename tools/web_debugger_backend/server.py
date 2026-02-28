@@ -63,6 +63,12 @@ REGISTER_ORDER = [
     "pc",
     "xpsr",
 ]
+FATAL_TRANSPORT_ERRORS = {
+    "openocd_timeout",
+    "openocd_io_error",
+    "tcl_socket_closed",
+    "openocd_exited",
+}
 
 
 def iso8601_utc_now() -> str:
@@ -318,6 +324,17 @@ class DebugSession:
             self.state = "disconnected"
             self.watches.clear()
             return {"ok": True, "state": self.state}
+
+    def handle_transport_failure(self) -> None:
+        with self.lock:
+            if self.controller is not None:
+                try:
+                    self.controller.stop()
+                except Exception:
+                    pass
+                self.controller = None
+            self.state = "error"
+            self.seq = 0
 
     def run(self) -> Dict:
         with self.lock:
@@ -585,6 +602,11 @@ class AppState:
             }
         )
 
+    def handle_session_error(self, exc: SessionError) -> None:
+        if exc.error in FATAL_TRANSPORT_ERRORS:
+            self.session.handle_transport_failure()
+            self.broadcast_status("transport_error")
+
     def stop(self) -> None:
         self.stop_event.set()
         self.sampler_thread.join(timeout=1.0)
@@ -815,6 +837,7 @@ class DebugHTTPRequestHandler(BaseHTTPRequestHandler):
         try:
             self._do_get()
         except SessionError as exc:
+            APP.handle_session_error(exc)
             self.log_message('api error "%s %s": %s (%s)', self.command, self.path, exc.error, exc.detail)
             self._json_response(
                 HTTPStatus.BAD_REQUEST,
@@ -831,6 +854,7 @@ class DebugHTTPRequestHandler(BaseHTTPRequestHandler):
         try:
             self._do_post()
         except SessionError as exc:
+            APP.handle_session_error(exc)
             self.log_message('api error "%s %s": %s (%s)', self.command, self.path, exc.error, exc.detail)
             self._json_response(
                 HTTPStatus.BAD_REQUEST,
@@ -848,6 +872,7 @@ class DebugHTTPRequestHandler(BaseHTTPRequestHandler):
             self._do_delete()
         except SessionError as exc:
             status = HTTPStatus.NOT_FOUND if exc.error == "not_found" else HTTPStatus.BAD_REQUEST
+            APP.handle_session_error(exc)
             self.log_message('api error "%s %s": %s (%s)', self.command, self.path, exc.error, exc.detail)
             self._json_response(
                 status,

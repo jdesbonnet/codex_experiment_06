@@ -407,6 +407,11 @@ WebSocket errors:
 - emitted as `event` messages with `event: "error"`
 - fatal backend failures are followed by a `session_status` update to `error`
 
+Current operational note:
+- if `POST /api/v1/target/run` fails with `openocd_timeout` during `resume`, the backend treats that as a fatal transport error
+- the backend tears down the OpenOCD session and transitions the session state to `error`
+- recovery path: issue a fresh `POST /api/v1/session/connect`
+
 ## MVP Non-Goals
 
 The following are deliberately excluded from the first implementation:
