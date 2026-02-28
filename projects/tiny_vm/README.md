@@ -4,6 +4,234 @@ Small stack-based bytecode VM running on both:
 - `projects/tiny_vm/lpc1114_c`
 - `projects/tiny_vm/ch32v003_c`
 
+## Project Goal
+
+The long-term goal of `tiny_vm` is to support sending small programs over radio to remote sensor devices so that deployed nodes can change behavior without a full native firmware update.
+
+Examples of intended use:
+- take sensor readings at configurable intervals
+- react to simple stimuli or host-provided events
+- perform local filtering or decision logic
+- report compact results back through host firmware
+
+Design constraint:
+- keep the VM runtime comfortably below `16 kB` of native code/data footprint
+
+This means flexibility is important, but bounded resource use and architectural discipline are more important than feature count.
+
+## Design Intent
+
+`tiny_vm` is intended to grow incrementally, but not by accreting ad hoc opcodes.
+
+The VM should evolve according to a documented roadmap so that:
+- new opcodes fit a coherent model
+- resource limits remain enforceable
+- the host/VM boundary stays narrow and auditable
+- future capabilities (timers, events, buffers, radio-facing host services) can be added without major refactoring
+
+For now, versioned incompatibility is acceptable. Bytecode format and opcode set may evolve as long as versioning is explicit and changes are intentional.
+
+## Execution Model
+
+All of the following execution styles are in scope:
+- run-once programs that halt
+- long-running programs (for example polling loops)
+- host-invoked programs launched on demand by the master firmware
+
+Important requirement:
+- the host firmware must be able to place hard upper bounds on resources consumed by a VM program
+
+Examples of bounded resources:
+- VM instruction count / CPU work
+- elapsed execution time
+- stack usage
+- local/data memory usage
+
+If a budget is exceeded, the VM should stop and report a structured exception to the caller.
+
+Examples of desired exception classes:
+- runtime/step budget exceeded
+- elapsed-time budget exceeded
+- stack overflow
+- stack underflow
+- code too large
+- data memory exceeded
+- invalid opcode
+- host call failure
+
+## Host / VM Boundary
+
+The host/VM interface should remain intentionally small.
+
+Current model:
+- VM programs interact with the outside world only through host calls
+- native firmware owns hardware drivers, scheduling, radio, and safety policy
+
+Proposed direction:
+- keep the VM as a policy/logic engine
+- keep native firmware as the authority for hardware access and communications
+
+That implies:
+- no direct hardware register access from bytecode
+- no direct radio stack control from bytecode
+- all external effects occur via a constrained host API
+
+Recommended host API shape for future growth:
+- scalar sensor reads
+- simple actuator writes
+- timer/sleep requests
+- event fetch / event acknowledge
+- small message submit / receive hooks
+- access to bounded scratch or retained storage provided by the host
+
+This keeps the trust boundary narrow and makes resource accounting easier.
+
+## State Model
+
+Current assumption:
+- no required persistence across sleep, reset, or power loss
+
+Possible future extension:
+- a small host-managed non-volatile storage bank may be exposed so programs can resume coarse state after reset if needed
+
+This should remain optional and host-mediated, not transparent VM memory persistence.
+
+## Numeric Model
+
+Current target:
+- 32-bit integer-oriented VM
+- signed and unsigned integer use cases are both in scope at the language/runtime level
+
+Design note:
+- even if floating point is not implemented soon, the bytecode architecture should not make future numeric expansion impossible
+
+## Memory Model Roadmap
+
+The intended progression is:
+- scalar locals (already present)
+- small arrays / scratch buffers
+- byte-addressable memory access
+
+Why:
+- sensor processing and packet-oriented logic quickly require indexed data access
+- array/buffer support is more scalable than endlessly increasing local slot count
+
+## Safety and Resource Control
+
+Safety is a primary design goal.
+
+The VM must be suitable for running code received from outside the node's native firmware image, so:
+- execution must be bounded
+- memory use must be bounded
+- host interaction must be bounded
+- failures must be detectable and reportable
+
+Preferred operating model:
+- the caller supplies a resource budget
+- the VM runs until:
+  - the program halts
+  - a budget is exceeded
+  - a runtime error occurs
+- the VM returns a status code plus failure reason
+
+## Planned Capability Roadmap
+
+This is the working roadmap for future sessions. New features should be evaluated against this order unless there is a strong reason to deviate.
+
+### Phase 1: Stabilize The Current Core
+
+Goals:
+- maintain a small, testable stack VM
+- keep the compiler, assembler, uploader, and runtime aligned
+- preserve strong regression coverage for finite-output programs
+
+Includes:
+- arithmetic/control flow core
+- UART-observable regression programs
+- hardware regression workflow
+
+### Phase 2: Add Structured Data Access
+
+Goals:
+- enable arrays and scratch buffers
+- reduce pressure to add many special-purpose locals or host calls
+
+Likely additions:
+- indexed load/store
+- bounded scratch memory region
+- explicit data-size limits and errors
+
+Why this comes early:
+- many useful sensor and message-processing tasks depend on buffer access
+
+### Phase 3: Add Bitwise And Shift Operations
+
+Goals:
+- support efficient low-level integer logic
+- enable checksums, encodings, and future crypto primitives
+
+Likely additions:
+- `AND`, `OR`, `XOR`, `NOT`
+- `SHL`, `SHR`
+- possibly `ROL`, `ROR`
+
+Why:
+- required for efficient protocols, framing, and serious hash functions
+
+### Phase 4: Add Time And Event Primitives
+
+Goals:
+- support sensor polling and stimulus-driven logic without bloating the VM core
+
+Likely direction:
+- host-managed timer API
+- event fetch/dispatch model
+- host-invoked execution with explicit budgets
+
+Architectural preference:
+- keep scheduling policy in native firmware
+- expose only minimal time/event hooks to bytecode
+
+### Phase 5: Expand The Host Service Interface
+
+Goals:
+- support real sensor/actuator logic while preserving a narrow trust boundary
+
+Likely additions:
+- scalar sensor reads
+- bounded writes / control outputs
+- small message or packet service hooks
+- optional retained-state access
+
+Constraint:
+- host calls should remain coarse and capability-oriented, not a raw syscall soup
+
+### Phase 6: Add More Advanced Compute Primitives
+
+Goals:
+- support richer algorithms while respecting size limits
+
+Possible features:
+- stronger integer utilities
+- limited cryptographic helpers
+- eventually optional numeric-model expansion (for example fixed-point first, float later if justified)
+
+Guardrail:
+- prefer reusable primitives over one-off opcodes tailored to a single demo
+
+## Out Of Scope For Now
+
+Not yet committed and should be treated as out of scope unless explicitly added later:
+- dynamic allocation
+- recursion
+- threads or preemptive multitasking
+- direct hardware register access
+- direct radio stack control
+- transparent persistence across reset/power loss
+- strict long-term bytecode backward compatibility
+
+These may be revisited later, but they should not be assumed.
+
 Program layout:
 - regression-style finite test programs: `projects/tiny_vm/tests/`
 - long-running or manual demos: `projects/tiny_vm/demos/`
