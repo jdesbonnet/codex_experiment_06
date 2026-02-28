@@ -5,6 +5,7 @@
 #include <stdio.h>
 
 #define LED_PIN PD4
+#define TINY_VM_ACTIVITY_LED 1u
 
 #define VM_UPLOAD_MAGIC0 'T'
 #define VM_UPLOAD_MAGIC1 'V'
@@ -163,6 +164,19 @@ static int vm_host_call(tiny_vm_t *vm, uint8_t id, void *ctx)
 	}
 }
 
+#if TINY_VM_ACTIVITY_LED
+static void vm_trace_led_hook(tiny_vm_t *vm, uint8_t op, void *ctx)
+{
+	static uint8_t led_on = 0u;
+	(void)vm;
+	(void)op;
+	(void)ctx;
+	led_on = (uint8_t)!led_on;
+	/* Eval board LED on PD4 is active-low. */
+	funDigitalWrite(LED_PIN, led_on ? FUN_LOW : FUN_HIGH);
+}
+#endif
+
 int main(void)
 {
 	tiny_vm_t vm;
@@ -175,6 +189,9 @@ int main(void)
 	funDigitalWrite(LED_PIN, FUN_HIGH);
 
 	tiny_vm_init(&vm, vm_host_call, 0);
+#if TINY_VM_ACTIVITY_LED
+	tiny_vm_set_trace_hook(&vm, vm_trace_led_hook, 0);
+#endif
 
 	printf("tiny_vm: upload frame TVM1+len+code+sum\r\n");
 	printf("tiny_vm: boot window 15s\r\n");

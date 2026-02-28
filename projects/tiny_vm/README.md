@@ -388,6 +388,30 @@ Upload frame format:
 
 Both runtimes wait 15 seconds after boot for an upload, then continue waiting for frames.
 
+## Optional VM Activity LED
+
+Both native runtimes can optionally blink their onboard/activity LED while the VM is executing.
+
+Current implementation:
+- compile-time switch in each runtime source:
+  - `projects/tiny_vm/lpc1114_c/main.c`
+  - `projects/tiny_vm/ch32v003_c/tiny_vm.c`
+- macro:
+  - `TINY_VM_ACTIVITY_LED`
+
+Behavior:
+- when enabled, the runtime installs a VM trace hook
+- the hook toggles the LED once per executed bytecode opcode
+- this is intentionally fast and is mainly a coarse visual "the interpreter is alive" indicator
+
+Default:
+- enabled (`1`) so VM execution is visibly obvious during development
+- set `TINY_VM_ACTIVITY_LED` back to `0` if you need the previous behavior or want to avoid the extra GPIO activity
+
+Caution:
+- this uses the same LED that is also exposed to bytecode via `led_write()`
+- if both are used at once, the visible LED state will reflect whichever path wrote most recently
+
 ## Host tools
 
 - assembler: `tools/vm_asm.py`

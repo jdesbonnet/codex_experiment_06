@@ -7,6 +7,7 @@
 #include <stdint.h>
 
 #define LED_PIN_BIT (1u << 0) /* PIO1_0 */
+#define TINY_VM_ACTIVITY_LED 1u
 
 #define VM_UPLOAD_MAGIC0 'T'
 #define VM_UPLOAD_MAGIC1 'V'
@@ -176,6 +177,16 @@ static void led_init(void)
     LPC_GPIO1_DATA &= ~LED_PIN_BIT;
 }
 
+#if TINY_VM_ACTIVITY_LED
+static void vm_trace_led_hook(tiny_vm_t *vm, uint8_t op, void *ctx)
+{
+    (void)vm;
+    (void)op;
+    (void)ctx;
+    LPC_GPIO1_DATA ^= LED_PIN_BIT;
+}
+#endif
+
 int main(void)
 {
     tiny_vm_t vm;
@@ -187,6 +198,9 @@ int main(void)
     led_init();
 
     tiny_vm_init(&vm, vm_host_call, 0);
+#if TINY_VM_ACTIVITY_LED
+    tiny_vm_set_trace_hook(&vm, vm_trace_led_hook, 0);
+#endif
 
     uart_puts("tiny_vm: upload frame TVM1+len+code+sum\r\n");
     uart_puts("tiny_vm: boot window 15s\r\n");

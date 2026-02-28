@@ -59,6 +59,7 @@ typedef enum {
 
 struct tiny_vm;
 typedef int (*tiny_vm_host_call_t)(struct tiny_vm *vm, uint8_t id, void *ctx);
+typedef void (*tiny_vm_trace_hook_t)(struct tiny_vm *vm, uint8_t op, void *ctx);
 
 typedef struct tiny_vm {
     uint8_t code[TINY_VM_CODE_MAX];
@@ -70,9 +71,12 @@ typedef struct tiny_vm {
     uint8_t sp;
     tiny_vm_host_call_t host_call;
     void *host_ctx;
+    tiny_vm_trace_hook_t trace_hook;
+    void *trace_ctx;
 } tiny_vm_t;
 
 void tiny_vm_init(tiny_vm_t *vm, tiny_vm_host_call_t host_call, void *host_ctx);
+void tiny_vm_set_trace_hook(tiny_vm_t *vm, tiny_vm_trace_hook_t trace_hook, void *trace_ctx);
 int tiny_vm_load(tiny_vm_t *vm, const uint8_t *code, uint16_t code_len);
 int tiny_vm_exec(tiny_vm_t *vm, uint32_t step_budget);
 

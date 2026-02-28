@@ -23,6 +23,14 @@ void tiny_vm_init(tiny_vm_t *vm, tiny_vm_host_call_t host_call, void *host_ctx)
     }
     vm->host_call = host_call;
     vm->host_ctx = host_ctx;
+    vm->trace_hook = 0;
+    vm->trace_ctx = 0;
+}
+
+void tiny_vm_set_trace_hook(tiny_vm_t *vm, tiny_vm_trace_hook_t trace_hook, void *trace_ctx)
+{
+    vm->trace_hook = trace_hook;
+    vm->trace_ctx = trace_ctx;
 }
 
 int tiny_vm_load(tiny_vm_t *vm, const uint8_t *code, uint16_t code_len)
@@ -80,6 +88,9 @@ int tiny_vm_exec(tiny_vm_t *vm, uint32_t step_budget)
 
         if (rc < 0) {
             return rc;
+        }
+        if (vm->trace_hook != 0) {
+            vm->trace_hook(vm, op, vm->trace_ctx);
         }
 
         switch (op) {
