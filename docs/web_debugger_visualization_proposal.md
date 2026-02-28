@@ -48,15 +48,15 @@ Why:
 
 Recommended protocol stack:
 - backend <-> OpenOCD:
-- OpenOCD TCL command socket (read/write commands)
-- optional OpenOCD process control/stdio
+  - OpenOCD TCL command socket (read/write commands)
+  - optional OpenOCD process control/stdio
 
 - backend <-> gdb client (optional):
-- backend exposes a GDB-server-compatible endpoint/proxy
-- gdb connects to backend endpoint (not directly to probe)
+  - backend exposes a GDB-server-compatible endpoint/proxy
+  - gdb connects to backend endpoint (not directly to probe)
 
 - backend <-> web frontend:
-- WebSocket (JSON snapshots/events; binary optional later)
+  - WebSocket (JSON snapshots/events; binary optional later)
 
 ## Data Model (Initial)
 
@@ -74,20 +74,20 @@ Transport:
 ## UI Scope (Phase 1)
 
 - Register panel:
-- core registers (ARM: r0-r15,xPSR; RISC-V: x0-x31,pc where available)
-- value display in hex + signed/unsigned decimal
+  - core registers (ARM: r0-r15,xPSR; RISC-V: x0-x31,pc where available)
+  - value display in hex + signed/unsigned decimal
 
 - Memory panel:
-- watched regions by address
-- word/byte views with changed-byte highlighting
+  - watched regions by address
+  - word/byte views with changed-byte highlighting
 
 - Execution panel:
-- run/halt/step/reset controls
-- current PC, halt reason, last breakpoint/watchpoint
+  - run/halt/step/reset controls
+  - current PC, halt reason, last breakpoint/watchpoint
 
 - Timeline panel:
-- sampled state ticks
-- event markers
+  - sampled state ticks
+  - event markers
 
 ## Backend Scope (Phase 1)
 
@@ -95,18 +95,18 @@ Transport:
 - Poll selected registers and memory on interval
 - Push snapshots + events to WebSocket clients
 - Basic command API:
-- `connect`, `disconnect`
-- `run`, `halt`, `step`, `reset`
-- `set_watch(address,size,type)`
-- `read_mem(address,len)`, `read_regs()`
+  - `connect`, `disconnect`
+  - `run`, `halt`, `step`, `reset`
+  - `set_watch(address,size,type)`
+  - `read_mem(address,len)`, `read_regs()`
 
 ## Performance Targets
 
 - Initial sampling target: 5-20 Hz stable updates
 - UI render budget: <50 ms for normal snapshot sizes
 - Graceful degradation under load:
-- sampling decimation
-- partial/delta updates
+  - sampling decimation
+  - partial/delta updates
 
 ## Risks and Constraints
 
@@ -118,8 +118,8 @@ Transport:
 ## Mitigations
 
 - explicit sampling modes:
-- `halted-only` (high fidelity)
-- `run-poll` (best effort)
+  - `halted-only` (high fidelity)
+  - `run-poll` (best effort)
 
 - configurable watch sets to keep payload small
 - ring-buffered backend event queue with drop metrics
@@ -171,11 +171,16 @@ Scope:
 - freeze single-owner control model
 - define backend API and WebSocket JSON schemas
 - define first target scope (LPC1114 first, CH32V003 deferred)
+- use Python for the initial backend implementation
 
 Acceptance checks:
 - interface contract documented in this repo
 - message schema examples for `session_status`, `register_snapshot`, `memory_snapshot`, `event`
 - clear non-goals listed for MVP
+
+Deliverables:
+- `docs/web_debugger_api_contract.md`
+- this proposal document as the architecture overview
 
 ### Milestone 2 - Backend Session Core (8-12 turns)
 
