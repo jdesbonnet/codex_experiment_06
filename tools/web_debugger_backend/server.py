@@ -357,6 +357,26 @@ class DebugSession:
             self.watches[name] = {"address": address, "length": length}
             return {"ok": True}
 
+    def remove_watch(self, name: str) -> Dict:
+        with self.lock:
+            if name not in self.watches:
+                raise SessionError("not_found", f"Watch '{name}' does not exist")
+            del self.watches[name]
+            return {"ok": True}
+
+    def list_watches(self) -> List[Dict[str, int | str]]:
+        with self.lock:
+            items: List[Dict[str, int | str]] = []
+            for name, watch in sorted(self.watches.items()):
+                items.append(
+                    {
+                        "name": name,
+                        "address": f"0x{watch['address']:08x}",
+                        "length": watch["length"],
+                    }
+                )
+            return items
+
     def next_seq(self) -> int:
         self.seq += 1
         return self.seq
@@ -618,6 +638,21 @@ class DebugHTTPRequestHandler(BaseHTTPRequestHandler):
                 {"ok": False, "error": "internal_error", "detail": str(exc)},
             )
 
+    def do_DELETE(self) -> None:
+        try:
+            self._do_delete()
+        except SessionError as exc:
+            status = HTTPStatus.NOT_FOUND if exc.error == "not_found" else HTTPStatus.BAD_REQUEST
+            self._json_response(
+                status,
+                {"ok": False, "error": exc.error, "detail": exc.detail},
+            )
+        except Exception as exc:
+            self._json_response(
+                HTTPStatus.INTERNAL_SERVER_ERROR,
+                {"ok": False, "error": "internal_error", "detail": str(exc)},
+            )
+
     def _do_get(self) -> None:
         parsed = urlparse(self.path)
         if parsed.path in ("/", "/index.html"):
@@ -631,6 +666,9 @@ class DebugHTTPRequestHandler(BaseHTTPRequestHandler):
             return
         if parsed.path == "/api/v1/target/memory":
             self._handle_get_memory(parsed.query)
+            return
+        if parsed.path == "/api/v1/watches":
+            self._json_response(HTTPStatus.OK, {"ok": True, "watches": APP.session.list_watches()})
             return
         if parsed.path == "/api/v1/session":
             self._json_response(
@@ -696,6 +734,18 @@ class DebugHTTPRequestHandler(BaseHTTPRequestHandler):
             except (KeyError, ValueError):
                 raise SessionError("bad_request", "name, address, length required")
             result = APP.session.set_watch(name, address, length)
+            self._json_response(HTTPStatus.OK, result)
+            return
+        self._json_response(HTTPStatus.NOT_FOUND, {"ok": False, "error": "not_found"})
+
+    def _do_delete(self) -> None:
+        parsed = urlparse(self.path)
+        if parsed.path == "/api/v1/watch":
+            params = parse_qs(parsed.query)
+            name = params.get("name", [""])[0]
+            if not name:
+                raise SessionError("bad_request", "watch name is required")
+            result = APP.session.remove_watch(name)
             self._json_response(HTTPStatus.OK, result)
             return
         self._json_response(HTTPStatus.NOT_FOUND, {"ok": False, "error": "not_found"})
