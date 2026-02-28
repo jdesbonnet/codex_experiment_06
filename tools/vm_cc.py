@@ -13,11 +13,14 @@ Supported subset:
       led_write(expr);
       delay_ms(expr);
       print_u32(expr);
+      print_hex32(expr);
       host(const_expr, expr);
       store8(index_expr, value_expr);
   - expressions over int literals/vars/constants:
       +, -, *, /, %, <, >, ==
       load8(index_expr)
+      and32(a,b), or32(a,b), xor32(a,b), not32(a)
+      shl32(a,b), shr32(a,b)
 """
 
 from __future__ import annotations
@@ -291,8 +294,12 @@ class Compiler:
             self.emit(f"PUSH8 {value}")
         elif -32768 <= value <= 32767:
             self.emit(f"PUSH16 {value}")
+        elif -2147483648 <= value <= 2147483647:
+            self.emit(f"PUSH32 {value}")
+        elif 0 <= value <= 0xFFFFFFFF:
+            self.emit(f"PUSH32 {value - 0x100000000}")
         else:
-            raise ValueError(f"literal out of PUSH16 range: {value}")
+            raise ValueError(f"literal out of PUSH32 range: {value}")
 
     def emit_expr(self, node: dict) -> None:
         kind = node["kind"]
@@ -316,6 +323,47 @@ class Compiler:
                     raise ValueError("load8 expects 1 arg")
                 self.emit_expr(args[0])
                 self.emit("MGET")
+                return
+            if name == "and32":
+                if len(args) != 2:
+                    raise ValueError("and32 expects 2 args")
+                self.emit_expr(args[0])
+                self.emit_expr(args[1])
+                self.emit("AND")
+                return
+            if name == "or32":
+                if len(args) != 2:
+                    raise ValueError("or32 expects 2 args")
+                self.emit_expr(args[0])
+                self.emit_expr(args[1])
+                self.emit("OR")
+                return
+            if name == "xor32":
+                if len(args) != 2:
+                    raise ValueError("xor32 expects 2 args")
+                self.emit_expr(args[0])
+                self.emit_expr(args[1])
+                self.emit("XOR")
+                return
+            if name == "not32":
+                if len(args) != 1:
+                    raise ValueError("not32 expects 1 arg")
+                self.emit_expr(args[0])
+                self.emit("NOT")
+                return
+            if name == "shl32":
+                if len(args) != 2:
+                    raise ValueError("shl32 expects 2 args")
+                self.emit_expr(args[0])
+                self.emit_expr(args[1])
+                self.emit("SHL")
+                return
+            if name == "shr32":
+                if len(args) != 2:
+                    raise ValueError("shr32 expects 2 args")
+                self.emit_expr(args[0])
+                self.emit_expr(args[1])
+                self.emit("SHR")
                 return
             raise ValueError(f"unsupported expression function '{name}'")
         if kind == "bin":
@@ -415,6 +463,12 @@ class Compiler:
                 raise ValueError("print_u32 expects 1 arg")
             self.emit_expr(args[0])
             self.emit("HOST 2")
+            return
+        if name == "print_hex32":
+            if len(args) != 1:
+                raise ValueError("print_hex32 expects 1 arg")
+            self.emit_expr(args[0])
+            self.emit("HOST 3")
             return
         if name == "host":
             if len(args) != 2:

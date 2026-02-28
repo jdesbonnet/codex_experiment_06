@@ -38,6 +38,13 @@ typedef enum {
     TINY_OP_DIV = 0x11,
     TINY_OP_MGET = 0x12,
     TINY_OP_MSET = 0x13,
+    TINY_OP_PUSH32 = 0x14,
+    TINY_OP_AND = 0x15,
+    TINY_OP_OR = 0x16,
+    TINY_OP_XOR = 0x17,
+    TINY_OP_NOT = 0x18,
+    TINY_OP_SHL = 0x19,
+    TINY_OP_SHR = 0x1A,
     TINY_OP_HALT = 0xFF
 } tiny_vm_opcode_t;
 

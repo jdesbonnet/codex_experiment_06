@@ -57,6 +57,8 @@ class TestCase:
             return ["97", "118"]
         if self.name == "checksum8":
             return ["15"]
+        if self.name == "crc32":
+            return ["CBF43926"]
         raise ValueError(f"unknown test case {self.name}")
 
 
@@ -65,6 +67,7 @@ TEST_CASES = [
     TestCase("primes1000", ROOT / "projects" / "tiny_vm" / "tests" / "primes1000.cvm.c", 20.0),
     TestCase("collatz_max", ROOT / "projects" / "tiny_vm" / "tests" / "collatz_max.cvm.c", 8.0),
     TestCase("checksum8", ROOT / "projects" / "tiny_vm" / "tests" / "checksum8.cvm.c", 8.0),
+    TestCase("crc32", ROOT / "projects" / "tiny_vm" / "tests" / "crc32.cvm.c", 10.0),
 ]
 
 

@@ -183,6 +183,14 @@ Likely additions:
 Why:
 - required for efficient protocols, framing, and serious hash functions
 
+Current status:
+- Phase 3 has started
+- the VM now has a minimal bitwise core:
+  - `AND`, `OR`, `XOR`, `NOT`
+  - `SHL`, `SHR`
+  - `PUSH32` for full-width integer literals
+- this is enough to support bounded checksum and CRC-style algorithms without yet committing to a full crypto-oriented design
+
 ### Phase 4: Add Time And Event Primitives
 
 Goals:
@@ -462,6 +470,17 @@ Expected output:
 15
 ```
 
+Compile CRC-32 demo (`"123456789"` test vector):
+```sh
+./tools/vm_cc.py projects/tiny_vm/tests/crc32.cvm.c -o /tmp/crc32.bin
+./tools/vm_upload.py /tmp/crc32.bin --port /dev/ttyACM1 --baud 57600
+```
+
+Expected output:
+```text
+CBF43926
+```
+
 ## Hardware Regression
 
 Run all finite-output LPC1114 demo regressions:
@@ -482,6 +501,7 @@ Notes:
   - `primes1000`
   - `collatz_max`
   - `checksum8`
+  - `crc32`
 - `demos/blink.cvm.c` is intentionally excluded because it does not emit UART output and does not halt
 
 ## Demos
@@ -504,16 +524,20 @@ Current long-running/manual demo:
 - `led_write(expr);`
 - `delay_ms(expr);`
 - `print_u32(expr);`
+- `print_hex32(expr);`
 - `host(const_expr, expr);`
 - `store8(index_expr, value_expr);`
 - expressions:
 - literals, vars, consts
 - `load8(index_expr)`
+- `and32(a, b)`, `or32(a, b)`, `xor32(a, b)`, `not32(a)`
+- `shl32(a, b)`, `shr32(a, b)`
 - `+`, `-`, `*`, `/`, `%`, `<`, `>`, `==`
 
 Assembler/VM opcodes now include:
-- `PUSH8`, `PUSH16`
+- `PUSH8`, `PUSH16`, `PUSH32`
 - arithmetic/comparison: `ADD`, `SUB`, `MUL`, `DIV`, `MOD`, `EQ`, `LT`
+- bitwise/shift: `AND`, `OR`, `XOR`, `NOT`, `SHL`, `SHR`
 - locals: `LGET`, `LSET`
 - scratch memory: `MGET`, `MSET`
 

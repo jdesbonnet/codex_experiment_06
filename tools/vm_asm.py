@@ -9,8 +9,10 @@ Syntax:
       NOP
       PUSH8 <int8>
       PUSH16 <int16>
+      PUSH32 <int32>
       ADD | SUB | DUP | DROP | SWAP | HALT
       EQ | LT | MOD | MUL | DIV | MGET | MSET
+      AND | OR | XOR | NOT | SHL | SHR
       HOST <u8>
       LGET <u8>
       LSET <u8>
@@ -47,11 +49,19 @@ OPCODES = {
     "DIV": 0x11,
     "MGET": 0x12,
     "MSET": 0x13,
+    "PUSH32": 0x14,
+    "AND": 0x15,
+    "OR": 0x16,
+    "XOR": 0x17,
+    "NOT": 0x18,
+    "SHL": 0x19,
+    "SHR": 0x1A,
     "HALT": 0xFF,
 }
 
 ONE_U8 = {"PUSH8", "HOST", "LGET", "LSET"}
 ONE_I16 = {"PUSH16"}
+ONE_I32 = {"PUSH32"}
 ONE_U16 = {"JMP", "JZ"}
 
 
@@ -100,6 +110,10 @@ def first_pass(lines: list[str]) -> dict[str, int]:
             if len(parts) != 2:
                 raise ValueError(f"{op} requires one operand")
             pc += 2
+        elif op in ONE_I32:
+            if len(parts) != 2:
+                raise ValueError(f"{op} requires one operand")
+            pc += 4
         elif op in ONE_U16:
             if len(parts) != 2:
                 raise ValueError(f"{op} requires one operand")
@@ -134,6 +148,11 @@ def second_pass(lines: list[str], labels: dict[str, int]) -> bytes:
             if value < -32768 or value > 32767:
                 raise ValueError(f"{op} out of range: {value}")
             out.extend(struct.pack("<h", value))
+        elif op in ONE_I32:
+            value = parse_int(parts[1])
+            if value < -2147483648 or value > 2147483647:
+                raise ValueError(f"{op} out of range: {value}")
+            out.extend(struct.pack("<i", value))
         elif op in ONE_U16:
             target_token = parts[1]
             if target_token in labels:

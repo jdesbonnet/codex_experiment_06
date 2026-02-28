@@ -20,7 +20,8 @@
 enum {
     HOST_LED_WRITE = 0,
     HOST_DELAY_MS = 1,
-    HOST_UART_PRINTLN_U32 = 2
+    HOST_UART_PRINTLN_U32 = 2,
+    HOST_UART_PRINTLN_HEX32 = 3
 };
 
 static void host_delay_ms(uint32_t ms)
@@ -149,6 +150,19 @@ static int vm_host_call(tiny_vm_t *vm, uint8_t id, void *ctx)
         }
         uart_puts("\r\n");
         return 0;
+    case HOST_UART_PRINTLN_HEX32: {
+        uint32_t uv;
+        if (tiny_vm_pop(vm, &v) < 0) {
+            return -1;
+        }
+        uv = (uint32_t)v;
+        uart_put_hex8((unsigned char)((uv >> 24) & 0xFFu));
+        uart_put_hex8((unsigned char)((uv >> 16) & 0xFFu));
+        uart_put_hex8((unsigned char)((uv >> 8) & 0xFFu));
+        uart_put_hex8((unsigned char)(uv & 0xFFu));
+        uart_puts("\r\n");
+        return 0;
+    }
     default:
         return -1;
     }

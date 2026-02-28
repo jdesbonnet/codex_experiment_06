@@ -109,6 +109,36 @@ int tiny_vm_exec(tiny_vm_t *vm, uint32_t step_budget)
                 return rc;
             }
             break;
+        case TINY_OP_PUSH32: {
+            uint8_t b0 = 0u;
+            uint8_t b1 = 0u;
+            uint8_t b2 = 0u;
+            uint8_t b3 = 0u;
+            rc = vm_read_u8(vm, &b0);
+            if (rc < 0) {
+                return rc;
+            }
+            rc = vm_read_u8(vm, &b1);
+            if (rc < 0) {
+                return rc;
+            }
+            rc = vm_read_u8(vm, &b2);
+            if (rc < 0) {
+                return rc;
+            }
+            rc = vm_read_u8(vm, &b3);
+            if (rc < 0) {
+                return rc;
+            }
+            rc = tiny_vm_push(
+                vm,
+                (int32_t)(((uint32_t)b3 << 24) | ((uint32_t)b2 << 16) | ((uint32_t)b1 << 8) | (uint32_t)b0)
+            );
+            if (rc < 0) {
+                return rc;
+            }
+            break;
+        }
         case TINY_OP_ADD:
             rc = tiny_vm_pop(vm, &b);
             if (rc < 0) {
@@ -339,6 +369,86 @@ int tiny_vm_exec(tiny_vm_t *vm, uint32_t step_budget)
                 return TINY_VM_ERR_MEM_OOB;
             }
             vm->mem[(uint8_t)a] = (uint8_t)(b & 0xFF);
+            break;
+        case TINY_OP_AND:
+            rc = tiny_vm_pop(vm, &b);
+            if (rc < 0) {
+                return rc;
+            }
+            rc = tiny_vm_pop(vm, &a);
+            if (rc < 0) {
+                return rc;
+            }
+            rc = tiny_vm_push(vm, (int32_t)(((uint32_t)a) & ((uint32_t)b)));
+            if (rc < 0) {
+                return rc;
+            }
+            break;
+        case TINY_OP_OR:
+            rc = tiny_vm_pop(vm, &b);
+            if (rc < 0) {
+                return rc;
+            }
+            rc = tiny_vm_pop(vm, &a);
+            if (rc < 0) {
+                return rc;
+            }
+            rc = tiny_vm_push(vm, (int32_t)(((uint32_t)a) | ((uint32_t)b)));
+            if (rc < 0) {
+                return rc;
+            }
+            break;
+        case TINY_OP_XOR:
+            rc = tiny_vm_pop(vm, &b);
+            if (rc < 0) {
+                return rc;
+            }
+            rc = tiny_vm_pop(vm, &a);
+            if (rc < 0) {
+                return rc;
+            }
+            rc = tiny_vm_push(vm, (int32_t)(((uint32_t)a) ^ ((uint32_t)b)));
+            if (rc < 0) {
+                return rc;
+            }
+            break;
+        case TINY_OP_NOT:
+            rc = tiny_vm_pop(vm, &a);
+            if (rc < 0) {
+                return rc;
+            }
+            rc = tiny_vm_push(vm, (int32_t)(~((uint32_t)a)));
+            if (rc < 0) {
+                return rc;
+            }
+            break;
+        case TINY_OP_SHL:
+            rc = tiny_vm_pop(vm, &b);
+            if (rc < 0) {
+                return rc;
+            }
+            rc = tiny_vm_pop(vm, &a);
+            if (rc < 0) {
+                return rc;
+            }
+            rc = tiny_vm_push(vm, (int32_t)(((uint32_t)a) << (((uint32_t)b) & 31u)));
+            if (rc < 0) {
+                return rc;
+            }
+            break;
+        case TINY_OP_SHR:
+            rc = tiny_vm_pop(vm, &b);
+            if (rc < 0) {
+                return rc;
+            }
+            rc = tiny_vm_pop(vm, &a);
+            if (rc < 0) {
+                return rc;
+            }
+            rc = tiny_vm_push(vm, (int32_t)(((uint32_t)a) >> (((uint32_t)b) & 31u)));
+            if (rc < 0) {
+                return rc;
+            }
             break;
         case TINY_OP_HALT:
             return TINY_VM_HALT;

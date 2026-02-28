@@ -18,7 +18,8 @@
 enum {
 	HOST_LED_WRITE = 0,
 	HOST_DELAY_MS = 1,
-	HOST_UART_PRINTLN_U32 = 2
+	HOST_UART_PRINTLN_U32 = 2,
+	HOST_UART_PRINTLN_HEX32 = 3
 };
 
 static void uart_init_57600_rx_tx(void)
@@ -150,6 +151,12 @@ static int vm_host_call(tiny_vm_t *vm, uint8_t id, void *ctx)
 			return -1;
 		}
 		printf("%ld\r\n", (long)v);
+		return 0;
+	case HOST_UART_PRINTLN_HEX32:
+		if (tiny_vm_pop(vm, &v) < 0) {
+			return -1;
+		}
+		printf("%08lX\r\n", (unsigned long)(uint32_t)v);
 		return 0;
 	default:
 		return -1;

@@ -108,12 +108,34 @@ print_u32(load8(0) + load8(1));
             raise AssertionError("compiler produced empty binary")
 
 
+def test_vm_cc_bitwise_supported() -> None:
+    src = """
+const int POLY = 0xEDB88320;
+int x = xor32(POLY, 1);
+print_hex32(shr32(and32(x, not32(0)), 1));
+"""
+    with tempfile.TemporaryDirectory() as td:
+        tdp = pathlib.Path(td)
+        asm = tdp / "bit.vm"
+        out = tdp / "bit.bin"
+        cvm = tdp / "bit.cvm.c"
+        cvm.write_text(src, encoding="utf-8")
+        run(["./tools/vm_cc.py", str(cvm), "-S", str(asm), "-o", str(out)])
+        text = asm.read_text(encoding="utf-8")
+        for marker in ("PUSH32", "XOR", "AND", "NOT", "SHR", "HOST 3"):
+            if marker not in text:
+                raise AssertionError(f"expected marker {marker!r} in generated asm")
+        if len(out.read_bytes()) == 0:
+            raise AssertionError("compiler produced empty binary")
+
+
 def main() -> int:
     test_vm_asm_basic()
     test_vm_cc_while_if()
     test_vm_cc_primes_uses_mod_push16()
     test_vm_cc_mul_div_supported()
     test_vm_cc_mem_access_supported()
+    test_vm_cc_bitwise_supported()
     print("vm tool tests: OK")
     return 0
 
