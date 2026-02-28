@@ -1,8 +1,8 @@
-# Web Debugger API Contract (MVP)
+# Web Debugger API Contract (Current MVP)
 
 ## Purpose
 
-This document locks the concrete interfaces for Milestone 1 of the web debugger visualization project.
+This document records the concrete interfaces for the currently implemented MVP of the web debugger visualization project.
 
 Scope for this contract:
 - target: LPC1114 only
@@ -25,6 +25,7 @@ The backend owns:
 - serializing all run-control requests
 - polling registers and watched memory
 - publishing state to browser clients
+- reading the debugprobe mirror UART in RX-only mode when WebSocket clients are present
 
 The browser owns:
 - rendering state
@@ -192,6 +193,23 @@ Response body:
 }
 ```
 
+### `GET /api/v1/watches`
+
+Response body:
+
+```json
+{
+  "ok": true,
+  "watches": [
+    {
+      "name": "vm_stack",
+      "address": "0x10000000",
+      "length": 64
+    }
+  ]
+}
+```
+
 ### `POST /api/v1/watch`
 
 Purpose:
@@ -212,6 +230,48 @@ Response body:
 ```json
 {
   "ok": true
+}
+```
+
+### `DELETE /api/v1/watch?name=vm_stack`
+
+Response body:
+
+```json
+{
+  "ok": true
+}
+```
+
+### `GET /api/v1/config`
+
+Response body:
+
+```json
+{
+  "ok": true,
+  "halted_sample_hz": 10,
+  "uart_path": "/dev/ttyACM1",
+  "uart_status": "idle"
+}
+```
+
+### `POST /api/v1/config`
+
+Request body:
+
+```json
+{
+  "halted_sample_hz": 5
+}
+```
+
+Response body:
+
+```json
+{
+  "ok": true,
+  "halted_sample_hz": 5
 }
 ```
 
@@ -321,6 +381,7 @@ Rules:
 Default modes:
 - halted sampling: 10 Hz target
 - running sampling: disabled by default
+- UART mirror RX: enabled when one or more WebSocket clients are connected
 
 Rationale:
 - halted-state sampling is deterministic and low-risk
@@ -357,6 +418,11 @@ The following are deliberately excluded from the first implementation:
 - long-running historical recording or database storage
 - exact protocol compatibility with a raw GDB remote server
 - UART transmit from the browser
+
+## Notes
+
+- UART RX arrives as arbitrary text chunks, not guaranteed line-by-line.
+- The backend should be the only reader of the chosen UART device node to avoid read contention.
 
 ## Next Implementation Step
 

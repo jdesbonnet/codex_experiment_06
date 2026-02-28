@@ -405,5 +405,6 @@ Collatz max-step demo:
 ./tools/vm_upload.py /tmp/collatz_max.bin --port /dev/ttyACM1 --baud 57600
 ```
 
-Web debugger visualization proposal:
+Web debugger visualization docs:
 - `docs/web_debugger_visualization_proposal.md`
+- `docs/web_debugger_api_contract.md`

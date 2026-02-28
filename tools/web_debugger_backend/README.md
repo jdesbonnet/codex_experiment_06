@@ -1,8 +1,8 @@
-# Web Debugger Backend Skeleton
+# Web Debugger Backend MVP
 
 ## Purpose
 
-This directory contains the first backend implementation step for the web debugger visualization work.
+This directory contains the currently implemented backend MVP for the web debugger visualization work.
 
 Current status:
 - HTTP API skeleton is implemented
@@ -44,6 +44,16 @@ UI:
 - `POST /api/v1/config`
 - `DELETE /api/v1/watch?name=<watch-name>`
 - `GET /ws` (WebSocket upgrade)
+
+## Implemented UI Features
+
+- session state display
+- connect/disconnect/run/halt/step/reset controls
+- register table
+- watched memory panel with changed-byte highlighting
+- watch add/remove controls
+- halted sample-rate control
+- UART RX panel (pause/clear)
 
 ## Next Step
 
