@@ -388,20 +388,20 @@ Current VM includes:
 Example flow:
 
 ```sh
-./tools/vm_cc.py projects/tiny_vm/count10.cvm.c -o /tmp/count10.bin
+./tools/vm_cc.py projects/tiny_vm/tests/count10.cvm.c -o /tmp/count10.bin
 ./tools/flash.sh --target lpc1114 --lang c --project tiny_vm
 ./tools/vm_upload.py /tmp/count10.bin --port /dev/ttyACM1 --baud 57600
 ```
 
 Prime demo:
 ```sh
-./tools/vm_cc.py projects/tiny_vm/primes1000.cvm.c -o /tmp/primes1000.bin
+./tools/vm_cc.py projects/tiny_vm/tests/primes1000.cvm.c -o /tmp/primes1000.bin
 ./tools/vm_upload.py /tmp/primes1000.bin --port /dev/ttyACM1 --baud 57600
 ```
 
 Collatz max-step demo:
 ```sh
-./tools/vm_cc.py projects/tiny_vm/collatz_max.cvm.c -o /tmp/collatz_max.bin
+./tools/vm_cc.py projects/tiny_vm/tests/collatz_max.cvm.c -o /tmp/collatz_max.bin
 ./tools/vm_upload.py /tmp/collatz_max.bin --port /dev/ttyACM1 --baud 57600
 ```
 

@@ -4,6 +4,10 @@ Small stack-based bytecode VM running on both:
 - `projects/tiny_vm/lpc1114_c`
 - `projects/tiny_vm/ch32v003_c`
 
+Program layout:
+- regression-style finite test programs: `projects/tiny_vm/tests/`
+- long-running or manual demos: `projects/tiny_vm/demos/`
+
 ## Runtime protocol
 
 Targets now execute uploaded bytecode (no built-in hardcoded program).
@@ -28,12 +32,12 @@ Both runtimes wait 15 seconds after boot for an upload, then continue waiting fo
 
 Compile sample source:
 ```sh
-./tools/vm_cc.py projects/tiny_vm/count10.cvm.c -o /tmp/count10.bin
+./tools/vm_cc.py projects/tiny_vm/tests/count10.cvm.c -o /tmp/count10.bin
 ```
 
 Compile prime-number demo (up to 1000):
 ```sh
-./tools/vm_cc.py projects/tiny_vm/primes1000.cvm.c -o /tmp/primes1000.bin
+./tools/vm_cc.py projects/tiny_vm/tests/primes1000.cvm.c -o /tmp/primes1000.bin
 ```
 
 Flash tiny_vm runtime (LPC1114):
@@ -53,7 +57,7 @@ Prime demo upload:
 
 Compile Collatz max-step demo (range 1..100):
 ```sh
-./tools/vm_cc.py projects/tiny_vm/collatz_max.cvm.c -o /tmp/collatz_max.bin
+./tools/vm_cc.py projects/tiny_vm/tests/collatz_max.cvm.c -o /tmp/collatz_max.bin
 ./tools/vm_upload.py /tmp/collatz_max.bin --port /dev/ttyACM1 --baud 57600
 ```
 
@@ -82,7 +86,13 @@ Notes:
   - `count10`
   - `primes1000`
   - `collatz_max`
-- `blink.cvm.c` is intentionally excluded because it does not emit UART output and does not halt
+- `demos/blink.cvm.c` is intentionally excluded because it does not emit UART output and does not halt
+
+## Demos
+
+Current long-running/manual demo:
+- `projects/tiny_vm/demos/blink.cvm.c`
+- this is useful for manual runtime checks, but it is not part of the automated UART regression suite
 
 ## C-like language subset (v1)
 

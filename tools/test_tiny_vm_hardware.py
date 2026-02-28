@@ -5,13 +5,13 @@ Run hardware regression tests for finite-output tiny_vm demo programs.
 This script:
 - flashes the LPC1114 tiny_vm runtime (default)
 - auto-detects debugprobe primary/mirror UART ports
-- compiles each selected demo to bytecode
+- compiles each selected test case to bytecode
 - resets the target into run state
 - uploads the bytecode
 - captures mirror UART output
 - verifies the expected application output and terminal "tiny_vm: halt"
 
-It intentionally excludes `blink.cvm.c` because that demo does not halt and does
+It intentionally excludes `demos/blink.cvm.c` because that demo does not halt and does
 not emit UART output, so it is not suitable for line-by-line UART verification.
 """
 
@@ -59,9 +59,9 @@ class TestCase:
 
 
 TEST_CASES = [
-    TestCase("count10", ROOT / "projects" / "tiny_vm" / "count10.cvm.c", 8.0),
-    TestCase("primes1000", ROOT / "projects" / "tiny_vm" / "primes1000.cvm.c", 20.0),
-    TestCase("collatz_max", ROOT / "projects" / "tiny_vm" / "collatz_max.cvm.c", 8.0),
+    TestCase("count10", ROOT / "projects" / "tiny_vm" / "tests" / "count10.cvm.c", 8.0),
+    TestCase("primes1000", ROOT / "projects" / "tiny_vm" / "tests" / "primes1000.cvm.c", 20.0),
+    TestCase("collatz_max", ROOT / "projects" / "tiny_vm" / "tests" / "collatz_max.cvm.c", 8.0),
 ]
 
 

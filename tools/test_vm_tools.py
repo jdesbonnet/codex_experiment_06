@@ -56,7 +56,7 @@ def test_vm_cc_primes_uses_mod_push16() -> None:
         tdp = pathlib.Path(td)
         asm = tdp / "p.vm"
         out = tdp / "p.bin"
-        run(["./tools/vm_cc.py", "projects/tiny_vm/primes1000.cvm.c", "-S", str(asm), "-o", str(out)])
+        run(["./tools/vm_cc.py", "projects/tiny_vm/tests/primes1000.cvm.c", "-S", str(asm), "-o", str(out)])
         text = asm.read_text(encoding="utf-8")
         for marker in ("PUSH16 1001", "MOD", "HOST 2"):
             if marker not in text:
