@@ -55,6 +55,8 @@ class TestCase:
             return [str(v) for v in primes_upto(1000)]
         if self.name == "collatz_max":
             return ["97", "118"]
+        if self.name == "checksum8":
+            return ["15"]
         raise ValueError(f"unknown test case {self.name}")
 
 
@@ -62,6 +64,7 @@ TEST_CASES = [
     TestCase("count10", ROOT / "projects" / "tiny_vm" / "tests" / "count10.cvm.c", 8.0),
     TestCase("primes1000", ROOT / "projects" / "tiny_vm" / "tests" / "primes1000.cvm.c", 20.0),
     TestCase("collatz_max", ROOT / "projects" / "tiny_vm" / "tests" / "collatz_max.cvm.c", 8.0),
+    TestCase("checksum8", ROOT / "projects" / "tiny_vm" / "tests" / "checksum8.cvm.c", 8.0),
 ]
 
 

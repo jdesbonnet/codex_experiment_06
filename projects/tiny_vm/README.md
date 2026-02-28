@@ -164,6 +164,11 @@ Likely additions:
 Why this comes early:
 - many useful sensor and message-processing tasks depend on buffer access
 
+Current status:
+- Phase 2 has started in minimal form
+- the VM now has a bounded byte scratch memory region plus byte load/store primitives
+- this is enough for simple buffer-oriented tests, but not yet enough for full packet-processing workloads
+
 ### Phase 3: Add Bitwise And Shift Operations
 
 Goals:
@@ -446,6 +451,17 @@ Expected output:
 118
 ```
 
+Compile simple checksum/buffer demo:
+```sh
+./tools/vm_cc.py projects/tiny_vm/tests/checksum8.cvm.c -o /tmp/checksum8.bin
+./tools/vm_upload.py /tmp/checksum8.bin --port /dev/ttyACM1 --baud 57600
+```
+
+Expected output:
+```text
+15
+```
+
 ## Hardware Regression
 
 Run all finite-output LPC1114 demo regressions:
@@ -465,6 +481,7 @@ Notes:
   - `count10`
   - `primes1000`
   - `collatz_max`
+  - `checksum8`
 - `demos/blink.cvm.c` is intentionally excluded because it does not emit UART output and does not halt
 
 ## Demos
@@ -488,11 +505,21 @@ Current long-running/manual demo:
 - `delay_ms(expr);`
 - `print_u32(expr);`
 - `host(const_expr, expr);`
+- `store8(index_expr, value_expr);`
 - expressions:
 - literals, vars, consts
+- `load8(index_expr)`
 - `+`, `-`, `*`, `/`, `%`, `<`, `>`, `==`
 
 Assembler/VM opcodes now include:
 - `PUSH8`, `PUSH16`
 - arithmetic/comparison: `ADD`, `SUB`, `MUL`, `DIV`, `MOD`, `EQ`, `LT`
 - locals: `LGET`, `LSET`
+- scratch memory: `MGET`, `MSET`
+
+Scratch memory notes:
+- the runtime provides a bounded byte-addressable scratch region
+- current size: `64` bytes (`TINY_VM_MEM_MAX`)
+- `store8()` truncates written values to 8 bits
+- `load8()` returns the selected byte as a non-negative integer
+- out-of-range access is a VM runtime error

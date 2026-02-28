@@ -13,7 +13,8 @@ typedef enum {
     TINY_VM_ERR_STACK_UNDERFLOW = -3,
     TINY_VM_ERR_BAD_OPCODE = -4,
     TINY_VM_ERR_HOST = -5,
-    TINY_VM_ERR_CODE_TOO_LARGE = -6
+    TINY_VM_ERR_CODE_TOO_LARGE = -6,
+    TINY_VM_ERR_MEM_OOB = -7
 } tiny_vm_status_t;
 
 typedef enum {
@@ -35,12 +36,15 @@ typedef enum {
     TINY_OP_MOD = 0x0F,
     TINY_OP_MUL = 0x10,
     TINY_OP_DIV = 0x11,
+    TINY_OP_MGET = 0x12,
+    TINY_OP_MSET = 0x13,
     TINY_OP_HALT = 0xFF
 } tiny_vm_opcode_t;
 
 #define TINY_VM_STACK_MAX 16u
 #define TINY_VM_CODE_MAX 256u
 #define TINY_VM_LOCALS_MAX 16u
+#define TINY_VM_MEM_MAX 64u
 
 struct tiny_vm;
 typedef int (*tiny_vm_host_call_t)(struct tiny_vm *vm, uint8_t id, void *ctx);
@@ -51,6 +55,7 @@ typedef struct tiny_vm {
     uint16_t pc;
     int32_t stack[TINY_VM_STACK_MAX];
     int32_t locals[TINY_VM_LOCALS_MAX];
+    uint8_t mem[TINY_VM_MEM_MAX];
     uint8_t sp;
     tiny_vm_host_call_t host_call;
     void *host_ctx;

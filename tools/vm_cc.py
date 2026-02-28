@@ -14,8 +14,10 @@ Supported subset:
       delay_ms(expr);
       print_u32(expr);
       host(const_expr, expr);
+      store8(index_expr, value_expr);
   - expressions over int literals/vars/constants:
       +, -, *, /, %, <, >, ==
+      load8(index_expr)
 """
 
 from __future__ import annotations
@@ -212,8 +214,11 @@ class Parser:
             self.take()
             return {"kind": "num", "value": int(t.text, 0)}
         if t.kind == "ID":
-            self.take()
-            return {"kind": "name", "value": t.text}
+            name = self.take().text
+            if self.peek().kind == "SYM" and self.peek().text == "(":
+                args = self.parse_call_args()
+                return {"kind": "call_expr", "name": name, "args": args}
+            return {"kind": "name", "value": name}
         if t.kind == "SYM" and t.text == "(":
             self.take()
             node = self.parse_expr()
@@ -303,6 +308,16 @@ class Compiler:
                 self.emit_push_imm(self.consts[name])
                 return
             raise ValueError(f"unknown symbol '{name}'")
+        if kind == "call_expr":
+            name = node["name"]
+            args = node["args"]
+            if name == "load8":
+                if len(args) != 1:
+                    raise ValueError("load8 expects 1 arg")
+                self.emit_expr(args[0])
+                self.emit("MGET")
+                return
+            raise ValueError(f"unsupported expression function '{name}'")
         if kind == "bin":
             op = node["op"]
             if op == ">":
@@ -409,6 +424,13 @@ class Compiler:
                 raise ValueError("host id out of range 0..255")
             self.emit_expr(args[1])
             self.emit(f"HOST {host_id}")
+            return
+        if name == "store8":
+            if len(args) != 2:
+                raise ValueError("store8 expects 2 args")
+            self.emit_expr(args[0])
+            self.emit_expr(args[1])
+            self.emit("MSET")
             return
         raise ValueError(f"unsupported function '{name}'")
 

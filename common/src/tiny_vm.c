@@ -18,6 +18,9 @@ void tiny_vm_init(tiny_vm_t *vm, tiny_vm_host_call_t host_call, void *host_ctx)
     for (i = 0u; i < TINY_VM_LOCALS_MAX; i++) {
         vm->locals[i] = 0;
     }
+    for (i = 0u; i < TINY_VM_MEM_MAX; i++) {
+        vm->mem[i] = 0u;
+    }
     vm->host_call = host_call;
     vm->host_ctx = host_ctx;
 }
@@ -36,6 +39,9 @@ int tiny_vm_load(tiny_vm_t *vm, const uint8_t *code, uint16_t code_len)
     vm->sp = 0u;
     for (i = 0u; i < TINY_VM_LOCALS_MAX; i++) {
         vm->locals[i] = 0;
+    }
+    for (i = 0u; i < TINY_VM_MEM_MAX; i++) {
+        vm->mem[i] = 0u;
     }
     return TINY_VM_OK;
 }
@@ -306,6 +312,33 @@ int tiny_vm_exec(tiny_vm_t *vm, uint32_t step_budget)
             if (rc < 0) {
                 return rc;
             }
+            break;
+        case TINY_OP_MGET:
+            rc = tiny_vm_pop(vm, &a);
+            if (rc < 0) {
+                return rc;
+            }
+            if (a < 0 || a >= (int32_t)TINY_VM_MEM_MAX) {
+                return TINY_VM_ERR_MEM_OOB;
+            }
+            rc = tiny_vm_push(vm, (int32_t)vm->mem[(uint8_t)a]);
+            if (rc < 0) {
+                return rc;
+            }
+            break;
+        case TINY_OP_MSET:
+            rc = tiny_vm_pop(vm, &b);
+            if (rc < 0) {
+                return rc;
+            }
+            rc = tiny_vm_pop(vm, &a);
+            if (rc < 0) {
+                return rc;
+            }
+            if (a < 0 || a >= (int32_t)TINY_VM_MEM_MAX) {
+                return TINY_VM_ERR_MEM_OOB;
+            }
+            vm->mem[(uint8_t)a] = (uint8_t)(b & 0xFF);
             break;
         case TINY_OP_HALT:
             return TINY_VM_HALT;
