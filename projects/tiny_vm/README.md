@@ -187,7 +187,7 @@ Current status:
 - Phase 3 has started
 - the VM now has a minimal bitwise core:
   - `AND`, `OR`, `XOR`, `NOT`
-  - `SHL`, `SHR`
+  - `SHL`, `SHR`, `ROL`, `ROR`
   - `PUSH32` for full-width integer literals
 - this is enough to support bounded checksum and CRC-style algorithms without yet committing to a full crypto-oriented design
 
@@ -481,6 +481,18 @@ Expected output:
 CBF43926
 ```
 
+Compile rotate demo:
+```sh
+./tools/vm_cc.py projects/tiny_vm/tests/rotate32.cvm.c -o /tmp/rotate32.bin
+./tools/vm_upload.py /tmp/rotate32.bin --port /dev/ttyACM1 --baud 57600
+```
+
+Expected output:
+```text
+34567812
+78123456
+```
+
 ## Hardware Regression
 
 Run all finite-output LPC1114 demo regressions:
@@ -502,6 +514,7 @@ Notes:
   - `collatz_max`
   - `checksum8`
   - `crc32`
+  - `rotate32`
 - `demos/blink.cvm.c` is intentionally excluded because it does not emit UART output and does not halt
 
 ## Demos
@@ -532,12 +545,13 @@ Current long-running/manual demo:
 - `load8(index_expr)`
 - `and32(a, b)`, `or32(a, b)`, `xor32(a, b)`, `not32(a)`
 - `shl32(a, b)`, `shr32(a, b)`
+- `rol32(a, b)`, `ror32(a, b)`
 - `+`, `-`, `*`, `/`, `%`, `<`, `>`, `==`
 
 Assembler/VM opcodes now include:
 - `PUSH8`, `PUSH16`, `PUSH32`
 - arithmetic/comparison: `ADD`, `SUB`, `MUL`, `DIV`, `MOD`, `EQ`, `LT`
-- bitwise/shift: `AND`, `OR`, `XOR`, `NOT`, `SHL`, `SHR`
+- bitwise/shift: `AND`, `OR`, `XOR`, `NOT`, `SHL`, `SHR`, `ROL`, `ROR`
 - locals: `LGET`, `LSET`
 - scratch memory: `MGET`, `MSET`
 

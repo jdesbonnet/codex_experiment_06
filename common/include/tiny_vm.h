@@ -45,6 +45,8 @@ typedef enum {
     TINY_OP_NOT = 0x18,
     TINY_OP_SHL = 0x19,
     TINY_OP_SHR = 0x1A,
+    TINY_OP_ROL = 0x1B,
+    TINY_OP_ROR = 0x1C,
     TINY_OP_HALT = 0xFF
 } tiny_vm_opcode_t;
 

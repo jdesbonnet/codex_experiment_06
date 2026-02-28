@@ -450,6 +450,52 @@ int tiny_vm_exec(tiny_vm_t *vm, uint32_t step_budget)
                 return rc;
             }
             break;
+        case TINY_OP_ROL: {
+            uint32_t ua;
+            uint32_t shift;
+            rc = tiny_vm_pop(vm, &b);
+            if (rc < 0) {
+                return rc;
+            }
+            rc = tiny_vm_pop(vm, &a);
+            if (rc < 0) {
+                return rc;
+            }
+            ua = (uint32_t)a;
+            shift = ((uint32_t)b) & 31u;
+            if (shift == 0u) {
+                rc = tiny_vm_push(vm, (int32_t)ua);
+            } else {
+                rc = tiny_vm_push(vm, (int32_t)((ua << shift) | (ua >> (32u - shift))));
+            }
+            if (rc < 0) {
+                return rc;
+            }
+            break;
+        }
+        case TINY_OP_ROR: {
+            uint32_t ua;
+            uint32_t shift;
+            rc = tiny_vm_pop(vm, &b);
+            if (rc < 0) {
+                return rc;
+            }
+            rc = tiny_vm_pop(vm, &a);
+            if (rc < 0) {
+                return rc;
+            }
+            ua = (uint32_t)a;
+            shift = ((uint32_t)b) & 31u;
+            if (shift == 0u) {
+                rc = tiny_vm_push(vm, (int32_t)ua);
+            } else {
+                rc = tiny_vm_push(vm, (int32_t)((ua >> shift) | (ua << (32u - shift))));
+            }
+            if (rc < 0) {
+                return rc;
+            }
+            break;
+        }
         case TINY_OP_HALT:
             return TINY_VM_HALT;
         default:

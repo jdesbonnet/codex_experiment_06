@@ -21,6 +21,7 @@ Supported subset:
       load8(index_expr)
       and32(a,b), or32(a,b), xor32(a,b), not32(a)
       shl32(a,b), shr32(a,b)
+      rol32(a,b), ror32(a,b)
 """
 
 from __future__ import annotations
@@ -364,6 +365,20 @@ class Compiler:
                 self.emit_expr(args[0])
                 self.emit_expr(args[1])
                 self.emit("SHR")
+                return
+            if name == "rol32":
+                if len(args) != 2:
+                    raise ValueError("rol32 expects 2 args")
+                self.emit_expr(args[0])
+                self.emit_expr(args[1])
+                self.emit("ROL")
+                return
+            if name == "ror32":
+                if len(args) != 2:
+                    raise ValueError("ror32 expects 2 args")
+                self.emit_expr(args[0])
+                self.emit_expr(args[1])
+                self.emit("ROR")
                 return
             raise ValueError(f"unsupported expression function '{name}'")
         if kind == "bin":
