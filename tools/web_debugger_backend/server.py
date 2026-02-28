@@ -36,6 +36,8 @@ from urllib.parse import parse_qs, urlparse
 WS_MAGIC = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
 TCL_TERM = b"\x1a"
 REPO_ROOT = Path(__file__).resolve().parents[2]
+HALTED_SAMPLE_INTERVAL_S = 0.1
+RUNNING_METRICS_INTERVAL_S = 1.0
 REGISTER_ORDER = [
     "r0",
     "r1",
@@ -474,6 +476,9 @@ class AppState:
         self.session = DebugSession()
         self.clients: List[WebSocketClient] = []
         self.clients_lock = threading.Lock()
+        self.stop_event = threading.Event()
+        self.sampler_thread = threading.Thread(target=self._sampler_loop, name="backend-sampler", daemon=True)
+        self.sampler_thread.start()
 
     def add_client(self, client: WebSocketClient) -> None:
         with self.clients_lock:
@@ -506,6 +511,73 @@ class AppState:
                 "reason": reason,
             }
         )
+
+    def stop(self) -> None:
+        self.stop_event.set()
+        self.sampler_thread.join(timeout=1.0)
+
+    def _sampler_loop(self) -> None:
+        last_running_metrics_ts = 0.0
+        while not self.stop_event.is_set():
+            if not self._has_clients():
+                self.stop_event.wait(0.1)
+                continue
+
+            state = self.session.state
+            if state == "halted":
+                start = time.monotonic()
+                try:
+                    register_snapshot = self.session.register_snapshot()
+                    memory_snapshots = self.session.memory_snapshots()
+                except SessionError as exc:
+                    self.broadcast(
+                        {
+                            "type": "event",
+                            "ts": iso8601_utc_now(),
+                            "event": "error",
+                            "detail": exc.detail,
+                        }
+                    )
+                    self.stop_event.wait(HALTED_SAMPLE_INTERVAL_S)
+                    continue
+
+                self.broadcast(register_snapshot)
+                for snapshot in memory_snapshots:
+                    self.broadcast(snapshot)
+
+                elapsed_ms = int((time.monotonic() - start) * 1000)
+                sample_hz = 0
+                if elapsed_ms < int(HALTED_SAMPLE_INTERVAL_S * 1000):
+                    sample_hz = int(round(1.0 / HALTED_SAMPLE_INTERVAL_S))
+                self.broadcast(
+                    {
+                        "type": "metrics",
+                        "ts": iso8601_utc_now(),
+                        "sample_hz": sample_hz,
+                        "backend_latency_ms": elapsed_ms,
+                        "dropped_frames": 0,
+                    }
+                )
+                self.stop_event.wait(HALTED_SAMPLE_INTERVAL_S)
+                continue
+
+            now = time.monotonic()
+            if now - last_running_metrics_ts >= RUNNING_METRICS_INTERVAL_S:
+                self.broadcast(
+                    {
+                        "type": "metrics",
+                        "ts": iso8601_utc_now(),
+                        "sample_hz": 0,
+                        "backend_latency_ms": 0,
+                        "dropped_frames": 0,
+                    }
+                )
+                last_running_metrics_ts = now
+            self.stop_event.wait(0.1)
+
+    def _has_clients(self) -> bool:
+        with self.clients_lock:
+            return bool(self.clients)
 
 
 APP = AppState()
@@ -679,15 +751,8 @@ class DebugHTTPRequestHandler(BaseHTTPRequestHandler):
         try:
             while True:
                 time.sleep(1.0)
-                client.send_json(
-                    {
-                        "type": "metrics",
-                        "ts": iso8601_utc_now(),
-                        "sample_hz": 0 if APP.session.state == "running" else 10,
-                        "backend_latency_ms": 0,
-                        "dropped_frames": 0,
-                    }
-                )
+                if client.closed:
+                    break
         except OSError:
             pass
         finally:
@@ -714,6 +779,7 @@ def main() -> int:
             APP.session.disconnect()
         except Exception:
             pass
+        APP.stop()
         server.server_close()
     return 0
 

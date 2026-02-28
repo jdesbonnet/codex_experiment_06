@@ -9,7 +9,8 @@ Current status:
 - WebSocket endpoint skeleton is implemented
 - LPC1114 target operations use a real OpenOCD process plus the Tcl socket
 - register and memory reads are live OpenOCD queries
-- sampling/event streaming is still minimal
+- halted-state background sampling now publishes register snapshots and watched memory snapshots over WebSocket
+- running-state WebSocket traffic is metrics-only for now
 
 ## Run
 
@@ -37,6 +38,5 @@ Default bind:
 ## Next Step
 
 Extend `tools/web_debugger_backend/server.py` with:
-- background sampling for halted-state register and watch updates
 - explicit OpenOCD error classification and recovery
 - optional GDB/MI integration or proxy layer once the single-owner control path is stable
