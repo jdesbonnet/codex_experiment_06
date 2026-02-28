@@ -276,6 +276,37 @@ int tiny_vm_exec(tiny_vm_t *vm, uint32_t step_budget)
                 return rc;
             }
             break;
+        case TINY_OP_MUL:
+            rc = tiny_vm_pop(vm, &b);
+            if (rc < 0) {
+                return rc;
+            }
+            rc = tiny_vm_pop(vm, &a);
+            if (rc < 0) {
+                return rc;
+            }
+            rc = tiny_vm_push(vm, a * b);
+            if (rc < 0) {
+                return rc;
+            }
+            break;
+        case TINY_OP_DIV:
+            rc = tiny_vm_pop(vm, &b);
+            if (rc < 0) {
+                return rc;
+            }
+            rc = tiny_vm_pop(vm, &a);
+            if (rc < 0) {
+                return rc;
+            }
+            if (b == 0) {
+                return TINY_VM_ERR_HOST;
+            }
+            rc = tiny_vm_push(vm, a / b);
+            if (rc < 0) {
+                return rc;
+            }
+            break;
         case TINY_OP_HALT:
             return TINY_VM_HALT;
         default:

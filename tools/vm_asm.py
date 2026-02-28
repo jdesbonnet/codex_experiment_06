@@ -10,7 +10,7 @@ Syntax:
       PUSH8 <int8>
       PUSH16 <int16>
       ADD | SUB | DUP | DROP | SWAP | HALT
-      EQ | LT | MOD
+      EQ | LT | MOD | MUL | DIV
       HOST <u8>
       LGET <u8>
       LSET <u8>
@@ -43,6 +43,8 @@ OPCODES = {
     "LT": 0x0D,
     "PUSH16": 0x0E,
     "MOD": 0x0F,
+    "MUL": 0x10,
+    "DIV": 0x11,
     "HALT": 0xFF,
 }
 

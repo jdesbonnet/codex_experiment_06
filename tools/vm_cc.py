@@ -15,7 +15,7 @@ Supported subset:
       print_u32(expr);
       host(const_expr, expr);
   - expressions over int literals/vars/constants:
-      +, -, %, <, >, ==
+      +, -, *, /, %, <, >, ==
 """
 
 from __future__ import annotations
@@ -53,7 +53,7 @@ def lex(src: str) -> list[Token]:
             tokens.append(Token("SYM", "=="))
             i += 2
             continue
-        if ch in "{}();,=+-<>%":
+        if ch in "{}();,=+-*/<>%":
             tokens.append(Token("SYM", ch))
             i += 1
             continue
@@ -200,7 +200,7 @@ class Parser:
 
     def parse_mul(self) -> dict:
         node = self.parse_term()
-        while self.peek().kind == "SYM" and self.peek().text == "%":
+        while self.peek().kind == "SYM" and self.peek().text in {"*", "/", "%"}:
             op = self.take().text
             rhs = self.parse_term()
             node = {"kind": "bin", "op": op, "l": node, "r": rhs}
@@ -267,6 +267,12 @@ class Compiler:
                 if r == 0:
                     raise ValueError("mod by zero in const expression")
                 return l % r
+            if op == "*":
+                return l * r
+            if op == "/":
+                if r == 0:
+                    raise ValueError("div by zero in const expression")
+                return int(l / r)
             if op == "==":
                 return 1 if l == r else 0
             if op == "<":
@@ -310,6 +316,10 @@ class Compiler:
                 self.emit("ADD")
             elif op == "-":
                 self.emit("SUB")
+            elif op == "*":
+                self.emit("MUL")
+            elif op == "/":
+                self.emit("DIV")
             elif op == "%":
                 self.emit("MOD")
             elif op == "==":

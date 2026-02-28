@@ -17,19 +17,9 @@ while (n < (LIMIT + 1)) {
 
     while (x > 1) {
         if ((x % 2) == 0) {
-            /* x = x / 2 via repeated subtraction (subset has no divide yet). */
-            int t = x;
-            int half = 0;
-            while (t > 1) {
-                t = t - 2;
-                half = half + 1;
-            }
-            x = half;
+            x = x / 2;
         } else {
-            /* x = 3*x + 1 via additions (subset has no multiply yet). */
-            int two_x = x + x;
-            x = two_x + x;
-            x = x + 1;
+            x = (x * 3) + 1;
         }
         steps = steps + 1;
     }

@@ -22,6 +22,7 @@ Both runtimes wait 15 seconds after boot for an upload, then continue waiting fo
 - minimal C-like compiler: `tools/vm_cc.py`
 - uploader: `tools/vm_upload.py`
 - host regression tests: `tools/test_vm_tools.py`
+- hardware UART regression tests: `tools/test_tiny_vm_hardware.py`
 
 ## Quick start
 
@@ -56,6 +57,33 @@ Compile Collatz max-step demo (range 1..100):
 ./tools/vm_upload.py /tmp/collatz_max.bin --port /dev/ttyACM1 --baud 57600
 ```
 
+Expected output:
+```text
+97
+118
+```
+
+## Hardware Regression
+
+Run all finite-output LPC1114 demo regressions:
+```sh
+python3 tools/test_tiny_vm_hardware.py
+```
+
+Run one case only:
+```sh
+python3 tools/test_tiny_vm_hardware.py --only collatz_max
+```
+
+Notes:
+- the script auto-detects debugprobe primary/mirror UART ports
+- it reflashes the LPC1114 `tiny_vm` runtime by default
+- it verifies exact UART output for:
+  - `count10`
+  - `primes1000`
+  - `collatz_max`
+- `blink.cvm.c` is intentionally excluded because it does not emit UART output and does not halt
+
 ## C-like language subset (v1)
 
 - declarations:
@@ -73,9 +101,9 @@ Compile Collatz max-step demo (range 1..100):
 - `host(const_expr, expr);`
 - expressions:
 - literals, vars, consts
-- `+`, `-`, `%`, `<`, `>`, `==`
+- `+`, `-`, `*`, `/`, `%`, `<`, `>`, `==`
 
 Assembler/VM opcodes now include:
 - `PUSH8`, `PUSH16`
-- arithmetic/comparison: `ADD`, `SUB`, `MOD`, `EQ`, `LT`
+- arithmetic/comparison: `ADD`, `SUB`, `MUL`, `DIV`, `MOD`, `EQ`, `LT`
 - locals: `LGET`, `LSET`

@@ -65,10 +65,33 @@ def test_vm_cc_primes_uses_mod_push16() -> None:
             raise AssertionError("compiler produced empty binary")
 
 
+def test_vm_cc_mul_div_supported() -> None:
+    src = """
+int x = 9;
+int y = 2;
+print_u32(x / y);
+print_u32(x * y);
+"""
+    with tempfile.TemporaryDirectory() as td:
+        tdp = pathlib.Path(td)
+        asm = tdp / "m.vm"
+        out = tdp / "m.bin"
+        cvm = tdp / "m.cvm.c"
+        cvm.write_text(src, encoding="utf-8")
+        run(["./tools/vm_cc.py", str(cvm), "-S", str(asm), "-o", str(out)])
+        text = asm.read_text(encoding="utf-8")
+        for marker in ("DIV", "MUL", "HOST 2"):
+            if marker not in text:
+                raise AssertionError(f"expected marker {marker!r} in generated asm")
+        if len(out.read_bytes()) == 0:
+            raise AssertionError("compiler produced empty binary")
+
+
 def main() -> int:
     test_vm_asm_basic()
     test_vm_cc_while_if()
     test_vm_cc_primes_uses_mod_push16()
+    test_vm_cc_mul_div_supported()
     print("vm tool tests: OK")
     return 0
 
