@@ -362,6 +362,7 @@ For `ch32v003`:
 
 Runtime now exists on both targets and executes uploaded bytecode frames:
 - `projects/tiny_vm/lpc1114_c`
+- `projects/tiny_vm/lpc1114_rust`
 - `projects/tiny_vm/ch32v003_c`
 
 Upload frame format:
@@ -378,11 +379,15 @@ Host tools:
 - assembler: `tools/vm_asm.py`
 - minimal C-like frontend: `tools/vm_cc.py`
 - uploader: `tools/vm_upload.py`
+- SHA-1 case generator: `tools/gen_tiny_vm_sha1_case.py`
 - host regression tests: `tools/test_vm_tools.py`
+- hardware regression tests: `tools/test_tiny_vm_hardware.py`
 
 Current VM includes:
-- immediates: `PUSH8`, `PUSH16`
-- arithmetic/comparison: `ADD`, `SUB`, `MOD`, `EQ`, `LT`
+- immediates: `PUSH8`, `PUSH16`, `PUSH32`
+- arithmetic/comparison: `ADD`, `SUB`, `MUL`, `DIV`, `MOD`, `EQ`, `LT`
+- scratch memory: `MGET`, `MSET`, `MGET32`, `MSET32`
+- bitwise/shift: `AND`, `OR`, `XOR`, `NOT`, `SHL`, `SHR`, `ROL`, `ROR`
 - locals: `LGET`, `LSET`
 
 Example flow:
@@ -391,6 +396,14 @@ Example flow:
 ./tools/vm_cc.py projects/tiny_vm/tests/count10.cvm.c -o /tmp/count10.bin
 ./tools/flash.sh --target lpc1114 --lang c --project tiny_vm
 ./tools/vm_upload.py /tmp/count10.bin --port /dev/ttyACM1 --baud 57600
+```
+
+Run the hardware regression suite:
+
+```sh
+python3 tools/test_tiny_vm_hardware.py
+python3 tools/test_tiny_vm_hardware.py --runtime-lang rust
+python3 tools/test_tiny_vm_hardware.py --runtime-lang rust --no-flash
 ```
 
 Prime demo:

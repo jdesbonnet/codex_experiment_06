@@ -3,7 +3,7 @@
 Run hardware regression tests for finite-output tiny_vm demo programs.
 
 This script:
-- flashes the LPC1114 tiny_vm runtime (default)
+- flashes the selected LPC1114 tiny_vm runtime (`c` by default, `rust` optional)
 - auto-detects debugprobe primary/mirror UART ports
 - compiles each selected test case to bytecode
 - resets the target into run state
@@ -184,9 +184,9 @@ def reset_target_run() -> None:
     run(cmd, timeout=8.0, quiet=True)
 
 
-def flash_runtime() -> None:
+def flash_runtime(runtime_lang: str) -> None:
     run(
-        [str(FLASH_SCRIPT), "--target", "lpc1114", "--lang", "c", "--project", "tiny_vm"],
+        [str(FLASH_SCRIPT), "--target", "lpc1114", "--lang", runtime_lang, "--project", "tiny_vm"],
         timeout=30.0,
         quiet=True,
     )
@@ -281,6 +281,12 @@ def parse_args() -> argparse.Namespace:
         action="append",
         help="run only the named case (may be passed multiple times)",
     )
+    parser.add_argument(
+        "--runtime-lang",
+        choices=["c", "rust"],
+        default="c",
+        help="LPC1114 tiny_vm runtime to flash before tests (default: c)",
+    )
     return parser.parse_args()
 
 
@@ -291,8 +297,8 @@ def main() -> int:
     print(f"[tiny_vm] primary={primary_port} mirror={mirror_port}")
 
     if not args.no_flash:
-        print("[tiny_vm] flashing LPC1114 tiny_vm runtime")
-        flash_runtime()
+        print(f"[tiny_vm] flashing LPC1114 tiny_vm runtime ({args.runtime_lang})")
+        flash_runtime(args.runtime_lang)
 
     mirror_fd = open_uart(mirror_port)
     try:

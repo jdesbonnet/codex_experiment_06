@@ -580,6 +580,8 @@ Typical usage:
 python3 tools/test_tiny_vm_hardware.py
 python3 tools/test_tiny_vm_hardware.py --only collatz_max
 python3 tools/test_tiny_vm_hardware.py --no-flash --only count10
+python3 tools/test_tiny_vm_hardware.py --runtime-lang rust
+python3 tools/test_tiny_vm_hardware.py --runtime-lang rust --no-flash
 ```
 
 Use it when:
@@ -717,6 +719,8 @@ python3 tools/test_tiny_vm_hardware.py --only collatz_max
 Notes:
 - the script auto-detects debugprobe primary/mirror UART ports
 - it reflashes the LPC1114 `tiny_vm` runtime by default
+- use `--runtime-lang c` or `--runtime-lang rust` to choose which LPC1114 runtime to flash
+- use `--no-flash` to run against whatever `tiny_vm` runtime is already on the target
 - it verifies exact UART output for:
   - `count10`
   - `primes1000`
