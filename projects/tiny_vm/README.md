@@ -4,11 +4,22 @@ Small stack-based bytecode VM running on both:
 - `projects/tiny_vm/lpc1114_c`
 - `projects/tiny_vm/ch32v003_c`
 - `projects/tiny_vm/lpc1114_rust`
+- `projects/tiny_vm/ch32v003_rust` (via `projects/tiny_vm/ch32v003_rust_shim`)
 
 An LPC1114 Rust port is now functional:
 - `projects/tiny_vm/lpc1114_rust`
 - it matches the C runtime upload protocol closely enough that the existing UART regression harness can run against it
 - the full current `tiny_vm` LPC1114 hardware regression suite has been run successfully against the Rust runtime
+
+A CH32V003 Rust port also now exists:
+- `projects/tiny_vm/ch32v003_rust`
+- linked into a ch32fun shim at:
+  - `projects/tiny_vm/ch32v003_rust_shim`
+- current status:
+  - build-check passes
+  - hardware validation is still blocked by the current WCH-Link / target connectivity issue
+- current constraint:
+  - the Rust image is large on CH32V003 and currently uses most of the 16 KB flash budget
 
 ## Project Goal
 
@@ -402,6 +413,8 @@ Current implementation:
 - compile-time switch in each runtime source:
   - `projects/tiny_vm/lpc1114_c/main.c`
   - `projects/tiny_vm/ch32v003_c/tiny_vm.c`
+  - `projects/tiny_vm/lpc1114_rust/src/main.rs`
+  - `projects/tiny_vm/ch32v003_rust/src/lib.rs`
 - macro:
   - `TINY_VM_ACTIVITY_LED`
 
@@ -589,6 +602,11 @@ Use it when:
 - changing the upload framing
 - changing compiler semantics and you want a real-device check
 
+Current scope:
+- this harness currently targets the LPC1114 runtime(s)
+- it does not yet drive the CH32V003 `tiny_vm` runtime
+- CH32V003 validation is currently manual until a CH32-specific hardware harness is added
+
 ## Recommended Workflow
 
 For normal development:
@@ -721,6 +739,7 @@ Notes:
 - it reflashes the LPC1114 `tiny_vm` runtime by default
 - use `--runtime-lang c` or `--runtime-lang rust` to choose which LPC1114 runtime to flash
 - use `--no-flash` to run against whatever `tiny_vm` runtime is already on the target
+- CH32V003 `tiny_vm` is not yet integrated into this harness
 - it verifies exact UART output for:
   - `count10`
   - `primes1000`

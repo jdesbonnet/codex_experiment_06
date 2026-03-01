@@ -63,11 +63,9 @@ For per-project implementation directories under `projects/<project>/`, use:
 
 ## Git operations
 
-- It is acceptable and preferred to keep backticks in commit messages when they improve readability for:
-  - file paths
-  - command-line flags
-  - commands
-  - identifiers
-- When creating commit messages from an inline shell command, backticks must be escaped so the shell does not treat them as command substitution.
-- A safer alternative is to write the commit message to a temporary file and use `git commit -F <file>`.
-- Do not drop backticks from commit messages just to avoid shell quoting problems. Preserve the formatting and handle the quoting correctly.
+There is a repeating issue with commiting messages with backtick symbols. Keep this in mind before issuing git commit commands.
+
+## Tool scripts
+
+This project has many tooling scripts. Some common rules: always have a --verbose switch that will output debugging information. When expecting a file as an argument and the file does not exist a single line human friendly message should be displayed instead of a stack trace. If a resource (eg UART) is locked by another process: also a human friendly message is preferred.
+
