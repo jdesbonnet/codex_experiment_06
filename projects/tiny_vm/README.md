@@ -1,5 +1,8 @@
 # tiny_vm
 
+Related analysis:
+- `docs/tiny_vm_c_vs_rust_analysis.md`
+
 Small stack-based bytecode VM running on both:
 - `projects/tiny_vm/lpc1114_c`
 - `projects/tiny_vm/ch32v003_c`

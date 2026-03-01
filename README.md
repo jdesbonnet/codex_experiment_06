@@ -421,3 +421,6 @@ Collatz max-step demo:
 Web debugger visualization docs:
 - `docs/web_debugger_visualization_proposal.md`
 - `docs/web_debugger_api_contract.md`
+
+`tiny_vm` C vs Rust analysis:
+- `docs/tiny_vm_c_vs_rust_analysis.md`
