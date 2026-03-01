@@ -3,6 +3,12 @@
 Small stack-based bytecode VM running on both:
 - `projects/tiny_vm/lpc1114_c`
 - `projects/tiny_vm/ch32v003_c`
+- `projects/tiny_vm/lpc1114_rust`
+
+An LPC1114 Rust port is now functional:
+- `projects/tiny_vm/lpc1114_rust`
+- it matches the C runtime upload protocol closely enough that the existing UART regression harness can run against it
+- the full current `tiny_vm` LPC1114 hardware regression suite has been run successfully against the Rust runtime
 
 ## Project Goal
 

@@ -5,6 +5,7 @@ pub mod systick;
 pub mod uart;
 pub mod ssp;
 pub mod sram23lc1024;
+pub mod tiny_vm;
 
 // Re-export PAC
 pub use lpc11xx as pac;
