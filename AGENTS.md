@@ -60,3 +60,14 @@ For per-project implementation directories under `projects/<project>/`, use:
 
 - Agent has permission to run openocd on target device.
 - Agent has permission to open UART on /dev/ttyACM0 (or any /dev/ttyACMx device).
+
+## Git operations
+
+- It is acceptable and preferred to keep backticks in commit messages when they improve readability for:
+  - file paths
+  - command-line flags
+  - commands
+  - identifiers
+- When creating commit messages from an inline shell command, backticks must be escaped so the shell does not treat them as command substitution.
+- A safer alternative is to write the commit message to a temporary file and use `git commit -F <file>`.
+- Do not drop backticks from commit messages just to avoid shell quoting problems. Preserve the formatting and handle the quoting correctly.
