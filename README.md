@@ -424,3 +424,6 @@ Web debugger visualization docs:
 
 `tiny_vm` C vs Rust analysis:
 - `docs/tiny_vm_c_vs_rust_analysis.md`
+
+FNIRSI DPI-150 USB protocol notes:
+- `docs/fnirsi_dpi_150_usb_protocol.md`
