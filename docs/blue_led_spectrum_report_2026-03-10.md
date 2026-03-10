@@ -3,19 +3,29 @@
 ## Setup
 - Spectrometer port: `/dev/ttyUSB0`
 - DPS-150 current limit: `1.250 mA`
-- DPS-150 measured LED voltage: `2.6788 V`
+- DPS-150 measured LED voltage: `2.6802 V`
 - DPS-150 measured LED current: `1.250 mA`
-- DPS-150 measured LED power: `3.348 mW`
-- Background frames averaged: `24` (frame IDs `1` to `24`)
-- Illuminated frames averaged: `24` (frame IDs `46` to `69`)
+- DPS-150 measured LED power: `3.350 mW`
+- Background frames averaged: `24` (frame IDs `52` to `75`)
+- Illuminated frames averaged: `24` (frame IDs `10` to `33`)
 
 ## Result
-The plot below shows the background-subtracted LED spectrum on the spectrometer's native pixel axis.
-No wavelength calibration is applied here, so the horizontal axis is pixel index rather than nm.
+The plot below shows the background-subtracted LED spectrum using the wavelength calibration polynomial from:
+- `https://github.com/jdesbonnet/hamamatsu_c12880ma/blob/master/README.md`
+
+Calibration applied:
+- `lambda(i) = A0 + B1*i + B2*i^2 + B3*i^3 + B4*i^4 + B5*i^5`
+- `A0=312.0790493`
+- `B1=2.681652834`
+- `B2=-8.061777879e-04`
+- `B3=-1.052906745e-05`
+- `B4=1.925845957e-08`
+- `B5=-7.465510101e-12`
 
 Peak response:
 - Pixel: `73`
-- Background-subtracted counts: `855.542`
+- Wavelength: `499.98 nm`
+- Background-subtracted counts: `858.708`
 
 ![Background-subtracted blue LED spectrum](results/blue_led_spectrum_1p25ma.svg)
 
