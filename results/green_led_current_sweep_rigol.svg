@@ -5,7 +5,7 @@ text { font-family: monospace; fill: #1e2933; }
 .grid { stroke: #d5dde5; stroke-width: 1; }
 .trace { fill: none; stroke-width: 2.25; stroke-linecap: round; stroke-linejoin: round; }
 </style>
-<text x="480" y="28" text-anchor="middle" font-size="20">Blue LED Spectrum Current Sweep</text>
+<text x="480" y="28" text-anchor="middle" font-size="20">Green LED Spectrum Current Sweep</text>
 <line class="axis" x1="64" y1="64" x2="64" y2="496" />
 <line class="axis" x1="64" y1="496" x2="896" y2="496" />
 <line class="grid" x1="64" y1="496.00" x2="896" y2="496.00" />

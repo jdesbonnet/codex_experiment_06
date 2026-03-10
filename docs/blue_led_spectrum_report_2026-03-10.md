@@ -3,11 +3,11 @@
 ## Setup
 - Spectrometer port: `/dev/ttyUSB0`
 - DPS-150 current limit: `1.250 mA`
-- DPS-150 measured LED voltage: `2.6802 V`
+- DPS-150 measured LED voltage: `2.6828 V`
 - DPS-150 measured LED current: `1.250 mA`
-- DPS-150 measured LED power: `3.350 mW`
-- Background frames averaged: `24` (frame IDs `52` to `75`)
-- Illuminated frames averaged: `24` (frame IDs `10` to `33`)
+- DPS-150 measured LED power: `3.354 mW`
+- Background frames averaged: `24` (frame IDs `5` to `28`)
+- Illuminated frames averaged: `24` (frame IDs `50` to `73`)
 
 ## Result
 The plot below shows the background-subtracted LED spectrum using the wavelength calibration polynomial from:
@@ -23,9 +23,9 @@ Calibration applied:
 - `B5=-7.465510101e-12`
 
 Peak response:
-- Pixel: `73`
-- Wavelength: `499.98 nm`
-- Background-subtracted counts: `858.708`
+- Pixel: `74`
+- Wavelength: `502.40 nm`
+- Background-subtracted counts: `862.125`
 
 ![Background-subtracted blue LED spectrum](results/blue_led_spectrum_1p25ma.svg)
 
