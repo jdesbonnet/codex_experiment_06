@@ -47,3 +47,13 @@ Guideline: when adding material for a new hardware family, prefer a dedicated su
 | `datasheets/TI_TivaC_LaunchPad/TivaWare_Peripheral_Driver_Library_User_Guide_SPMU298E.pdf` | Software library manual | TI `TivaWare` peripheral driver library user guide. |
 | `datasheets/TI_TivaC_LaunchPad/TM4C123x_Silicon_Errata_SPMZ849F.pdf` | Silicon errata | TI `TM4C123x` silicon errata. |
 | `datasheets/TI_TivaC_LaunchPad/TM4C123x_TM4C129x_Data_Sheet_Manual_Update_SPMZ863.pdf` | Datasheet update | TI manual update covering `TM4C123x` / `TM4C129x` datasheet corrections. |
+
+## PSoC 4 CY8CKIT-049-42xx
+
+| Path | Category | Description |
+| --- | --- | --- |
+| `datasheets/PSoC4_CY8CKIT-049-42xx/CY8CKIT-049-4xxx_PSoC_4_Prototyping_Kit_Guide_001-90711_RevJ.pdf` | Evaluation board manual | Infineon/Cypress `CY8CKIT-049-4xxx` PSoC 4 prototyping kit guide. |
+| `datasheets/PSoC4_CY8CKIT-049-42xx/CY8CKIT-049-42xx_Quick_Start_Guide_001-90837_RevA.pdf` | Evaluation board quick start | Infineon/Cypress `CY8CKIT-049-42xx` quick start guide. |
+| `datasheets/PSoC4_CY8CKIT-049-42xx/PSOC_4200_Family_Datasheet_001-87197_RevL.pdf` | MCU datasheet | Infineon `PSoC 4200` family datasheet. |
+| `datasheets/PSoC4_CY8CKIT-049-42xx/PSoC_4100_4200_Architecture_TRM_001-85634_RevH.pdf` | MCU architecture reference | Infineon `PSoC 4100/4200` architecture TRM. |
+| `datasheets/PSoC4_CY8CKIT-049-42xx/AN68272_UART_Bootloader.pdf` | Bootloader application note | Infineon `AN68272` UART bootloader application note for `PSoC 3/4/5LP`. |
