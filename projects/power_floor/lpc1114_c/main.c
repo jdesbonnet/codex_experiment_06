@@ -16,9 +16,9 @@
  *   - Put attached external interfaces into benign static states.
  *
  * Datasheet references used in this implementation:
- *   - LPC111X.pdf, Table 16 (deep-sleep current test conditions)
- *   - LPC111X.pdf, Fig. 26 note: BOD disabled; analog blocks/oscillators disabled
- *   - UM10398 power-management and deep-sleep entry sequence
+ *   - datasheets/LPC1114/LPC111X.pdf, Table 16 (deep-sleep current test conditions)
+ *   - datasheets/LPC1114/LPC111X.pdf, Fig. 26 note: BOD disabled; analog blocks/oscillators disabled
+ *   - datasheets/LPC1114/UM10398.pdf power-management and deep-sleep entry sequence
  */
 
 #define BOOT_ANNOUNCE_MS 5000u

@@ -7,7 +7,9 @@ You are running on a Raspberry Pi 5 running 64bit Raspberry Pi OS based on Debia
 
 Connected to the Raspberry Pi 5 via USB is a Raspberry Pi Pico 2 board running Raspberry Pi debugprobe firmware. The firmware currently in use is a custom `debugprobe_on_pico2` build with reset-line support enabled (`PROBE_PIN_RESET` on Pico 2 `GPIO1`). You will find documentation on the 3-pin interface in the datasheets directory file `raspberrypi-3pin-debug-spec.pdf` and general information at https://www.raspberrypi.com/documentation/microcontrollers/debug-probe.html. Keep in mind this is not the official Raspberry Pi Debug Probe hardware, but debugprobe firmware running on a Pico 2 board.
 
-This debugger probe is connected to the target device: an LPC1114FN28/102 ARM Cortex-M0 chip (part of the LPC111X family) via the ARM Serial Wire Debug (SWD) port. The pinout of this chip is documented in fig 13 of the datasheet file `LPC111X.pdf` (in the datasheets directory). You will find information about programming it in file `UM10398.pdf`. There is no external crystal for timing, so you will be using the internal oscillator.
+Before searching the internet for board or component documentation, check `datasheets/CATALOG.md` for locally cached PDFs and manuals.
+
+This debugger probe is connected to the target device: an LPC1114FN28/102 ARM Cortex-M0 chip (part of the LPC111X family) via the ARM Serial Wire Debug (SWD) port. The pinout of this chip is documented in fig 13 of `datasheets/LPC1114/LPC111X.pdf`. You will find information about programming it in `datasheets/LPC1114/UM10398.pdf`. There is no external crystal for timing, so you will be using the internal oscillator.
 
 In addition to SWD and UART, there is now a dedicated reset wire from Pico 2 `GPIO1` (physical pin 2) to LPC1114 `nRESET` (`RESET/PIO0_0`). This allows OpenOCD to control target SRST for reliable hardware reset pulses.
 
@@ -68,4 +70,3 @@ There is a repeating issue with commiting messages with backtick symbols. Keep t
 ## Tool scripts
 
 This project has many tooling scripts. Some common rules: always have a --verbose switch that will output debugging information. When expecting a file as an argument and the file does not exist a single line human friendly message should be displayed instead of a stack trace. If a resource (eg UART) is locked by another process: also a human friendly message is preferred.
-

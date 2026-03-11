@@ -1,0 +1,18 @@
+[target]
+id = "tm4c123gxl"
+arch = "armv7em"
+cpu = "cortex-m4"
+
+[toolchain.c]
+cc = "arm-none-eabi-gcc"
+objcopy = "arm-none-eabi-objcopy"
+size = "arm-none-eabi-size"
+
+[flash]
+method = "openocd"
+interface = "ti-icdi"
+openocd_cfg = "targets/tm4c123gxl/openocd/base.cfg"
+default_adapter_khz = 500
+
+[notes]
+summary = "TI EK-TM4C123GXL LaunchPad target scaffold using the on-board ICDI debugger and a minimal bare-metal C BSP."

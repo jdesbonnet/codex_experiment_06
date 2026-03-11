@@ -8,7 +8,9 @@ IMAGE=""
 RUST_PROFILE="${RUST_PROFILE:-release}"
 OPENOCD_BIN="${OPENOCD_BIN:-openocd}"
 OPENOCD_SCRIPTS="${OPENOCD_SCRIPTS:-/usr/share/openocd/scripts}"
+PROJECT_SCRIPTS="${PROJECT_SCRIPTS:-./openocd}"
 ADAPTER_KHZ="${ADAPTER_KHZ:-4000}"
+TI_ICDI_SERIAL="${TI_ICDI_SERIAL:-}"
 
 have_riscv_toolchain() {
   command -v riscv64-elf-gcc >/dev/null 2>&1 \
@@ -18,7 +20,7 @@ have_riscv_toolchain() {
 
 usage() {
   cat <<'EOF'
-Usage: flash.sh --target <lpc1114|ch32v003> --lang <c|rust> --project <name>
+Usage: flash.sh --target <lpc1114|ch32v003|tm4c123gxl> --lang <c|rust> --project <name>
                 [--profile <release|debug>] [--image <path/to/image.{elf|bin|hex}>]
 
 Examples:
@@ -27,6 +29,7 @@ Examples:
   ./tools/flash.sh --target ch32v003 --lang c --project blink
   ./tools/flash.sh --target ch32v003 --lang rust --project blink
   ./tools/flash.sh --target ch32v003 --lang c --project blink --image ./build/ch32/blink.elf
+  ./tools/flash.sh --target tm4c123gxl --lang c --project blink
 EOF
 }
 
@@ -139,6 +142,62 @@ case "$TARGET" in
       -s "$OPENOCD_SCRIPTS" \
       -f "$CFG" \
       -c "adapter speed ${ADAPTER_KHZ}; init; reset halt; program {$IMAGE} verify reset exit"
+    ;;
+  tm4c123gxl)
+    if [[ "$LANG" != "c" ]]; then
+      echo "TM4C123GXL currently supports C projects only." >&2
+      exit 2
+    fi
+
+    TM4C_DIR="projects/${PROJECT}/tm4c123gxl_c"
+    if [[ ! -f "${TM4C_DIR}/Makefile" ]]; then
+      echo "TM4C123GXL C project not found: ${TM4C_DIR}/Makefile" >&2
+      exit 2
+    fi
+
+    if [[ -z "$IMAGE" ]]; then
+      make -C "${TM4C_DIR}" all
+      IMAGE="${TM4C_DIR}/${PROJECT}.elf"
+    fi
+
+    if [[ ! -f "$IMAGE" ]]; then
+      echo "Image not found: $IMAGE" >&2
+      exit 2
+    fi
+
+    CFG="targets/tm4c123gxl/openocd/base.cfg"
+    if [[ ! -f "$CFG" ]]; then
+      echo "Missing OpenOCD config: $CFG" >&2
+      exit 2
+    fi
+
+    OPENOCD_ARGS=(
+      -s "$OPENOCD_SCRIPTS"
+      -s "$PROJECT_SCRIPTS"
+      -f "$CFG"
+    )
+
+    if [[ -n "$TI_ICDI_SERIAL" ]]; then
+      OPENOCD_ARGS+=(-c "set TI_ICDI_SERIAL ${TI_ICDI_SERIAL}")
+    fi
+
+    OPENOCD_ARGS+=(
+      -c "init"
+      -c "reset halt"
+      -c "flash write_image erase {$IMAGE}"
+      -c "verify_image {$IMAGE}"
+      -c "reset run"
+      -c "shutdown"
+    )
+
+    echo "Flashing TM4C123GXL image: $IMAGE"
+    echo "OpenOCD: $OPENOCD_BIN"
+    echo "Scripts: $OPENOCD_SCRIPTS"
+    echo "Project scripts: $PROJECT_SCRIPTS"
+    if [[ -n "$TI_ICDI_SERIAL" ]]; then
+      echo "ICDI serial: $TI_ICDI_SERIAL"
+    fi
+    "$OPENOCD_BIN" "${OPENOCD_ARGS[@]}"
     ;;
   *)
     echo "Unknown target: $TARGET" >&2

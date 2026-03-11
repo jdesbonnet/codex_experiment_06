@@ -1,0 +1,35 @@
+#ifndef TM4C123GH6PM_H
+#define TM4C123GH6PM_H
+
+#include <stdint.h>
+
+#define HWREG32(addr) (*((volatile uint32_t *)(addr)))
+
+/* System control */
+#define SYSCTL_RCGCGPIO_R    HWREG32(0x400FE608u)
+#define SYSCTL_PRGPIO_R      HWREG32(0x400FEA08u)
+
+/* GPIO Port F */
+#define GPIO_PORTF_DATA_R    HWREG32(0x400253FCu)
+#define GPIO_PORTF_DIR_R     HWREG32(0x40025400u)
+#define GPIO_PORTF_AFSEL_R   HWREG32(0x40025420u)
+#define GPIO_PORTF_DR2R_R    HWREG32(0x40025500u)
+#define GPIO_PORTF_DEN_R     HWREG32(0x4002551Cu)
+#define GPIO_PORTF_LOCK_R    HWREG32(0x40025520u)
+#define GPIO_PORTF_CR_R      HWREG32(0x40025524u)
+#define GPIO_PORTF_AMSEL_R   HWREG32(0x40025528u)
+#define GPIO_PORTF_PCTL_R    HWREG32(0x4002552Cu)
+
+/* SysTick */
+#define NVIC_ST_CTRL_R       HWREG32(0xE000E010u)
+#define NVIC_ST_RELOAD_R     HWREG32(0xE000E014u)
+#define NVIC_ST_CURRENT_R    HWREG32(0xE000E018u)
+
+#define NVIC_ST_CTRL_ENABLE  (1u << 0)
+#define NVIC_ST_CTRL_INTEN   (1u << 1)
+#define NVIC_ST_CTRL_CLK_SRC (1u << 2)
+
+#define TM4C123_PORTF_BIT    5u
+#define TM4C123_PF1_RED_LED  (1u << 1)
+
+#endif

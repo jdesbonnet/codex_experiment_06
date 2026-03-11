@@ -12,7 +12,8 @@ This repository supports multiple small projects in both C and Rust, sharing com
 - `projects/` per-project `main.c` and Rust `main.rs`
 - `targets/` target-specific packages
   - `targets/lpc1114` (active target metadata + scaffold)
-  - `targets/ch32v003` (scaffold for future support)
+  - `targets/ch32v003` (target scaffold)
+  - `targets/tm4c123gxl` (TI Tiva C LaunchPad target scaffold)
 - `linker/` linker script
 
 Project implementation directories use `hardware_language_variant` (variant optional). Examples:
@@ -21,6 +22,7 @@ Project implementation directories use `hardware_language_variant` (variant opti
 - `ch32v003_c`
 - `ch32v003_rust`
 - `ch32v003_rust_shim`
+- `tm4c123gxl_c`
 
 ## Dependencies (C)
 
@@ -312,6 +314,7 @@ Target-aware build wrapper:
 ./tools/build.sh --target lpc1114 --lang rust --project blink --profile release
 ./tools/build.sh --target ch32v003 --lang c --project blink
 ./tools/build.sh --target ch32v003 --lang rust --project blink
+./tools/build.sh --target tm4c123gxl --lang c --project blink
 ```
 
 ## Flash
@@ -322,11 +325,14 @@ Interactive:
 ./flash_project.sh
 ```
 
+When run without arguments it now prompts for target, then project.
+
 Non-interactive:
 
 ```sh
 ./flash_project.sh sram_test c
 ./flash_project.sh sram_test rust
+./flash_project.sh blink c tm4c123gxl
 ```
 
 Rust default profile is `release` (override with `RUST_PROFILE=debug`).
@@ -339,6 +345,7 @@ Target-aware flash wrapper:
 ./tools/flash.sh --target ch32v003 --lang c --project blink
 ./tools/flash.sh --target ch32v003 --lang rust --project blink
 ./tools/flash.sh --target ch32v003 --lang c --project blink --image ./build/ch32v003/blink/blink.elf
+./tools/flash.sh --target tm4c123gxl --lang c --project blink
 ```
 
 For `ch32v003`:
@@ -349,6 +356,12 @@ For `ch32v003`:
 - `build/ch32v003/<project>/<project>.elf`
 - `build/ch32v003/<project>/<project>.bin`
 - `build/ch32v003/<project>/<project>.hex`
+
+For `tm4c123gxl`:
+- current support is C only
+- wrapper builds `projects/<project>/tm4c123gxl_c` when `--image` is omitted
+- wrapper flashes through the on-board TI ICDI debugger using `targets/tm4c123gxl/openocd/base.cfg`
+- set `TI_ICDI_SERIAL=<serial>` if multiple TI ICDI probes are connected
 
 ## Projects
 

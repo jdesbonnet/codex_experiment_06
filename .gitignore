@@ -4,6 +4,7 @@ debug_logs/
 probe_logs/
 backups/
 *.log
+__pycache__/
 LPC1114_ECG_firmware/
 
 # CH32 ch32fun per-project build outputs
@@ -35,6 +36,16 @@ projects/*/ch32fun_rust/*.hex
 projects/*/ch32fun_rust/*.lst
 projects/*/ch32fun_rust/*.map
 projects/*/rust_ch32v003/target/
+
+# TM4C per-project build outputs
+projects/*/tm4c123gxl_c/*.elf
+projects/*/tm4c123gxl_c/*.bin
+projects/*/tm4c123gxl_c/*.hex
+projects/*/tm4c123gxl_c/*.lst
+projects/*/tm4c123gxl_c/*.map
+projects/*/tm4c123gxl_c/*.o
+projects/*/tm4c123gxl_c/*.d
+projects/*/tm4c123gxl_c/build/
 
 # Local third-party/build artifacts
 tools/wch-openocd/
