@@ -23,6 +23,7 @@ Project implementation directories use `hardware_language_variant` (variant opti
 - `ch32v003_rust`
 - `ch32v003_rust_shim`
 - `tm4c123gxl_c`
+- `tm4c123gxl_rust`
 
 ## Dependencies (C)
 
@@ -48,12 +49,13 @@ You can verify with:
 
 ## Dependencies (Rust)
 
-Install Rust via rustup and the Cortex-M0 target:
+Install Rust via rustup and the Cortex-M targets:
 
 ```sh
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 source $HOME/.cargo/env
 rustup target add thumbv6m-none-eabi
+rustup target add thumbv7em-none-eabi
 ```
 
 ## CH32V003 (WCH-Link + OpenOCD)
@@ -315,6 +317,7 @@ Target-aware build wrapper:
 ./tools/build.sh --target ch32v003 --lang c --project blink
 ./tools/build.sh --target ch32v003 --lang rust --project blink
 ./tools/build.sh --target tm4c123gxl --lang c --project blink
+./tools/build.sh --target tm4c123gxl --lang rust --project tiny_vm
 ```
 
 ## Flash
@@ -333,6 +336,7 @@ Non-interactive:
 ./flash_project.sh sram_test c
 ./flash_project.sh sram_test rust
 ./flash_project.sh blink c tm4c123gxl
+./flash_project.sh tiny_vm rust tm4c123gxl
 ```
 
 Rust default profile is `release` (override with `RUST_PROFILE=debug`).
@@ -346,6 +350,7 @@ Target-aware flash wrapper:
 ./tools/flash.sh --target ch32v003 --lang rust --project blink
 ./tools/flash.sh --target ch32v003 --lang c --project blink --image ./build/ch32v003/blink/blink.elf
 ./tools/flash.sh --target tm4c123gxl --lang c --project blink
+./tools/flash.sh --target tm4c123gxl --lang rust --project tiny_vm
 ```
 
 For `ch32v003`:
@@ -358,10 +363,11 @@ For `ch32v003`:
 - `build/ch32v003/<project>/<project>.hex`
 
 For `tm4c123gxl`:
-- current support is C only
-- wrapper builds `projects/<project>/tm4c123gxl_c` when `--image` is omitted
+- current support is C and Rust
+- wrapper builds `projects/<project>/tm4c123gxl_c` or `projects/<project>/tm4c123gxl_rust` when `--image` is omitted
 - wrapper flashes through the on-board TI ICDI debugger using `targets/tm4c123gxl/openocd/base.cfg`
 - set `TI_ICDI_SERIAL=<serial>` if multiple TI ICDI probes are connected
+- TM4C Rust workspace artifacts are emitted under `target/thumbv7em-none-eabi/<profile>/`
 
 ## Projects
 
@@ -369,7 +375,7 @@ For `tm4c123gxl`:
 - `uart_smoke`: simple UART message
 - `blink`: toggles PIO1_0
 - `power_floor`: deep-sleep floor-current characterization image
-- `tiny_vm`: tiny interpreted VM project (cross-target LPC1114 + CH32V003)
+- `tiny_vm`: tiny interpreted VM project (cross-target LPC1114 + CH32V003 + TM4C123GXL)
 
 ## tiny_vm
 
@@ -377,6 +383,8 @@ Runtime now exists on both targets and executes uploaded bytecode frames:
 - `projects/tiny_vm/lpc1114_c`
 - `projects/tiny_vm/lpc1114_rust`
 - `projects/tiny_vm/ch32v003_c`
+- `projects/tiny_vm/tm4c123gxl_c`
+- `projects/tiny_vm/tm4c123gxl_rust`
 
 Upload frame format:
 - magic: `TVM1`
@@ -409,6 +417,14 @@ Example flow:
 ./tools/vm_cc.py projects/tiny_vm/tests/count10.cvm.c -o /tmp/count10.bin
 ./tools/flash.sh --target lpc1114 --lang c --project tiny_vm
 ./tools/vm_upload.py /tmp/count10.bin --port /dev/ttyACM1 --baud 57600
+```
+
+TM4C123GXL manual sanity check:
+
+```sh
+./tools/vm_cc.py projects/tiny_vm/tests/count10.cvm.c -o /tmp/count10.bin
+./tools/flash.sh --target tm4c123gxl --lang c --project tiny_vm
+./tools/vm_upload.py /tmp/count10.bin --port /dev/ttyACM2 --baud 115200
 ```
 
 Run the hardware regression suite:

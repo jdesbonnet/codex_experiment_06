@@ -46,6 +46,7 @@ projects/*/tm4c123gxl_c/*.map
 projects/*/tm4c123gxl_c/*.o
 projects/*/tm4c123gxl_c/*.d
 projects/*/tm4c123gxl_c/build/
+projects/*/tm4c123gxl_rust/target/
 
 # Local third-party/build artifacts
 tools/wch-openocd/

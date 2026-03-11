@@ -6,8 +6,10 @@ Related analysis:
 Small stack-based bytecode VM running on both:
 - `projects/tiny_vm/lpc1114_c`
 - `projects/tiny_vm/ch32v003_c`
+- `projects/tiny_vm/tm4c123gxl_c`
 - `projects/tiny_vm/lpc1114_rust`
 - `projects/tiny_vm/ch32v003_rust` (via `projects/tiny_vm/ch32v003_rust_shim`)
+- `projects/tiny_vm/tm4c123gxl_rust`
 
 An LPC1114 Rust port is now functional:
 - `projects/tiny_vm/lpc1114_rust`
@@ -23,6 +25,14 @@ A CH32V003 Rust port also now exists:
   - hardware validation is still blocked by the current WCH-Link / target connectivity issue
 - current constraint:
   - the Rust image is large on CH32V003 and currently uses most of the 16 KB flash budget
+
+A TM4C123GXL port now exists in both languages:
+- `projects/tiny_vm/tm4c123gxl_c`
+- `projects/tiny_vm/tm4c123gxl_rust`
+- current status:
+  - both ports build-check cleanly
+  - both ports were hardware-validated on the LaunchPad ICDI virtual COM port at `115200` baud
+  - both ports successfully ran the `count10` bytecode test and produced the expected `1..10` output followed by `tiny_vm: halt`
 
 ## Project Goal
 
@@ -608,7 +618,9 @@ Use it when:
 Current scope:
 - this harness currently targets the LPC1114 runtime(s)
 - it does not yet drive the CH32V003 `tiny_vm` runtime
+- it does not yet drive the TM4C123GXL `tiny_vm` runtime
 - CH32V003 validation is currently manual until a CH32-specific hardware harness is added
+- TM4C123GXL validation is currently manual over the LaunchPad virtual COM port until a TM4C-specific hardware harness is added
 
 ## Recommended Workflow
 
@@ -642,9 +654,19 @@ Flash tiny_vm runtime (LPC1114):
 ./tools/flash.sh --target lpc1114 --lang c --project tiny_vm
 ```
 
+Flash tiny_vm runtime (TM4C123GXL):
+```sh
+./tools/flash.sh --target tm4c123gxl --lang c --project tiny_vm
+```
+
 Upload bytecode to LPC1114 primary UART:
 ```sh
 ./tools/vm_upload.py /tmp/count10.bin --port /dev/ttyACM1 --baud 57600
+```
+
+Upload bytecode to the TM4C123GXL LaunchPad virtual COM port:
+```sh
+./tools/vm_upload.py /tmp/count10.bin --port /dev/ttyACM2 --baud 115200
 ```
 
 Prime demo upload:

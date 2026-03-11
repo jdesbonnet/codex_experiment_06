@@ -302,6 +302,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "tiny_vm_tm4c123gxl_rust"
+version = "0.1.0"
+dependencies = [
+ "cortex-m 0.7.7",
+ "cortex-m-rt",
+ "panic-halt",
+]
+
+[[package]]
 name = "typenum"
 version = "1.19.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"

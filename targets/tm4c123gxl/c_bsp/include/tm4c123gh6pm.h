@@ -55,6 +55,7 @@
 #define UART0_CTL_R          HWREG32(0x4000C030u)
 #define UART0_CC_R           HWREG32(0x4000CFC8u)
 
+#define UART_FR_RXFE         (1u << 4)
 #define UART_FR_TXFF         (1u << 5)
 
 #define UART_LCRH_FEN        (1u << 4)

@@ -144,20 +144,41 @@ case "$TARGET" in
       -c "adapter speed ${ADAPTER_KHZ}; init; reset halt; program {$IMAGE} verify reset exit"
     ;;
   tm4c123gxl)
-    if [[ "$LANG" != "c" ]]; then
-      echo "TM4C123GXL currently supports C projects only." >&2
-      exit 2
-    fi
+    if [[ "$LANG" == "c" ]]; then
+      TM4C_DIR="projects/${PROJECT}/tm4c123gxl_c"
+      if [[ ! -f "${TM4C_DIR}/Makefile" ]]; then
+        echo "TM4C123GXL C project not found: ${TM4C_DIR}/Makefile" >&2
+        exit 2
+      fi
 
-    TM4C_DIR="projects/${PROJECT}/tm4c123gxl_c"
-    if [[ ! -f "${TM4C_DIR}/Makefile" ]]; then
-      echo "TM4C123GXL C project not found: ${TM4C_DIR}/Makefile" >&2
-      exit 2
-    fi
+      if [[ -z "$IMAGE" ]]; then
+        make -C "${TM4C_DIR}" all
+        IMAGE="${TM4C_DIR}/${PROJECT}.elf"
+      fi
+    elif [[ "$LANG" == "rust" ]]; then
+      if [[ -f "${HOME}/.cargo/env" ]]; then
+        # shellcheck source=/dev/null
+        source "${HOME}/.cargo/env"
+      fi
+      TM4C_RUST_MANIFEST="projects/${PROJECT}/tm4c123gxl_rust/Cargo.toml"
+      TM4C_RUST_BIN="${PROJECT}_tm4c123gxl_rust"
+      if [[ ! -f "${TM4C_RUST_MANIFEST}" ]]; then
+        echo "TM4C123GXL Rust project not found: ${TM4C_RUST_MANIFEST}" >&2
+        exit 2
+      fi
 
-    if [[ -z "$IMAGE" ]]; then
-      make -C "${TM4C_DIR}" all
-      IMAGE="${TM4C_DIR}/${PROJECT}.elf"
+      if [[ -z "$IMAGE" ]]; then
+        if [[ "$RUST_PROFILE" == "release" ]]; then
+          cargo build --manifest-path "${TM4C_RUST_MANIFEST}" --target thumbv7em-none-eabi --release
+          IMAGE="target/thumbv7em-none-eabi/release/${TM4C_RUST_BIN}"
+        else
+          cargo build --manifest-path "${TM4C_RUST_MANIFEST}" --target thumbv7em-none-eabi
+          IMAGE="target/thumbv7em-none-eabi/debug/${TM4C_RUST_BIN}"
+        fi
+      fi
+    else
+      echo "Invalid --lang '$LANG' (expected c or rust)" >&2
+      exit 2
     fi
 
     if [[ ! -f "$IMAGE" ]]; then

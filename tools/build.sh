@@ -107,18 +107,33 @@ case "$TARGET" in
     fi
     ;;
   tm4c123gxl)
-    if [[ "$LANG" != "c" ]]; then
-      echo "TM4C123GXL currently supports C projects only." >&2
+    if [[ "$LANG" == "c" ]]; then
+      TM4C_DIR="projects/${PROJECT}/tm4c123gxl_c"
+      if [[ ! -f "${TM4C_DIR}/Makefile" ]]; then
+        echo "TM4C123GXL C project not found: ${TM4C_DIR}/Makefile" >&2
+        exit 2
+      fi
+
+      make -C "${TM4C_DIR}" all
+    elif [[ "$LANG" == "rust" ]]; then
+      if [[ -f "${HOME}/.cargo/env" ]]; then
+        # shellcheck source=/dev/null
+        source "${HOME}/.cargo/env"
+      fi
+      TM4C_RUST_MANIFEST="projects/${PROJECT}/tm4c123gxl_rust/Cargo.toml"
+      if [[ ! -f "${TM4C_RUST_MANIFEST}" ]]; then
+        echo "TM4C123GXL Rust project not found: ${TM4C_RUST_MANIFEST}" >&2
+        exit 2
+      fi
+      if [[ "$RUST_PROFILE" == "release" ]]; then
+        cargo build --manifest-path "${TM4C_RUST_MANIFEST}" --target thumbv7em-none-eabi --release
+      else
+        cargo build --manifest-path "${TM4C_RUST_MANIFEST}" --target thumbv7em-none-eabi
+      fi
+    else
+      echo "Invalid --lang '$LANG' (expected c or rust)" >&2
       exit 2
     fi
-
-    TM4C_DIR="projects/${PROJECT}/tm4c123gxl_c"
-    if [[ ! -f "${TM4C_DIR}/Makefile" ]]; then
-      echo "TM4C123GXL C project not found: ${TM4C_DIR}/Makefile" >&2
-      exit 2
-    fi
-
-    make -C "${TM4C_DIR}" all
     ;;
   *)
     echo "Unknown target: $TARGET" >&2
