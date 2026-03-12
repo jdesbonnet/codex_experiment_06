@@ -386,7 +386,7 @@ For `stm32f103c8`:
 - `uart_smoke`: simple UART message
 - `blink`: toggles PIO1_0
 - `power_floor`: deep-sleep floor-current characterization image
-- `tiny_vm`: tiny interpreted VM project (cross-target LPC1114 + CH32V003 + TM4C123GXL)
+- `tiny_vm`: tiny interpreted VM project (cross-target LPC1114 + CH32V003 + TM4C123GXL + STM32F103C8)
 
 ## tiny_vm
 
@@ -396,6 +396,7 @@ Runtime now exists on both targets and executes uploaded bytecode frames:
 - `projects/tiny_vm/ch32v003_c`
 - `projects/tiny_vm/tm4c123gxl_c`
 - `projects/tiny_vm/tm4c123gxl_rust`
+- `projects/tiny_vm/stm32f103c8_c`
 
 Upload frame format:
 - magic: `TVM1`
@@ -436,6 +437,14 @@ TM4C123GXL manual sanity check:
 ./tools/vm_cc.py projects/tiny_vm/tests/count10.cvm.c -o /tmp/count10.bin
 ./tools/flash.sh --target tm4c123gxl --lang c --project tiny_vm
 ./tools/vm_upload.py /tmp/count10.bin --port /dev/ttyACM2 --baud 115200
+```
+
+STM32F103C8 manual sanity check:
+
+```sh
+./tools/vm_cc.py projects/tiny_vm/tests/count10.cvm.c -o /tmp/count10.bin
+./tools/flash.sh --target stm32f103c8 --lang c --project tiny_vm
+./tools/vm_upload.py /tmp/count10.bin --port /dev/ttyACM0 --baud 57600
 ```
 
 Run the hardware regression suite:

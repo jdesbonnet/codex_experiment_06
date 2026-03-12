@@ -7,6 +7,7 @@ Small stack-based bytecode VM running on both:
 - `projects/tiny_vm/lpc1114_c`
 - `projects/tiny_vm/ch32v003_c`
 - `projects/tiny_vm/tm4c123gxl_c`
+- `projects/tiny_vm/stm32f103c8_c`
 - `projects/tiny_vm/lpc1114_rust`
 - `projects/tiny_vm/ch32v003_rust` (via `projects/tiny_vm/ch32v003_rust_shim`)
 - `projects/tiny_vm/tm4c123gxl_rust`
@@ -33,6 +34,13 @@ A TM4C123GXL port now exists in both languages:
   - both ports build-check cleanly
   - both ports were hardware-validated on the LaunchPad ICDI virtual COM port at `115200` baud
   - both ports successfully ran the `count10` bytecode test and produced the expected `1..10` output followed by `tiny_vm: halt`
+
+An STM32F103C8 C port now exists:
+- `projects/tiny_vm/stm32f103c8_c`
+- current status:
+  - build-check passes
+  - hardware validation succeeded over `USART1` on `PA9`/`PA10` at `57600` baud through the Raspberry Pi debugprobe UART
+  - the port successfully ran the `count10` bytecode test and produced `1..10` followed by `tiny_vm: halt`
 
 ## Project Goal
 
@@ -619,8 +627,10 @@ Current scope:
 - this harness currently targets the LPC1114 runtime(s)
 - it does not yet drive the CH32V003 `tiny_vm` runtime
 - it does not yet drive the TM4C123GXL `tiny_vm` runtime
+- it does not yet drive the STM32F103C8 `tiny_vm` runtime
 - CH32V003 validation is currently manual until a CH32-specific hardware harness is added
 - TM4C123GXL validation is currently manual over the LaunchPad virtual COM port until a TM4C-specific hardware harness is added
+- STM32F103C8 validation is currently manual over the debugprobe UART until an STM32-specific hardware harness is added
 
 ## Recommended Workflow
 
@@ -659,6 +669,11 @@ Flash tiny_vm runtime (TM4C123GXL):
 ./tools/flash.sh --target tm4c123gxl --lang c --project tiny_vm
 ```
 
+Flash tiny_vm runtime (STM32F103C8):
+```sh
+./tools/flash.sh --target stm32f103c8 --lang c --project tiny_vm
+```
+
 Upload bytecode to LPC1114 primary UART:
 ```sh
 ./tools/vm_upload.py /tmp/count10.bin --port /dev/ttyACM1 --baud 57600
@@ -667,6 +682,11 @@ Upload bytecode to LPC1114 primary UART:
 Upload bytecode to the TM4C123GXL LaunchPad virtual COM port:
 ```sh
 ./tools/vm_upload.py /tmp/count10.bin --port /dev/ttyACM2 --baud 115200
+```
+
+Upload bytecode to the STM32F103C8 debugprobe UART:
+```sh
+./tools/vm_upload.py /tmp/count10.bin --port /dev/ttyACM0 --baud 57600
 ```
 
 Prime demo upload:
@@ -765,6 +785,8 @@ Notes:
 - use `--runtime-lang c` or `--runtime-lang rust` to choose which LPC1114 runtime to flash
 - use `--no-flash` to run against whatever `tiny_vm` runtime is already on the target
 - CH32V003 `tiny_vm` is not yet integrated into this harness
+- TM4C123GXL `tiny_vm` is not yet integrated into this harness
+- STM32F103C8 `tiny_vm` is not yet integrated into this harness
 - it verifies exact UART output for:
   - `count10`
   - `primes1000`
