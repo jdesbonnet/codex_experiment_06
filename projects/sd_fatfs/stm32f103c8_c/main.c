@@ -32,6 +32,7 @@
 #define SD_CMD10  10u
 #define SD_CMD16  16u
 #define SD_CMD17  17u
+#define SD_CMD24  24u
 #define SD_CMD55  55u
 #define SD_CMD58  58u
 #define SD_ACMD41 41u
@@ -39,6 +40,7 @@
 #define SD_R1_IDLE     0x01u
 #define SD_R1_ILLEGAL  0x04u
 #define SD_DATA_TOKEN  0xFEu
+#define SD_DATA_ACCEPTED 0x05u
 #define SD_SECTOR_SIZE 512u
 
 #define SD_SPI_BR_INIT (SPI_CR1_BR_2 | SPI_CR1_BR_1)
@@ -401,6 +403,56 @@ static bool sd_read_block(uint32_t lba, uint8_t *buffer)
     return true;
 }
 
+static bool sd_write_data_selected(const uint8_t *buffer, uint8_t token)
+{
+    uint32_t i;
+    uint8_t response;
+
+    sd_spi_xfer(0xFFu);
+    sd_spi_xfer(token);
+
+    for (i = 0u; i < SD_SECTOR_SIZE; i++) {
+        sd_spi_xfer(buffer[i]);
+    }
+
+    /* CRC is ignored in SPI mode unless explicitly enabled. */
+    sd_spi_xfer(0xFFu);
+    sd_spi_xfer(0xFFu);
+
+    response = sd_spi_xfer(0xFFu) & 0x1Fu;
+    if (response != SD_DATA_ACCEPTED) {
+        return false;
+    }
+
+    return sd_wait_ready(200000u);
+}
+
+static bool sd_write_block(uint32_t lba, const uint8_t *buffer)
+{
+    uint32_t address = g_sd_is_sdhc ? lba : (lba * SD_SECTOR_SIZE);
+    uint8_t r1;
+
+    sd_deselect();
+    if (!sd_select()) {
+        sd_deselect();
+        return false;
+    }
+
+    r1 = sd_send_command_selected(SD_CMD24, address, 0xFFu);
+    if (r1 != 0x00u) {
+        sd_deselect();
+        return false;
+    }
+
+    if (!sd_write_data_selected(buffer, SD_DATA_TOKEN)) {
+        sd_deselect();
+        return false;
+    }
+
+    sd_deselect();
+    return true;
+}
+
 static uint32_t sd_extract_bits(const uint8_t *data, uint8_t msb, uint8_t lsb)
 {
     uint32_t value = 0u;
@@ -613,11 +665,25 @@ DRESULT disk_read(BYTE pdrv, BYTE *buff, LBA_t sector, UINT count)
 
 DRESULT disk_write(BYTE pdrv, const BYTE *buff, LBA_t sector, UINT count)
 {
-    (void)pdrv;
-    (void)buff;
-    (void)sector;
-    (void)count;
-    return RES_WRPRT;
+    UINT i;
+
+    if (pdrv != 0u || count == 0u) {
+        return RES_PARERR;
+    }
+    if ((g_disk_status & STA_NOINIT) != 0u) {
+        return RES_NOTRDY;
+    }
+    if ((g_disk_status & STA_PROTECT) != 0u) {
+        return RES_WRPRT;
+    }
+
+    for (i = 0u; i < count; i++) {
+        if (!sd_write_block((uint32_t)sector + i, buff + ((uint32_t)i * SD_SECTOR_SIZE))) {
+            return RES_ERROR;
+        }
+    }
+
+    return RES_OK;
 }
 
 DRESULT disk_ioctl(BYTE pdrv, BYTE cmd, void *buff)
@@ -631,6 +697,16 @@ DRESULT disk_ioctl(BYTE pdrv, BYTE cmd, void *buff)
 
     switch (cmd) {
     case CTRL_SYNC:
+        sd_deselect();
+        if (!sd_select()) {
+            sd_deselect();
+            return RES_NOTRDY;
+        }
+        if (!sd_wait_ready(200000u)) {
+            sd_deselect();
+            return RES_ERROR;
+        }
+        sd_deselect();
         return RES_OK;
     case GET_SECTOR_COUNT:
         *(LBA_t *)buff = (LBA_t)g_sd_sector_count;
@@ -729,6 +805,93 @@ static void fatfs_dump_file_prefix(const char *path, uint32_t max_bytes)
     f_close(&file);
 }
 
+static void fatfs_write_test_file(const char *path, const char *payload)
+{
+    FIL file;
+    FRESULT fr;
+    UINT bytes_written = 0u;
+    UINT bytes_read = 0u;
+    char verify[96];
+    uint32_t i;
+    uint32_t payload_len = 0u;
+
+    while (payload[payload_len] != '\0') {
+        payload_len++;
+    }
+
+    fr = f_open(&file, path, FA_WRITE | FA_CREATE_ALWAYS);
+    usart1_puts("fatfs: f_open ");
+    usart1_puts(path);
+    usart1_puts(" write -> ");
+    usart1_put_dec_u32((uint32_t)fr);
+    usart1_puts("\r\n");
+    if (fr != FR_OK) {
+        return;
+    }
+
+    fr = f_write(&file, payload, (UINT)payload_len, &bytes_written);
+    usart1_puts("fatfs: f_write ");
+    usart1_puts(path);
+    usart1_puts(" -> ");
+    usart1_put_dec_u32((uint32_t)fr);
+    usart1_puts(" bytes=");
+    usart1_put_dec_u32((uint32_t)bytes_written);
+    usart1_puts("\r\n");
+    if (fr != FR_OK || bytes_written != payload_len) {
+        f_close(&file);
+        return;
+    }
+
+    fr = f_sync(&file);
+    usart1_puts("fatfs: f_sync ");
+    usart1_puts(path);
+    usart1_puts(" -> ");
+    usart1_put_dec_u32((uint32_t)fr);
+    usart1_puts("\r\n");
+    f_close(&file);
+    if (fr != FR_OK) {
+        return;
+    }
+
+    fr = f_open(&file, path, FA_READ);
+    usart1_puts("fatfs: f_open ");
+    usart1_puts(path);
+    usart1_puts(" verify -> ");
+    usart1_put_dec_u32((uint32_t)fr);
+    usart1_puts("\r\n");
+    if (fr != FR_OK) {
+        return;
+    }
+
+    if (payload_len >= sizeof(verify)) {
+        payload_len = sizeof(verify) - 1u;
+    }
+    for (i = 0u; i < sizeof(verify); i++) {
+        verify[i] = '\0';
+    }
+
+    fr = f_read(&file, verify, (UINT)payload_len, &bytes_read);
+    usart1_puts("fatfs: f_read ");
+    usart1_puts(path);
+    usart1_puts(" -> ");
+    usart1_put_dec_u32((uint32_t)fr);
+    usart1_puts(" bytes=");
+    usart1_put_dec_u32((uint32_t)bytes_read);
+    usart1_puts("\r\n");
+    f_close(&file);
+    if (fr != FR_OK) {
+        return;
+    }
+
+    usart1_puts("fatfs: ");
+    usart1_puts(path);
+    usart1_puts(" verify: ");
+    for (i = 0u; i < bytes_read; i++) {
+        usart1_put_escaped_byte((uint8_t)verify[i]);
+    }
+    usart1_puts("\r\n");
+}
+
 int main(void)
 {
     FATFS fs;
@@ -774,6 +937,7 @@ int main(void)
     fatfs_print_dir();
     fatfs_dump_file_prefix("0:/CMDLINE.TXT", 160u);
     fatfs_dump_file_prefix("0:/CONFIG.TXT", 160u);
+    fatfs_write_test_file("0:/CODXWR.TXT", "codex sd write test\r\n");
 
     usart1_puts("sd_fatfs: complete\r\n");
     led_set(false);

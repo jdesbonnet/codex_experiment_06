@@ -35,3 +35,9 @@ Current implementation:
 ```sh
 ./tools/flash.sh --target stm32f103c8 --lang c --project sd_spi_probe
 ```
+
+## Hardware Regression
+
+```sh
+./tools/test_sd_hardware.py --tests sd_spi_probe --verbose
+```

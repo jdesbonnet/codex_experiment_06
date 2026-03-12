@@ -1,15 +1,16 @@
 /*
  * Minimal configuration for the STM32F103C8 FatFs comparison project.
  *
- * The goal is a current upstream FatFs build with a small, read-only feature
- * set so it can be compared directly against the handwritten FAT32 reader.
+ * The goal is a current upstream FatFs build with a small feature set so it
+ * can be compared directly against the handwritten FAT32 reader while still
+ * allowing controlled write tests.
  */
 
 #ifndef FFCONF_DEF
 #define FFCONF_DEF 80386
 
 /* Function configuration */
-#define FF_FS_READONLY    1
+#define FF_FS_READONLY    0
 #define FF_FS_MINIMIZE    0
 #define FF_USE_FIND       0
 #define FF_USE_MKFS       0
