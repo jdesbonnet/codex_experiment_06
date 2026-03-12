@@ -14,7 +14,7 @@ have_riscv_toolchain() {
 
 usage() {
   cat <<'EOF'
-Usage: build.sh --target <lpc1114|ch32v003|tm4c123gxl> --lang <c|rust> --project <name> [--profile <release|debug>]
+Usage: build.sh --target <lpc1114|ch32v003|tm4c123gxl|stm32f103c8> --lang <c|rust> --project <name> [--profile <release|debug>]
 
 Examples:
   ./tools/build.sh --target lpc1114 --lang c --project blink
@@ -22,6 +22,7 @@ Examples:
   ./tools/build.sh --target ch32v003 --lang c --project blink
   ./tools/build.sh --target ch32v003 --lang rust --project blink
   ./tools/build.sh --target tm4c123gxl --lang c --project blink
+  ./tools/build.sh --target stm32f103c8 --lang c --project blink
 EOF
 }
 
@@ -132,6 +133,20 @@ case "$TARGET" in
       fi
     else
       echo "Invalid --lang '$LANG' (expected c or rust)" >&2
+      exit 2
+    fi
+    ;;
+  stm32f103c8)
+    if [[ "$LANG" == "c" ]]; then
+      STM32_DIR="projects/${PROJECT}/stm32f103c8_c"
+      if [[ ! -f "${STM32_DIR}/Makefile" ]]; then
+        echo "STM32F103C8 C project not found: ${STM32_DIR}/Makefile" >&2
+        exit 2
+      fi
+
+      make -C "${STM32_DIR}" all
+    else
+      echo "STM32F103C8 Rust support is not implemented yet." >&2
       exit 2
     fi
     ;;

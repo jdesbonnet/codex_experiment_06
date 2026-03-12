@@ -1,0 +1,18 @@
+[target]
+id = "stm32f103c8"
+arch = "armv7m"
+cpu = "cortex-m3"
+
+[toolchain.c]
+cc = "arm-none-eabi-gcc"
+objcopy = "arm-none-eabi-objcopy"
+size = "arm-none-eabi-size"
+
+[flash]
+method = "openocd"
+interface = "cmsis-dap"
+openocd_cfg = "targets/stm32f103c8/openocd/base.cfg"
+default_adapter_khz = 100
+
+[notes]
+summary = "STM32F103C8 target scaffold using official CMSIS device headers and the Raspberry Pi CMSIS-DAP debugprobe."

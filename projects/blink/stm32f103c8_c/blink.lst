@@ -1,0 +1,302 @@
+
+blink.elf:     file format elf32-littlearm
+
+
+Disassembly of section .text:
+
+080000ec <delay_ms>:
+    g_ms_ticks++;
+}
+
+static void delay_ms(uint32_t delay_ms)
+{
+    uint32_t start = g_ms_ticks;
+ 80000ec:	4b03      	ldr	r3, [pc, #12]	@ (80000fc <delay_ms+0x10>)
+ 80000ee:	681a      	ldr	r2, [r3, #0]
+    while ((uint32_t)(g_ms_ticks - start) < delay_ms) {
+ 80000f0:	4b02      	ldr	r3, [pc, #8]	@ (80000fc <delay_ms+0x10>)
+ 80000f2:	681b      	ldr	r3, [r3, #0]
+ 80000f4:	1a9b      	subs	r3, r3, r2
+ 80000f6:	4283      	cmp	r3, r0
+ 80000f8:	d3fa      	bcc.n	80000f0 <delay_ms+0x4>
+        /* Wait for the SysTick timebase to advance. */
+    }
+}
+ 80000fa:	4770      	bx	lr
+ 80000fc:	20000004 	.word	0x20000004
+
+08000100 <gpio_pc13_led_init>:
+
+static void gpio_pc13_led_init(void)
+{
+    RCC->APB2ENR |= RCC_APB2ENR_IOPCEN;
+ 8000100:	4a08      	ldr	r2, [pc, #32]	@ (8000124 <gpio_pc13_led_init+0x24>)
+ 8000102:	6993      	ldr	r3, [r2, #24]
+ 8000104:	f043 0310 	orr.w	r3, r3, #16
+ 8000108:	6193      	str	r3, [r2, #24]
+    /*
+     * PC13 uses GPIOC_CRH bits [23:20]:
+     *   MODE13 = 0b10 => output, max 2 MHz
+     *   CNF13  = 0b00 => general purpose push-pull
+     */
+    GPIOC->CRH &= ~(GPIO_CRH_MODE13 | GPIO_CRH_CNF13);
+ 800010a:	4b07      	ldr	r3, [pc, #28]	@ (8000128 <gpio_pc13_led_init+0x28>)
+ 800010c:	685a      	ldr	r2, [r3, #4]
+ 800010e:	f422 0270 	bic.w	r2, r2, #15728640	@ 0xf00000
+ 8000112:	605a      	str	r2, [r3, #4]
+    GPIOC->CRH |= GPIO_CRH_MODE13_1;
+ 8000114:	685a      	ldr	r2, [r3, #4]
+ 8000116:	f442 1200 	orr.w	r2, r2, #2097152	@ 0x200000
+ 800011a:	605a      	str	r2, [r3, #4]
+
+    /* Active-low LED off by default. */
+    GPIOC->BSRR = GPIO_BSRR_BS13;
+ 800011c:	f44f 5200 	mov.w	r2, #8192	@ 0x2000
+ 8000120:	611a      	str	r2, [r3, #16]
+}
+ 8000122:	4770      	bx	lr
+ 8000124:	40021000 	.word	0x40021000
+ 8000128:	40011000 	.word	0x40011000
+
+0800012c <SysTick_Handler>:
+    g_ms_ticks++;
+ 800012c:	4a02      	ldr	r2, [pc, #8]	@ (8000138 <SysTick_Handler+0xc>)
+ 800012e:	6813      	ldr	r3, [r2, #0]
+ 8000130:	3301      	adds	r3, #1
+ 8000132:	6013      	str	r3, [r2, #0]
+}
+ 8000134:	4770      	bx	lr
+ 8000136:	bf00      	nop
+ 8000138:	20000004 	.word	0x20000004
+
+0800013c <main>:
+
+int main(void)
+{
+ 800013c:	b510      	push	{r4, lr}
+    bool led_on = false;
+
+    SystemCoreClockUpdate();
+ 800013e:	f000 f857 	bl	80001f0 <SystemCoreClockUpdate>
+    gpio_pc13_led_init();
+ 8000142:	f7ff ffdd 	bl	8000100 <gpio_pc13_led_init>
+    SysTick_Config(SystemCoreClock / 1000U);
+ 8000146:	4b13      	ldr	r3, [pc, #76]	@ (8000194 <main+0x58>)
+ 8000148:	681b      	ldr	r3, [r3, #0]
+ 800014a:	4a13      	ldr	r2, [pc, #76]	@ (8000198 <main+0x5c>)
+ 800014c:	fba2 2303 	umull	r2, r3, r2, r3
+ 8000150:	099b      	lsrs	r3, r3, #6
+           function <b>SysTick_Config</b> is not included. In this case, the file <b><i>device</i>.h</b>
+           must contain a vendor-specific implementation of this function.
+ */
+__STATIC_INLINE uint32_t SysTick_Config(uint32_t ticks)
+{
+  if ((ticks - 1UL) > SysTick_LOAD_RELOAD_Msk)
+ 8000152:	3b01      	subs	r3, #1
+ 8000154:	f1b3 7f80 	cmp.w	r3, #16777216	@ 0x1000000
+ 8000158:	d20a      	bcs.n	8000170 <main+0x34>
+  {
+    return (1UL);                                                   /* Reload value impossible */
+  }
+
+  SysTick->LOAD  = (uint32_t)(ticks - 1UL);                         /* set reload register */
+ 800015a:	f04f 22e0 	mov.w	r2, #3758153728	@ 0xe000e000
+ 800015e:	6153      	str	r3, [r2, #20]
+    SCB->SHP[(((uint32_t)IRQn) & 0xFUL)-4UL] = (uint8_t)((priority << (8U - __NVIC_PRIO_BITS)) & (uint32_t)0xFFUL);
+ 8000160:	4b0e      	ldr	r3, [pc, #56]	@ (800019c <main+0x60>)
+ 8000162:	21f0      	movs	r1, #240	@ 0xf0
+ 8000164:	f883 1023 	strb.w	r1, [r3, #35]	@ 0x23
+  NVIC_SetPriority (SysTick_IRQn, (1UL << __NVIC_PRIO_BITS) - 1UL); /* set Priority for Systick Interrupt */
+  SysTick->VAL   = 0UL;                                             /* Load the SysTick Counter Value */
+ 8000168:	2300      	movs	r3, #0
+ 800016a:	6193      	str	r3, [r2, #24]
+  SysTick->CTRL  = SysTick_CTRL_CLKSOURCE_Msk |
+ 800016c:	2307      	movs	r3, #7
+ 800016e:	6113      	str	r3, [r2, #16]
+{
+ 8000170:	2400      	movs	r4, #0
+ 8000172:	e008      	b.n	8000186 <main+0x4a>
+
+    while (1) {
+        if (led_on) {
+            GPIOC->BSRR = GPIO_BSRR_BS13;
+        } else {
+            GPIOC->BRR = GPIO_BRR_BR13;
+ 8000174:	4b0a      	ldr	r3, [pc, #40]	@ (80001a0 <main+0x64>)
+ 8000176:	f44f 5200 	mov.w	r2, #8192	@ 0x2000
+ 800017a:	615a      	str	r2, [r3, #20]
+        }
+        led_on = !led_on;
+ 800017c:	f084 0401 	eor.w	r4, r4, #1
+        delay_ms(250U);
+ 8000180:	20fa      	movs	r0, #250	@ 0xfa
+ 8000182:	f7ff ffb3 	bl	80000ec <delay_ms>
+        if (led_on) {
+ 8000186:	2c00      	cmp	r4, #0
+ 8000188:	d0f4      	beq.n	8000174 <main+0x38>
+            GPIOC->BSRR = GPIO_BSRR_BS13;
+ 800018a:	4b05      	ldr	r3, [pc, #20]	@ (80001a0 <main+0x64>)
+ 800018c:	f44f 5200 	mov.w	r2, #8192	@ 0x2000
+ 8000190:	611a      	str	r2, [r3, #16]
+ 8000192:	e7f3      	b.n	800017c <main+0x40>
+ 8000194:	20000000 	.word	0x20000000
+ 8000198:	10624dd3 	.word	0x10624dd3
+ 800019c:	e000ed00 	.word	0xe000ed00
+ 80001a0:	40011000 	.word	0x40011000
+
+080001a4 <BusFault_Handler>:
+    }
+}
+
+static void Default_Handler(void)
+{
+    while (1) {
+ 80001a4:	e7fe      	b.n	80001a4 <BusFault_Handler>
+	...
+
+080001a8 <Reset_Handler>:
+{
+ 80001a8:	b508      	push	{r3, lr}
+    SystemInit();
+ 80001aa:	f000 f81f 	bl	80001ec <SystemInit>
+    uint32_t *dst = &_sdata;
+ 80001ae:	4b0a      	ldr	r3, [pc, #40]	@ (80001d8 <Reset_Handler+0x30>)
+    uint32_t *src = &_sidata;
+ 80001b0:	4a0a      	ldr	r2, [pc, #40]	@ (80001dc <Reset_Handler+0x34>)
+    while (dst < &_edata) {
+ 80001b2:	e003      	b.n	80001bc <Reset_Handler+0x14>
+        *dst++ = *src++;
+ 80001b4:	f852 1b04 	ldr.w	r1, [r2], #4
+ 80001b8:	f843 1b04 	str.w	r1, [r3], #4
+    while (dst < &_edata) {
+ 80001bc:	4908      	ldr	r1, [pc, #32]	@ (80001e0 <Reset_Handler+0x38>)
+ 80001be:	428b      	cmp	r3, r1
+ 80001c0:	d3f8      	bcc.n	80001b4 <Reset_Handler+0xc>
+    for (dst = &_sbss; dst < &_ebss; ++dst) {
+ 80001c2:	4b08      	ldr	r3, [pc, #32]	@ (80001e4 <Reset_Handler+0x3c>)
+ 80001c4:	e002      	b.n	80001cc <Reset_Handler+0x24>
+        *dst = 0u;
+ 80001c6:	2200      	movs	r2, #0
+ 80001c8:	f843 2b04 	str.w	r2, [r3], #4
+    for (dst = &_sbss; dst < &_ebss; ++dst) {
+ 80001cc:	4a06      	ldr	r2, [pc, #24]	@ (80001e8 <Reset_Handler+0x40>)
+ 80001ce:	4293      	cmp	r3, r2
+ 80001d0:	d3f9      	bcc.n	80001c6 <Reset_Handler+0x1e>
+    (void)main();
+ 80001d2:	f7ff ffb3 	bl	800013c <main>
+    while (1) {
+ 80001d6:	e7fe      	b.n	80001d6 <Reset_Handler+0x2e>
+ 80001d8:	20000000 	.word	0x20000000
+ 80001dc:	08000294 	.word	0x08000294
+ 80001e0:	20000004 	.word	0x20000004
+ 80001e4:	20000004 	.word	0x20000004
+ 80001e8:	20000008 	.word	0x20000008
+
+080001ec <SystemInit>:
+
+  /* Configure the Vector Table location -------------------------------------*/
+#if defined(USER_VECT_TAB_ADDRESS)
+  SCB->VTOR = VECT_TAB_BASE_ADDRESS | VECT_TAB_OFFSET; /* Vector Table Relocation in Internal SRAM. */
+#endif /* USER_VECT_TAB_ADDRESS */
+}
+ 80001ec:	4770      	bx	lr
+	...
+
+080001f0 <SystemCoreClockUpdate>:
+#if defined(STM32F100xB) || defined(STM32F100xE)
+  uint32_t prediv1factor = 0U;
+#endif /* STM32F100xB or STM32F100xE */
+    
+  /* Get SYSCLK source -------------------------------------------------------*/
+  tmp = RCC->CFGR & RCC_CFGR_SWS;
+ 80001f0:	4b1f      	ldr	r3, [pc, #124]	@ (8000270 <SystemCoreClockUpdate+0x80>)
+ 80001f2:	685b      	ldr	r3, [r3, #4]
+ 80001f4:	f003 030c 	and.w	r3, r3, #12
+  
+  switch (tmp)
+ 80001f8:	2b04      	cmp	r3, #4
+ 80001fa:	d011      	beq.n	8000220 <SystemCoreClockUpdate+0x30>
+ 80001fc:	2b08      	cmp	r3, #8
+ 80001fe:	d013      	beq.n	8000228 <SystemCoreClockUpdate+0x38>
+ 8000200:	2b00      	cmp	r3, #0
+ 8000202:	d131      	bne.n	8000268 <SystemCoreClockUpdate+0x78>
+  {
+    case 0x00U:  /* HSI used as system clock */
+      SystemCoreClock = HSI_VALUE;
+ 8000204:	4b1b      	ldr	r3, [pc, #108]	@ (8000274 <SystemCoreClockUpdate+0x84>)
+ 8000206:	4a1c      	ldr	r2, [pc, #112]	@ (8000278 <SystemCoreClockUpdate+0x88>)
+ 8000208:	601a      	str	r2, [r3, #0]
+      break;
+  }
+  
+  /* Compute HCLK clock frequency ----------------*/
+  /* Get HCLK prescaler */
+  tmp = AHBPrescTable[((RCC->CFGR & RCC_CFGR_HPRE) >> 4U)];
+ 800020a:	4b19      	ldr	r3, [pc, #100]	@ (8000270 <SystemCoreClockUpdate+0x80>)
+ 800020c:	685b      	ldr	r3, [r3, #4]
+ 800020e:	f3c3 1303 	ubfx	r3, r3, #4, #4
+ 8000212:	4a1a      	ldr	r2, [pc, #104]	@ (800027c <SystemCoreClockUpdate+0x8c>)
+ 8000214:	5cd1      	ldrb	r1, [r2, r3]
+  /* HCLK clock frequency */
+  SystemCoreClock >>= tmp;  
+ 8000216:	4a17      	ldr	r2, [pc, #92]	@ (8000274 <SystemCoreClockUpdate+0x84>)
+ 8000218:	6813      	ldr	r3, [r2, #0]
+ 800021a:	40cb      	lsrs	r3, r1
+ 800021c:	6013      	str	r3, [r2, #0]
+}
+ 800021e:	4770      	bx	lr
+      SystemCoreClock = HSE_VALUE;
+ 8000220:	4b14      	ldr	r3, [pc, #80]	@ (8000274 <SystemCoreClockUpdate+0x84>)
+ 8000222:	4a15      	ldr	r2, [pc, #84]	@ (8000278 <SystemCoreClockUpdate+0x88>)
+ 8000224:	601a      	str	r2, [r3, #0]
+      break;
+ 8000226:	e7f0      	b.n	800020a <SystemCoreClockUpdate+0x1a>
+      pllmull = RCC->CFGR & RCC_CFGR_PLLMULL;
+ 8000228:	4a11      	ldr	r2, [pc, #68]	@ (8000270 <SystemCoreClockUpdate+0x80>)
+ 800022a:	6853      	ldr	r3, [r2, #4]
+      pllsource = RCC->CFGR & RCC_CFGR_PLLSRC;
+ 800022c:	6852      	ldr	r2, [r2, #4]
+      pllmull = ( pllmull >> 18U) + 2U;
+ 800022e:	f3c3 4383 	ubfx	r3, r3, #18, #4
+ 8000232:	3302      	adds	r3, #2
+      if (pllsource == 0x00U)
+ 8000234:	f412 3f80 	tst.w	r2, #65536	@ 0x10000
+ 8000238:	d105      	bne.n	8000246 <SystemCoreClockUpdate+0x56>
+        SystemCoreClock = (HSI_VALUE >> 1U) * pllmull;
+ 800023a:	4a11      	ldr	r2, [pc, #68]	@ (8000280 <SystemCoreClockUpdate+0x90>)
+ 800023c:	fb02 f303 	mul.w	r3, r2, r3
+ 8000240:	4a0c      	ldr	r2, [pc, #48]	@ (8000274 <SystemCoreClockUpdate+0x84>)
+ 8000242:	6013      	str	r3, [r2, #0]
+ 8000244:	e7e1      	b.n	800020a <SystemCoreClockUpdate+0x1a>
+        if ((RCC->CFGR & RCC_CFGR_PLLXTPRE) != (uint32_t)RESET)
+ 8000246:	4a0a      	ldr	r2, [pc, #40]	@ (8000270 <SystemCoreClockUpdate+0x80>)
+ 8000248:	6852      	ldr	r2, [r2, #4]
+ 800024a:	f412 3f00 	tst.w	r2, #131072	@ 0x20000
+ 800024e:	d005      	beq.n	800025c <SystemCoreClockUpdate+0x6c>
+          SystemCoreClock = (HSE_VALUE >> 1U) * pllmull;
+ 8000250:	4a0b      	ldr	r2, [pc, #44]	@ (8000280 <SystemCoreClockUpdate+0x90>)
+ 8000252:	fb02 f303 	mul.w	r3, r2, r3
+ 8000256:	4a07      	ldr	r2, [pc, #28]	@ (8000274 <SystemCoreClockUpdate+0x84>)
+ 8000258:	6013      	str	r3, [r2, #0]
+ 800025a:	e7d6      	b.n	800020a <SystemCoreClockUpdate+0x1a>
+          SystemCoreClock = HSE_VALUE * pllmull;
+ 800025c:	4a06      	ldr	r2, [pc, #24]	@ (8000278 <SystemCoreClockUpdate+0x88>)
+ 800025e:	fb02 f303 	mul.w	r3, r2, r3
+ 8000262:	4a04      	ldr	r2, [pc, #16]	@ (8000274 <SystemCoreClockUpdate+0x84>)
+ 8000264:	6013      	str	r3, [r2, #0]
+ 8000266:	e7d0      	b.n	800020a <SystemCoreClockUpdate+0x1a>
+      SystemCoreClock = HSI_VALUE;
+ 8000268:	4b02      	ldr	r3, [pc, #8]	@ (8000274 <SystemCoreClockUpdate+0x84>)
+ 800026a:	4a03      	ldr	r2, [pc, #12]	@ (8000278 <SystemCoreClockUpdate+0x88>)
+ 800026c:	601a      	str	r2, [r3, #0]
+      break;
+ 800026e:	e7cc      	b.n	800020a <SystemCoreClockUpdate+0x1a>
+ 8000270:	40021000 	.word	0x40021000
+ 8000274:	20000000 	.word	0x20000000
+ 8000278:	007a1200 	.word	0x007a1200
+ 800027c:	08000284 	.word	0x08000284
+ 8000280:	003d0900 	.word	0x003d0900
+
+08000284 <AHBPrescTable>:
+	...
+ 800028c:	04030201 09080706                       ........

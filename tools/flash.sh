@@ -20,7 +20,7 @@ have_riscv_toolchain() {
 
 usage() {
   cat <<'EOF'
-Usage: flash.sh --target <lpc1114|ch32v003|tm4c123gxl> --lang <c|rust> --project <name>
+Usage: flash.sh --target <lpc1114|ch32v003|tm4c123gxl|stm32f103c8> --lang <c|rust> --project <name>
                 [--profile <release|debug>] [--image <path/to/image.{elf|bin|hex}>]
 
 Examples:
@@ -30,6 +30,7 @@ Examples:
   ./tools/flash.sh --target ch32v003 --lang rust --project blink
   ./tools/flash.sh --target ch32v003 --lang c --project blink --image ./build/ch32/blink.elf
   ./tools/flash.sh --target tm4c123gxl --lang c --project blink
+  ./tools/flash.sh --target stm32f103c8 --lang c --project blink
 EOF
 }
 
@@ -219,6 +220,48 @@ case "$TARGET" in
       echo "ICDI serial: $TI_ICDI_SERIAL"
     fi
     "$OPENOCD_BIN" "${OPENOCD_ARGS[@]}"
+    ;;
+  stm32f103c8)
+    if [[ "$LANG" != "c" ]]; then
+      echo "STM32F103C8 Rust support is not implemented yet." >&2
+      exit 2
+    fi
+
+    STM32_ADAPTER_KHZ="${STM32_ADAPTER_KHZ:-100}"
+
+    STM32_DIR="projects/${PROJECT}/stm32f103c8_c"
+    if [[ ! -f "${STM32_DIR}/Makefile" ]]; then
+      echo "STM32F103C8 C project not found: ${STM32_DIR}/Makefile" >&2
+      exit 2
+    fi
+
+    if [[ -z "$IMAGE" ]]; then
+      make -C "${STM32_DIR}" all
+      IMAGE="${STM32_DIR}/${PROJECT}.elf"
+    fi
+
+    if [[ ! -f "$IMAGE" ]]; then
+      echo "Image not found: $IMAGE" >&2
+      exit 2
+    fi
+
+    CFG="targets/stm32f103c8/openocd/base.cfg"
+    if [[ ! -f "$CFG" ]]; then
+      echo "Missing OpenOCD config: $CFG" >&2
+      exit 2
+    fi
+
+    echo "Flashing STM32F103C8 image: $IMAGE"
+    echo "OpenOCD: $OPENOCD_BIN"
+    echo "Scripts: $OPENOCD_SCRIPTS"
+    echo "Adapter speed: ${STM32_ADAPTER_KHZ} kHz"
+    "$OPENOCD_BIN" \
+      -s "$OPENOCD_SCRIPTS" \
+      -f "$CFG" \
+      -c "adapter speed ${STM32_ADAPTER_KHZ}" \
+      -c "init" \
+      -c "reset halt" \
+      -c "program {$IMAGE} verify reset exit"
     ;;
   *)
     echo "Unknown target: $TARGET" >&2

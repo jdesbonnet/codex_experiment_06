@@ -14,6 +14,7 @@ This repository supports multiple small projects in both C and Rust, sharing com
   - `targets/lpc1114` (active target metadata + scaffold)
   - `targets/ch32v003` (target scaffold)
   - `targets/tm4c123gxl` (TI Tiva C LaunchPad target scaffold)
+  - `targets/stm32f103c8` (STM32F103C8 target scaffold)
 - `linker/` linker script
 
 Project implementation directories use `hardware_language_variant` (variant optional). Examples:
@@ -24,6 +25,7 @@ Project implementation directories use `hardware_language_variant` (variant opti
 - `ch32v003_rust_shim`
 - `tm4c123gxl_c`
 - `tm4c123gxl_rust`
+- `stm32f103c8_c`
 
 ## Dependencies (C)
 
@@ -318,6 +320,7 @@ Target-aware build wrapper:
 ./tools/build.sh --target ch32v003 --lang rust --project blink
 ./tools/build.sh --target tm4c123gxl --lang c --project blink
 ./tools/build.sh --target tm4c123gxl --lang rust --project tiny_vm
+./tools/build.sh --target stm32f103c8 --lang c --project blink
 ```
 
 ## Flash
@@ -337,6 +340,7 @@ Non-interactive:
 ./flash_project.sh sram_test rust
 ./flash_project.sh blink c tm4c123gxl
 ./flash_project.sh tiny_vm rust tm4c123gxl
+./flash_project.sh blink c stm32f103c8
 ```
 
 Rust default profile is `release` (override with `RUST_PROFILE=debug`).
@@ -351,6 +355,7 @@ Target-aware flash wrapper:
 ./tools/flash.sh --target ch32v003 --lang c --project blink --image ./build/ch32v003/blink/blink.elf
 ./tools/flash.sh --target tm4c123gxl --lang c --project blink
 ./tools/flash.sh --target tm4c123gxl --lang rust --project tiny_vm
+./tools/flash.sh --target stm32f103c8 --lang c --project blink
 ```
 
 For `ch32v003`:
@@ -368,6 +373,12 @@ For `tm4c123gxl`:
 - wrapper flashes through the on-board TI ICDI debugger using `targets/tm4c123gxl/openocd/base.cfg`
 - set `TI_ICDI_SERIAL=<serial>` if multiple TI ICDI probes are connected
 - TM4C Rust workspace artifacts are emitted under `target/thumbv7em-none-eabi/<profile>/`
+
+For `stm32f103c8`:
+- current support is C only
+- wrapper builds `projects/<project>/stm32f103c8_c` when `--image` is omitted
+- wrapper flashes through the Raspberry Pi `CMSIS-DAP` debugprobe using `targets/stm32f103c8/openocd/base.cfg`
+- current `blink` implementation assumes a common `Blue Pill` style LED on `PC13` (active-low)
 
 ## Projects
 
