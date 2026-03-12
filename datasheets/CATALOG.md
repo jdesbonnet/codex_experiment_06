@@ -48,6 +48,18 @@ Guideline: when adding material for a new hardware family, prefer a dedicated su
 | `datasheets/TI_TivaC_LaunchPad/TM4C123x_Silicon_Errata_SPMZ849F.pdf` | Silicon errata | TI `TM4C123x` silicon errata. |
 | `datasheets/TI_TivaC_LaunchPad/TM4C123x_TM4C129x_Data_Sheet_Manual_Update_SPMZ863.pdf` | Datasheet update | TI manual update covering `TM4C123x` / `TM4C129x` datasheet corrections. |
 
+## STM32F103C8
+
+| Path | Category | Description |
+| --- | --- | --- |
+| `datasheets/STM32F103C8/README.md` | Documentation index | Curated index of the official ST `STM32F103C8` document set. |
+| `datasheets/STM32F103C8/stm32f103c8.pdf` | MCU datasheet | ST `STM32F103C8` datasheet. |
+| `datasheets/STM32F103C8/cd00171190-stm32f101xx-stm32f102xx-stm32f103xx-stm32f105xx-and-stm32f107xx-advanced-armbased-32bit-mcus-stmicroelectronics.pdf` | MCU reference manual | ST `RM0008` reference manual for `STM32F10x` families. |
+| `datasheets/STM32F103C8/pm0056-stm32f10xxx20xxx21xxxl1xxxx-cortexm3-programming-manual-stmicroelectronics.pdf` | CPU programming manual | ST `PM0056` Cortex-M3 programming manual. |
+| `datasheets/STM32F103C8/pm0075-stm32f10xxx-flash-memory-microcontrollers-stmicroelectronics.pdf` | Flash programming manual | ST `PM0075` flash memory programming manual for `STM32F10xxx`. |
+| `datasheets/STM32F103C8/es096-stm32f101x8b-stm32f102x8b-and-stm32f103x8b-mediumdensity-device-limitations-stmicroelectronics.pdf` | Silicon errata | ST `ES096` errata for `STM32F103x8B` medium-density devices. |
+| `datasheets/STM32F103C8/an2606-introduction-to-system-memory-boot-mode-on-stm32-mcus-stmicroelectronics.pdf` | Bootloader application note | ST `AN2606` system memory boot mode and ROM bootloader note. |
+
 ## PSoC 4 CY8CKIT-049-42xx
 
 | Path | Category | Description |
