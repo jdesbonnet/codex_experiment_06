@@ -23,6 +23,17 @@ There is a LED connected to PIO1_2. The other end of the LED is connected via a 
 
 Otherwise there are no other peripherals.
 
+There is also an `STM32F103C8` target board used in this repository. When working on that board:
+- SWD is connected to the Raspberry Pi debugprobe
+- current UART bring-up uses `USART1` on `PA9`/`PA10` through the debugprobe UART at `57600` baud
+- an SD card socket is wired as follows:
+  - `PA4` to SD socket pin `1`
+  - `PA5` to SD socket pin `5`
+  - `PA6` to SD socket pin `7`
+  - `PA7` to SD socket pin `2`
+  - `3.3V` and `GND` also connected to the SD socket
+- for SD card protocol notes and external reference links, check `datasheets/SD_Cards/README.md`
+
 ## UART setup
 
 UART0 is connected to the Raspberry Pi debugger probe UART.

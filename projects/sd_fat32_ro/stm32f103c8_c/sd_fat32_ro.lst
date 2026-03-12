@@ -1,0 +1,4476 @@
+
+sd_fat32_ro.elf:     file format elf32-littlearm
+
+
+Disassembly of section .text:
+
+080000ec <delay_ms>:
+    g_ms_ticks++;
+}
+
+static void delay_ms(uint32_t delay_ms)
+{
+    uint32_t start = g_ms_ticks;
+ 80000ec:	4b03      	ldr	r3, [pc, #12]	@ (80000fc <delay_ms+0x10>)
+ 80000ee:	681a      	ldr	r2, [r3, #0]
+    while ((uint32_t)(g_ms_ticks - start) < delay_ms) {
+ 80000f0:	4b02      	ldr	r3, [pc, #8]	@ (80000fc <delay_ms+0x10>)
+ 80000f2:	681b      	ldr	r3, [r3, #0]
+ 80000f4:	1a9b      	subs	r3, r3, r2
+ 80000f6:	4283      	cmp	r3, r0
+ 80000f8:	d3fa      	bcc.n	80000f0 <delay_ms+0x4>
+        /* Busy wait; timing accuracy is not critical here. */
+    }
+}
+ 80000fa:	4770      	bx	lr
+ 80000fc:	20000208 	.word	0x20000208
+
+08000100 <usart1_putc>:
+
+static void usart1_putc(char ch)
+{
+    while ((USART1->SR & USART_SR_TXE) == 0u) {
+ 8000100:	4b03      	ldr	r3, [pc, #12]	@ (8000110 <usart1_putc+0x10>)
+ 8000102:	681b      	ldr	r3, [r3, #0]
+ 8000104:	f013 0f80 	tst.w	r3, #128	@ 0x80
+ 8000108:	d0fa      	beq.n	8000100 <usart1_putc>
+        /* Wait for TX holding register space. */
+    }
+    USART1->DR = (uint16_t)(uint8_t)ch;
+ 800010a:	4b01      	ldr	r3, [pc, #4]	@ (8000110 <usart1_putc+0x10>)
+ 800010c:	6058      	str	r0, [r3, #4]
+}
+ 800010e:	4770      	bx	lr
+ 8000110:	40013800 	.word	0x40013800
+
+08000114 <usart1_puts>:
+
+static void usart1_puts(const char *text)
+{
+ 8000114:	b510      	push	{r4, lr}
+ 8000116:	4604      	mov	r4, r0
+    while (*text != '\0') {
+ 8000118:	e002      	b.n	8000120 <usart1_puts+0xc>
+        usart1_putc(*text++);
+ 800011a:	3401      	adds	r4, #1
+ 800011c:	f7ff fff0 	bl	8000100 <usart1_putc>
+    while (*text != '\0') {
+ 8000120:	7820      	ldrb	r0, [r4, #0]
+ 8000122:	2800      	cmp	r0, #0
+ 8000124:	d1f9      	bne.n	800011a <usart1_puts+0x6>
+    }
+}
+ 8000126:	bd10      	pop	{r4, pc}
+
+08000128 <usart1_put_hex8>:
+
+static void usart1_put_hex8(uint8_t value)
+{
+ 8000128:	b538      	push	{r3, r4, r5, lr}
+ 800012a:	4604      	mov	r4, r0
+    static const char hex[] = "0123456789ABCDEF";
+    usart1_putc(hex[(value >> 4) & 0x0Fu]);
+ 800012c:	0903      	lsrs	r3, r0, #4
+ 800012e:	4d05      	ldr	r5, [pc, #20]	@ (8000144 <usart1_put_hex8+0x1c>)
+ 8000130:	5ce8      	ldrb	r0, [r5, r3]
+ 8000132:	f7ff ffe5 	bl	8000100 <usart1_putc>
+    usart1_putc(hex[value & 0x0Fu]);
+ 8000136:	f004 040f 	and.w	r4, r4, #15
+ 800013a:	5d28      	ldrb	r0, [r5, r4]
+ 800013c:	f7ff ffe0 	bl	8000100 <usart1_putc>
+}
+ 8000140:	bd38      	pop	{r3, r4, r5, pc}
+ 8000142:	bf00      	nop
+ 8000144:	080021a4 	.word	0x080021a4
+
+08000148 <usart1_put_hex16>:
+
+static void usart1_put_hex16(uint16_t value)
+{
+ 8000148:	b510      	push	{r4, lr}
+ 800014a:	4604      	mov	r4, r0
+    usart1_put_hex8((uint8_t)(value >> 8));
+ 800014c:	0a00      	lsrs	r0, r0, #8
+ 800014e:	f7ff ffeb 	bl	8000128 <usart1_put_hex8>
+    usart1_put_hex8((uint8_t)value);
+ 8000152:	b2e0      	uxtb	r0, r4
+ 8000154:	f7ff ffe8 	bl	8000128 <usart1_put_hex8>
+}
+ 8000158:	bd10      	pop	{r4, pc}
+
+0800015a <usart1_put_hex32>:
+
+static void usart1_put_hex32(uint32_t value)
+{
+ 800015a:	b510      	push	{r4, lr}
+ 800015c:	4604      	mov	r4, r0
+    usart1_put_hex16((uint16_t)(value >> 16));
+ 800015e:	0c00      	lsrs	r0, r0, #16
+ 8000160:	f7ff fff2 	bl	8000148 <usart1_put_hex16>
+    usart1_put_hex16((uint16_t)value);
+ 8000164:	b2a0      	uxth	r0, r4
+ 8000166:	f7ff ffef 	bl	8000148 <usart1_put_hex16>
+}
+ 800016a:	bd10      	pop	{r4, pc}
+
+0800016c <usart1_put_dec_u32>:
+
+static void usart1_put_dec_u32(uint32_t value)
+{
+ 800016c:	b510      	push	{r4, lr}
+ 800016e:	b084      	sub	sp, #16
+    char buffer[10];
+    uint32_t i = 0u;
+
+    if (value == 0u) {
+ 8000170:	b110      	cbz	r0, 8000178 <usart1_put_dec_u32+0xc>
+ 8000172:	4602      	mov	r2, r0
+    uint32_t i = 0u;
+ 8000174:	2400      	movs	r4, #0
+ 8000176:	e014      	b.n	80001a2 <usart1_put_dec_u32+0x36>
+        usart1_putc('0');
+ 8000178:	2030      	movs	r0, #48	@ 0x30
+ 800017a:	f7ff ffc1 	bl	8000100 <usart1_putc>
+        return;
+ 800017e:	e01d      	b.n	80001bc <usart1_put_dec_u32+0x50>
+    }
+
+    while (value != 0u) {
+        buffer[i++] = (char)('0' + (value % 10u));
+ 8000180:	4b0f      	ldr	r3, [pc, #60]	@ (80001c0 <usart1_put_dec_u32+0x54>)
+ 8000182:	fba3 1302 	umull	r1, r3, r3, r2
+ 8000186:	08db      	lsrs	r3, r3, #3
+ 8000188:	4619      	mov	r1, r3
+ 800018a:	eb03 0383 	add.w	r3, r3, r3, lsl #2
+ 800018e:	eba2 0343 	sub.w	r3, r2, r3, lsl #1
+ 8000192:	3330      	adds	r3, #48	@ 0x30
+ 8000194:	f104 0210 	add.w	r2, r4, #16
+ 8000198:	446a      	add	r2, sp
+ 800019a:	f802 3c0c 	strb.w	r3, [r2, #-12]
+        value /= 10u;
+ 800019e:	460a      	mov	r2, r1
+        buffer[i++] = (char)('0' + (value % 10u));
+ 80001a0:	3401      	adds	r4, #1
+    while (value != 0u) {
+ 80001a2:	2a00      	cmp	r2, #0
+ 80001a4:	d1ec      	bne.n	8000180 <usart1_put_dec_u32+0x14>
+ 80001a6:	e007      	b.n	80001b8 <usart1_put_dec_u32+0x4c>
+    }
+
+    while (i > 0u) {
+        usart1_putc(buffer[--i]);
+ 80001a8:	3c01      	subs	r4, #1
+ 80001aa:	f104 0310 	add.w	r3, r4, #16
+ 80001ae:	446b      	add	r3, sp
+ 80001b0:	f813 0c0c 	ldrb.w	r0, [r3, #-12]
+ 80001b4:	f7ff ffa4 	bl	8000100 <usart1_putc>
+    while (i > 0u) {
+ 80001b8:	2c00      	cmp	r4, #0
+ 80001ba:	d1f5      	bne.n	80001a8 <usart1_put_dec_u32+0x3c>
+    }
+}
+ 80001bc:	b004      	add	sp, #16
+ 80001be:	bd10      	pop	{r4, pc}
+ 80001c0:	cccccccd 	.word	0xcccccccd
+
+080001c4 <usart1_init>:
+
+static void usart1_init(void)
+{
+    RCC->APB2ENR |= RCC_APB2ENR_AFIOEN | RCC_APB2ENR_IOPAEN | RCC_APB2ENR_USART1EN;
+ 80001c4:	4a12      	ldr	r2, [pc, #72]	@ (8000210 <usart1_init+0x4c>)
+ 80001c6:	6993      	ldr	r3, [r2, #24]
+ 80001c8:	f443 4380 	orr.w	r3, r3, #16384	@ 0x4000
+ 80001cc:	f043 0305 	orr.w	r3, r3, #5
+ 80001d0:	6193      	str	r3, [r2, #24]
+    AFIO->MAPR &= ~AFIO_MAPR_USART1_REMAP;
+ 80001d2:	f5a2 3288 	sub.w	r2, r2, #69632	@ 0x11000
+ 80001d6:	6853      	ldr	r3, [r2, #4]
+ 80001d8:	f023 0304 	bic.w	r3, r3, #4
+ 80001dc:	6053      	str	r3, [r2, #4]
+
+    GPIOA->CRH &= ~(GPIO_CRH_MODE9 | GPIO_CRH_CNF9 | GPIO_CRH_MODE10 | GPIO_CRH_CNF10);
+ 80001de:	4b0d      	ldr	r3, [pc, #52]	@ (8000214 <usart1_init+0x50>)
+ 80001e0:	685a      	ldr	r2, [r3, #4]
+ 80001e2:	f422 627f 	bic.w	r2, r2, #4080	@ 0xff0
+ 80001e6:	605a      	str	r2, [r3, #4]
+    GPIOA->CRH |= GPIO_CRH_MODE9 | GPIO_CRH_CNF9_1 | GPIO_CRH_CNF10_0;
+ 80001e8:	685a      	ldr	r2, [r3, #4]
+ 80001ea:	f442 6296 	orr.w	r2, r2, #1200	@ 0x4b0
+ 80001ee:	605a      	str	r2, [r3, #4]
+
+    USART1->CR1 = 0u;
+ 80001f0:	4a09      	ldr	r2, [pc, #36]	@ (8000218 <usart1_init+0x54>)
+ 80001f2:	2300      	movs	r3, #0
+ 80001f4:	60d3      	str	r3, [r2, #12]
+    USART1->BRR = (SystemCoreClock + (UART_BAUD / 2u)) / UART_BAUD;
+ 80001f6:	4b09      	ldr	r3, [pc, #36]	@ (800021c <usart1_init+0x58>)
+ 80001f8:	681b      	ldr	r3, [r3, #0]
+ 80001fa:	f503 43e1 	add.w	r3, r3, #28800	@ 0x7080
+ 80001fe:	4908      	ldr	r1, [pc, #32]	@ (8000220 <usart1_init+0x5c>)
+ 8000200:	fba1 1303 	umull	r1, r3, r1, r3
+ 8000204:	0bdb      	lsrs	r3, r3, #15
+ 8000206:	6093      	str	r3, [r2, #8]
+    USART1->CR1 = USART_CR1_UE | USART_CR1_TE | USART_CR1_RE;
+ 8000208:	f242 030c 	movw	r3, #8204	@ 0x200c
+ 800020c:	60d3      	str	r3, [r2, #12]
+}
+ 800020e:	4770      	bx	lr
+ 8000210:	40021000 	.word	0x40021000
+ 8000214:	40010800 	.word	0x40010800
+ 8000218:	40013800 	.word	0x40013800
+ 800021c:	20000000 	.word	0x20000000
+ 8000220:	91a2b3c5 	.word	0x91a2b3c5
+
+08000224 <led_init>:
+
+static void led_init(void)
+{
+    RCC->APB2ENR |= RCC_APB2ENR_IOPCEN;
+ 8000224:	4a08      	ldr	r2, [pc, #32]	@ (8000248 <led_init+0x24>)
+ 8000226:	6993      	ldr	r3, [r2, #24]
+ 8000228:	f043 0310 	orr.w	r3, r3, #16
+ 800022c:	6193      	str	r3, [r2, #24]
+    GPIOC->CRH &= ~(GPIO_CRH_MODE13 | GPIO_CRH_CNF13);
+ 800022e:	4b07      	ldr	r3, [pc, #28]	@ (800024c <led_init+0x28>)
+ 8000230:	685a      	ldr	r2, [r3, #4]
+ 8000232:	f422 0270 	bic.w	r2, r2, #15728640	@ 0xf00000
+ 8000236:	605a      	str	r2, [r3, #4]
+    GPIOC->CRH |= GPIO_CRH_MODE13_1;
+ 8000238:	685a      	ldr	r2, [r3, #4]
+ 800023a:	f442 1200 	orr.w	r2, r2, #2097152	@ 0x200000
+ 800023e:	605a      	str	r2, [r3, #4]
+    GPIOC->BSRR = GPIO_BSRR_BS13;
+ 8000240:	f44f 5200 	mov.w	r2, #8192	@ 0x2000
+ 8000244:	611a      	str	r2, [r3, #16]
+}
+ 8000246:	4770      	bx	lr
+ 8000248:	40021000 	.word	0x40021000
+ 800024c:	40011000 	.word	0x40011000
+
+08000250 <led_set>:
+
+static void led_set(bool on)
+{
+    if (on) {
+ 8000250:	b120      	cbz	r0, 800025c <led_set+0xc>
+        GPIOC->BRR = GPIO_BRR_BR13;
+ 8000252:	4b05      	ldr	r3, [pc, #20]	@ (8000268 <led_set+0x18>)
+ 8000254:	f44f 5200 	mov.w	r2, #8192	@ 0x2000
+ 8000258:	615a      	str	r2, [r3, #20]
+ 800025a:	4770      	bx	lr
+    } else {
+        GPIOC->BSRR = GPIO_BSRR_BS13;
+ 800025c:	4b02      	ldr	r3, [pc, #8]	@ (8000268 <led_set+0x18>)
+ 800025e:	f44f 5200 	mov.w	r2, #8192	@ 0x2000
+ 8000262:	611a      	str	r2, [r3, #16]
+    }
+}
+ 8000264:	4770      	bx	lr
+ 8000266:	bf00      	nop
+ 8000268:	40011000 	.word	0x40011000
+
+0800026c <sd_spi_set_prescaler>:
+
+static void sd_spi_set_prescaler(uint32_t br)
+{
+    SPI1->CR1 &= ~SPI_CR1_SPE;
+ 800026c:	4b07      	ldr	r3, [pc, #28]	@ (800028c <sd_spi_set_prescaler+0x20>)
+ 800026e:	681a      	ldr	r2, [r3, #0]
+ 8000270:	f022 0240 	bic.w	r2, r2, #64	@ 0x40
+ 8000274:	601a      	str	r2, [r3, #0]
+    SPI1->CR1 = (SPI1->CR1 & ~SPI_CR1_BR) | br;
+ 8000276:	681a      	ldr	r2, [r3, #0]
+ 8000278:	f022 0238 	bic.w	r2, r2, #56	@ 0x38
+ 800027c:	4302      	orrs	r2, r0
+ 800027e:	601a      	str	r2, [r3, #0]
+    SPI1->CR1 |= SPI_CR1_SPE;
+ 8000280:	681a      	ldr	r2, [r3, #0]
+ 8000282:	f042 0240 	orr.w	r2, r2, #64	@ 0x40
+ 8000286:	601a      	str	r2, [r3, #0]
+}
+ 8000288:	4770      	bx	lr
+ 800028a:	bf00      	nop
+ 800028c:	40013000 	.word	0x40013000
+
+08000290 <sd_spi_init>:
+
+static void sd_spi_init(void)
+{
+    RCC->APB2ENR |= RCC_APB2ENR_AFIOEN | RCC_APB2ENR_IOPAEN | RCC_APB2ENR_SPI1EN;
+ 8000290:	4a12      	ldr	r2, [pc, #72]	@ (80002dc <sd_spi_init+0x4c>)
+ 8000292:	6993      	ldr	r3, [r2, #24]
+ 8000294:	f443 5380 	orr.w	r3, r3, #4096	@ 0x1000
+ 8000298:	f043 0305 	orr.w	r3, r3, #5
+ 800029c:	6193      	str	r3, [r2, #24]
+    AFIO->MAPR &= ~AFIO_MAPR_SPI1_REMAP;
+ 800029e:	f5a2 3288 	sub.w	r2, r2, #69632	@ 0x11000
+ 80002a2:	6853      	ldr	r3, [r2, #4]
+ 80002a4:	f023 0301 	bic.w	r3, r3, #1
+ 80002a8:	6053      	str	r3, [r2, #4]
+     * PA4  = GPIO output push-pull for CS
+     * PA5  = alternate-function push-pull for SCK
+     * PA6  = floating input for MISO
+     * PA7  = alternate-function push-pull for MOSI
+     */
+    GPIOA->CRL &= ~(GPIO_CRL_MODE4 | GPIO_CRL_CNF4 |
+ 80002aa:	4b0d      	ldr	r3, [pc, #52]	@ (80002e0 <sd_spi_init+0x50>)
+ 80002ac:	681a      	ldr	r2, [r3, #0]
+ 80002ae:	b292      	uxth	r2, r2
+ 80002b0:	601a      	str	r2, [r3, #0]
+                    GPIO_CRL_MODE5 | GPIO_CRL_CNF5 |
+                    GPIO_CRL_MODE6 | GPIO_CRL_CNF6 |
+                    GPIO_CRL_MODE7 | GPIO_CRL_CNF7);
+    GPIOA->CRL |= GPIO_CRL_MODE4_0 |
+ 80002b2:	681a      	ldr	r2, [r3, #0]
+ 80002b4:	f042 4234 	orr.w	r2, r2, #3019898880	@ 0xb4000000
+ 80002b8:	f442 0231 	orr.w	r2, r2, #11599872	@ 0xb10000
+ 80002bc:	601a      	str	r2, [r3, #0]
+                  GPIO_CRL_MODE5 | GPIO_CRL_CNF5_1 |
+                  GPIO_CRL_CNF6_0 |
+                  GPIO_CRL_MODE7 | GPIO_CRL_CNF7_1;
+
+    GPIOA->BSRR = GPIO_BSRR_BS4;
+ 80002be:	2210      	movs	r2, #16
+ 80002c0:	611a      	str	r2, [r3, #16]
+
+    SPI1->CR1 = SPI_CR1_MSTR | SPI_CR1_SSM | SPI_CR1_SSI | SD_SPI_BR_INIT;
+ 80002c2:	f503 5320 	add.w	r3, r3, #10240	@ 0x2800
+ 80002c6:	f44f 724d 	mov.w	r2, #820	@ 0x334
+ 80002ca:	601a      	str	r2, [r3, #0]
+    SPI1->CR2 = 0u;
+ 80002cc:	2200      	movs	r2, #0
+ 80002ce:	605a      	str	r2, [r3, #4]
+    SPI1->CR1 |= SPI_CR1_SPE;
+ 80002d0:	681a      	ldr	r2, [r3, #0]
+ 80002d2:	f042 0240 	orr.w	r2, r2, #64	@ 0x40
+ 80002d6:	601a      	str	r2, [r3, #0]
+}
+ 80002d8:	4770      	bx	lr
+ 80002da:	bf00      	nop
+ 80002dc:	40021000 	.word	0x40021000
+ 80002e0:	40010800 	.word	0x40010800
+
+080002e4 <sd_spi_xfer>:
+    GPIOA->BRR = GPIO_BRR_BR4;
+}
+
+static uint8_t sd_spi_xfer(uint8_t tx)
+{
+    while ((SPI1->SR & SPI_SR_TXE) == 0u) {
+ 80002e4:	4b07      	ldr	r3, [pc, #28]	@ (8000304 <sd_spi_xfer+0x20>)
+ 80002e6:	689b      	ldr	r3, [r3, #8]
+ 80002e8:	f013 0f02 	tst.w	r3, #2
+ 80002ec:	d0fa      	beq.n	80002e4 <sd_spi_xfer>
+        /* Wait for TX buffer availability. */
+    }
+
+    *(__IO uint8_t *)&SPI1->DR = tx;
+ 80002ee:	4b05      	ldr	r3, [pc, #20]	@ (8000304 <sd_spi_xfer+0x20>)
+ 80002f0:	7318      	strb	r0, [r3, #12]
+
+    while ((SPI1->SR & SPI_SR_RXNE) == 0u) {
+ 80002f2:	4b04      	ldr	r3, [pc, #16]	@ (8000304 <sd_spi_xfer+0x20>)
+ 80002f4:	689b      	ldr	r3, [r3, #8]
+ 80002f6:	f013 0f01 	tst.w	r3, #1
+ 80002fa:	d0fa      	beq.n	80002f2 <sd_spi_xfer+0xe>
+        /* Wait for a received byte. */
+    }
+
+    return *(__IO uint8_t *)&SPI1->DR;
+ 80002fc:	4b01      	ldr	r3, [pc, #4]	@ (8000304 <sd_spi_xfer+0x20>)
+ 80002fe:	7b18      	ldrb	r0, [r3, #12]
+}
+ 8000300:	4770      	bx	lr
+ 8000302:	bf00      	nop
+ 8000304:	40013000 	.word	0x40013000
+
+08000308 <sd_deselect>:
+
+static void sd_deselect(void)
+{
+ 8000308:	b508      	push	{r3, lr}
+    GPIOA->BSRR = GPIO_BSRR_BS4;
+ 800030a:	4b03      	ldr	r3, [pc, #12]	@ (8000318 <sd_deselect+0x10>)
+ 800030c:	2210      	movs	r2, #16
+ 800030e:	611a      	str	r2, [r3, #16]
+    sd_cs_high();
+    sd_spi_xfer(0xFFu);
+ 8000310:	20ff      	movs	r0, #255	@ 0xff
+ 8000312:	f7ff ffe7 	bl	80002e4 <sd_spi_xfer>
+}
+ 8000316:	bd08      	pop	{r3, pc}
+ 8000318:	40010800 	.word	0x40010800
+
+0800031c <sd_wait_ready>:
+
+static bool sd_wait_ready(uint32_t timeout_bytes)
+{
+ 800031c:	b538      	push	{r3, r4, r5, lr}
+ 800031e:	4605      	mov	r5, r0
+    uint32_t i;
+
+    for (i = 0u; i < timeout_bytes; i++) {
+ 8000320:	2400      	movs	r4, #0
+ 8000322:	e000      	b.n	8000326 <sd_wait_ready+0xa>
+ 8000324:	3401      	adds	r4, #1
+ 8000326:	42ac      	cmp	r4, r5
+ 8000328:	d206      	bcs.n	8000338 <sd_wait_ready+0x1c>
+        if (sd_spi_xfer(0xFFu) == 0xFFu) {
+ 800032a:	20ff      	movs	r0, #255	@ 0xff
+ 800032c:	f7ff ffda 	bl	80002e4 <sd_spi_xfer>
+ 8000330:	28ff      	cmp	r0, #255	@ 0xff
+ 8000332:	d1f7      	bne.n	8000324 <sd_wait_ready+0x8>
+            return true;
+ 8000334:	2001      	movs	r0, #1
+ 8000336:	e000      	b.n	800033a <sd_wait_ready+0x1e>
+        }
+    }
+
+    return false;
+ 8000338:	2000      	movs	r0, #0
+}
+ 800033a:	bd38      	pop	{r3, r4, r5, pc}
+
+0800033c <sd_select>:
+
+static bool sd_select(void)
+{
+ 800033c:	b508      	push	{r3, lr}
+    GPIOA->BRR = GPIO_BRR_BR4;
+ 800033e:	4b04      	ldr	r3, [pc, #16]	@ (8000350 <sd_select+0x14>)
+ 8000340:	2210      	movs	r2, #16
+ 8000342:	615a      	str	r2, [r3, #20]
+    sd_cs_low();
+    return sd_wait_ready(50000u);
+ 8000344:	f24c 3050 	movw	r0, #50000	@ 0xc350
+ 8000348:	f7ff ffe8 	bl	800031c <sd_wait_ready>
+}
+ 800034c:	bd08      	pop	{r3, pc}
+ 800034e:	bf00      	nop
+ 8000350:	40010800 	.word	0x40010800
+
+08000354 <sd_send_initial_clocks>:
+
+static void sd_send_initial_clocks(void)
+{
+ 8000354:	b510      	push	{r4, lr}
+    uint32_t i;
+
+    sd_deselect();
+ 8000356:	f7ff ffd7 	bl	8000308 <sd_deselect>
+    for (i = 0u; i < 10u; i++) {
+ 800035a:	2400      	movs	r4, #0
+ 800035c:	e003      	b.n	8000366 <sd_send_initial_clocks+0x12>
+        sd_spi_xfer(0xFFu);
+ 800035e:	20ff      	movs	r0, #255	@ 0xff
+ 8000360:	f7ff ffc0 	bl	80002e4 <sd_spi_xfer>
+    for (i = 0u; i < 10u; i++) {
+ 8000364:	3401      	adds	r4, #1
+ 8000366:	2c09      	cmp	r4, #9
+ 8000368:	d9f9      	bls.n	800035e <sd_send_initial_clocks+0xa>
+    }
+}
+ 800036a:	bd10      	pop	{r4, pc}
+
+0800036c <sd_send_command_selected>:
+
+static uint8_t sd_send_command_selected(uint8_t cmd, uint32_t arg, uint8_t crc)
+{
+ 800036c:	b538      	push	{r3, r4, r5, lr}
+ 800036e:	460c      	mov	r4, r1
+ 8000370:	4615      	mov	r5, r2
+    uint8_t r1 = 0xFFu;
+    uint32_t i;
+
+    sd_spi_xfer((uint8_t)(0x40u | cmd));
+ 8000372:	f040 0040 	orr.w	r0, r0, #64	@ 0x40
+ 8000376:	f7ff ffb5 	bl	80002e4 <sd_spi_xfer>
+    sd_spi_xfer((uint8_t)(arg >> 24));
+ 800037a:	0e20      	lsrs	r0, r4, #24
+ 800037c:	f7ff ffb2 	bl	80002e4 <sd_spi_xfer>
+    sd_spi_xfer((uint8_t)(arg >> 16));
+ 8000380:	f3c4 4007 	ubfx	r0, r4, #16, #8
+ 8000384:	f7ff ffae 	bl	80002e4 <sd_spi_xfer>
+    sd_spi_xfer((uint8_t)(arg >> 8));
+ 8000388:	f3c4 2007 	ubfx	r0, r4, #8, #8
+ 800038c:	f7ff ffaa 	bl	80002e4 <sd_spi_xfer>
+    sd_spi_xfer((uint8_t)arg);
+ 8000390:	b2e0      	uxtb	r0, r4
+ 8000392:	f7ff ffa7 	bl	80002e4 <sd_spi_xfer>
+    sd_spi_xfer(crc);
+ 8000396:	4628      	mov	r0, r5
+ 8000398:	f7ff ffa4 	bl	80002e4 <sd_spi_xfer>
+
+    for (i = 0u; i < 10u; i++) {
+ 800039c:	2400      	movs	r4, #0
+    uint8_t r1 = 0xFFu;
+ 800039e:	20ff      	movs	r0, #255	@ 0xff
+    for (i = 0u; i < 10u; i++) {
+ 80003a0:	2c09      	cmp	r4, #9
+ 80003a2:	d807      	bhi.n	80003b4 <sd_send_command_selected+0x48>
+        r1 = sd_spi_xfer(0xFFu);
+ 80003a4:	20ff      	movs	r0, #255	@ 0xff
+ 80003a6:	f7ff ff9d 	bl	80002e4 <sd_spi_xfer>
+        if ((r1 & 0x80u) == 0u) {
+ 80003aa:	f010 0f80 	tst.w	r0, #128	@ 0x80
+ 80003ae:	d001      	beq.n	80003b4 <sd_send_command_selected+0x48>
+    for (i = 0u; i < 10u; i++) {
+ 80003b0:	3401      	adds	r4, #1
+ 80003b2:	e7f5      	b.n	80003a0 <sd_send_command_selected+0x34>
+            break;
+        }
+    }
+
+    return r1;
+}
+ 80003b4:	bd38      	pop	{r3, r4, r5, pc}
+
+080003b6 <sd_send_command>:
+
+static uint8_t sd_send_command(uint8_t cmd, uint32_t arg, uint8_t crc)
+{
+ 80003b6:	b570      	push	{r4, r5, r6, lr}
+ 80003b8:	4604      	mov	r4, r0
+ 80003ba:	460d      	mov	r5, r1
+ 80003bc:	4616      	mov	r6, r2
+    uint8_t r1;
+
+    sd_deselect();
+ 80003be:	f7ff ffa3 	bl	8000308 <sd_deselect>
+    if (!sd_select()) {
+ 80003c2:	f7ff ffbb 	bl	800033c <sd_select>
+ 80003c6:	b148      	cbz	r0, 80003dc <sd_send_command+0x26>
+        sd_deselect();
+        return 0xFFu;
+    }
+
+    r1 = sd_send_command_selected(cmd, arg, crc);
+ 80003c8:	4632      	mov	r2, r6
+ 80003ca:	4629      	mov	r1, r5
+ 80003cc:	4620      	mov	r0, r4
+ 80003ce:	f7ff ffcd 	bl	800036c <sd_send_command_selected>
+ 80003d2:	4604      	mov	r4, r0
+    sd_deselect();
+ 80003d4:	f7ff ff98 	bl	8000308 <sd_deselect>
+    return r1;
+}
+ 80003d8:	4620      	mov	r0, r4
+ 80003da:	bd70      	pop	{r4, r5, r6, pc}
+        sd_deselect();
+ 80003dc:	f7ff ff94 	bl	8000308 <sd_deselect>
+        return 0xFFu;
+ 80003e0:	24ff      	movs	r4, #255	@ 0xff
+ 80003e2:	e7f9      	b.n	80003d8 <sd_send_command+0x22>
+
+080003e4 <sd_send_app_command>:
+
+static uint8_t sd_send_app_command(uint8_t acmd, uint32_t arg)
+{
+ 80003e4:	b538      	push	{r3, r4, r5, lr}
+ 80003e6:	4604      	mov	r4, r0
+ 80003e8:	460d      	mov	r5, r1
+    uint8_t r1 = sd_send_command(SD_CMD55, 0u, 0xFFu);
+ 80003ea:	22ff      	movs	r2, #255	@ 0xff
+ 80003ec:	2100      	movs	r1, #0
+ 80003ee:	2037      	movs	r0, #55	@ 0x37
+ 80003f0:	f7ff ffe1 	bl	80003b6 <sd_send_command>
+    if (r1 > 0x01u) {
+ 80003f4:	2801      	cmp	r0, #1
+ 80003f6:	d900      	bls.n	80003fa <sd_send_app_command+0x16>
+        return r1;
+    }
+    return sd_send_command(acmd, arg, 0xFFu);
+}
+ 80003f8:	bd38      	pop	{r3, r4, r5, pc}
+    return sd_send_command(acmd, arg, 0xFFu);
+ 80003fa:	22ff      	movs	r2, #255	@ 0xff
+ 80003fc:	4629      	mov	r1, r5
+ 80003fe:	4620      	mov	r0, r4
+ 8000400:	f7ff ffd9 	bl	80003b6 <sd_send_command>
+ 8000404:	e7f8      	b.n	80003f8 <sd_send_app_command+0x14>
+	...
+
+08000408 <sd_read_data_selected>:
+
+static bool sd_read_data_selected(uint8_t *buffer, uint32_t length)
+{
+ 8000408:	b570      	push	{r4, r5, r6, lr}
+ 800040a:	4606      	mov	r6, r0
+ 800040c:	460d      	mov	r5, r1
+    uint32_t i;
+    uint8_t token = 0xFFu;
+ 800040e:	20ff      	movs	r0, #255	@ 0xff
+
+    for (i = 0u; i < 100000u; i++) {
+ 8000410:	2400      	movs	r4, #0
+ 8000412:	4b0f      	ldr	r3, [pc, #60]	@ (8000450 <sd_read_data_selected+0x48>)
+ 8000414:	429c      	cmp	r4, r3
+ 8000416:	d806      	bhi.n	8000426 <sd_read_data_selected+0x1e>
+        token = sd_spi_xfer(0xFFu);
+ 8000418:	20ff      	movs	r0, #255	@ 0xff
+ 800041a:	f7ff ff63 	bl	80002e4 <sd_spi_xfer>
+        if (token != 0xFFu) {
+ 800041e:	28ff      	cmp	r0, #255	@ 0xff
+ 8000420:	d101      	bne.n	8000426 <sd_read_data_selected+0x1e>
+    for (i = 0u; i < 100000u; i++) {
+ 8000422:	3401      	adds	r4, #1
+ 8000424:	e7f5      	b.n	8000412 <sd_read_data_selected+0xa>
+            break;
+        }
+    }
+
+    if (token != SD_DATA_TOKEN) {
+ 8000426:	28fe      	cmp	r0, #254	@ 0xfe
+ 8000428:	d110      	bne.n	800044c <sd_read_data_selected+0x44>
+        return false;
+    }
+
+    for (i = 0u; i < length; i++) {
+ 800042a:	2400      	movs	r4, #0
+ 800042c:	e004      	b.n	8000438 <sd_read_data_selected+0x30>
+        buffer[i] = sd_spi_xfer(0xFFu);
+ 800042e:	20ff      	movs	r0, #255	@ 0xff
+ 8000430:	f7ff ff58 	bl	80002e4 <sd_spi_xfer>
+ 8000434:	5530      	strb	r0, [r6, r4]
+    for (i = 0u; i < length; i++) {
+ 8000436:	3401      	adds	r4, #1
+ 8000438:	42ac      	cmp	r4, r5
+ 800043a:	d3f8      	bcc.n	800042e <sd_read_data_selected+0x26>
+    }
+
+    /* Ignore the 16-bit CRC for now. */
+    sd_spi_xfer(0xFFu);
+ 800043c:	20ff      	movs	r0, #255	@ 0xff
+ 800043e:	f7ff ff51 	bl	80002e4 <sd_spi_xfer>
+    sd_spi_xfer(0xFFu);
+ 8000442:	20ff      	movs	r0, #255	@ 0xff
+ 8000444:	f7ff ff4e 	bl	80002e4 <sd_spi_xfer>
+    return true;
+ 8000448:	2001      	movs	r0, #1
+}
+ 800044a:	bd70      	pop	{r4, r5, r6, pc}
+        return false;
+ 800044c:	2000      	movs	r0, #0
+ 800044e:	e7fc      	b.n	800044a <sd_read_data_selected+0x42>
+ 8000450:	0001869f 	.word	0x0001869f
+
+08000454 <sd_read_register>:
+
+static bool sd_read_register(uint8_t cmd, uint8_t *buffer)
+{
+ 8000454:	b570      	push	{r4, r5, r6, lr}
+ 8000456:	4604      	mov	r4, r0
+ 8000458:	460d      	mov	r5, r1
+    uint8_t r1;
+
+    sd_deselect();
+ 800045a:	f7ff ff55 	bl	8000308 <sd_deselect>
+    if (!sd_select()) {
+ 800045e:	f7ff ff6d 	bl	800033c <sd_select>
+ 8000462:	b178      	cbz	r0, 8000484 <sd_read_register+0x30>
+        sd_deselect();
+        return false;
+    }
+
+    r1 = sd_send_command_selected(cmd, 0u, 0xFFu);
+ 8000464:	22ff      	movs	r2, #255	@ 0xff
+ 8000466:	2100      	movs	r1, #0
+ 8000468:	4620      	mov	r0, r4
+ 800046a:	f7ff ff7f 	bl	800036c <sd_send_command_selected>
+    if (r1 != 0x00u && r1 != SD_R1_IDLE) {
+ 800046e:	2801      	cmp	r0, #1
+ 8000470:	d80d      	bhi.n	800048e <sd_read_register+0x3a>
+        sd_deselect();
+        return false;
+    }
+
+    if (!sd_read_data_selected(buffer, 16u)) {
+ 8000472:	2110      	movs	r1, #16
+ 8000474:	4628      	mov	r0, r5
+ 8000476:	f7ff ffc7 	bl	8000408 <sd_read_data_selected>
+ 800047a:	4606      	mov	r6, r0
+ 800047c:	b158      	cbz	r0, 8000496 <sd_read_register+0x42>
+        sd_deselect();
+        return false;
+    }
+
+    sd_deselect();
+ 800047e:	f7ff ff43 	bl	8000308 <sd_deselect>
+    return true;
+ 8000482:	e002      	b.n	800048a <sd_read_register+0x36>
+ 8000484:	4606      	mov	r6, r0
+        sd_deselect();
+ 8000486:	f7ff ff3f 	bl	8000308 <sd_deselect>
+}
+ 800048a:	4630      	mov	r0, r6
+ 800048c:	bd70      	pop	{r4, r5, r6, pc}
+        sd_deselect();
+ 800048e:	f7ff ff3b 	bl	8000308 <sd_deselect>
+        return false;
+ 8000492:	2600      	movs	r6, #0
+ 8000494:	e7f9      	b.n	800048a <sd_read_register+0x36>
+        sd_deselect();
+ 8000496:	f7ff ff37 	bl	8000308 <sd_deselect>
+        return false;
+ 800049a:	e7f6      	b.n	800048a <sd_read_register+0x36>
+
+0800049c <sd_read_ocr>:
+
+static bool sd_read_ocr(uint32_t *ocr_out)
+{
+ 800049c:	e92d 43f0 	stmdb	sp!, {r4, r5, r6, r7, r8, r9, lr}
+ 80004a0:	b083      	sub	sp, #12
+ 80004a2:	4605      	mov	r5, r0
+    uint8_t r1;
+    uint8_t ocr[4];
+
+    sd_deselect();
+ 80004a4:	f7ff ff30 	bl	8000308 <sd_deselect>
+    if (!sd_select()) {
+ 80004a8:	f7ff ff48 	bl	800033c <sd_select>
+ 80004ac:	4606      	mov	r6, r0
+ 80004ae:	b358      	cbz	r0, 8000508 <sd_read_ocr+0x6c>
+        sd_deselect();
+        return false;
+    }
+
+    r1 = sd_send_command_selected(SD_CMD58, 0u, 0xFFu);
+ 80004b0:	22ff      	movs	r2, #255	@ 0xff
+ 80004b2:	2100      	movs	r1, #0
+ 80004b4:	203a      	movs	r0, #58	@ 0x3a
+ 80004b6:	f7ff ff59 	bl	800036c <sd_send_command_selected>
+    if (r1 != 0x00u && r1 != SD_R1_IDLE) {
+ 80004ba:	2801      	cmp	r0, #1
+ 80004bc:	d827      	bhi.n	800050e <sd_read_ocr+0x72>
+        sd_deselect();
+        return false;
+    }
+
+    ocr[0] = sd_spi_xfer(0xFFu);
+ 80004be:	20ff      	movs	r0, #255	@ 0xff
+ 80004c0:	f7ff ff10 	bl	80002e4 <sd_spi_xfer>
+ 80004c4:	4681      	mov	r9, r0
+ 80004c6:	f88d 0004 	strb.w	r0, [sp, #4]
+    ocr[1] = sd_spi_xfer(0xFFu);
+ 80004ca:	20ff      	movs	r0, #255	@ 0xff
+ 80004cc:	f7ff ff0a 	bl	80002e4 <sd_spi_xfer>
+ 80004d0:	4604      	mov	r4, r0
+ 80004d2:	f88d 0005 	strb.w	r0, [sp, #5]
+    ocr[2] = sd_spi_xfer(0xFFu);
+ 80004d6:	20ff      	movs	r0, #255	@ 0xff
+ 80004d8:	f7ff ff04 	bl	80002e4 <sd_spi_xfer>
+ 80004dc:	4680      	mov	r8, r0
+ 80004de:	f88d 0006 	strb.w	r0, [sp, #6]
+    ocr[3] = sd_spi_xfer(0xFFu);
+ 80004e2:	20ff      	movs	r0, #255	@ 0xff
+ 80004e4:	f7ff fefe 	bl	80002e4 <sd_spi_xfer>
+ 80004e8:	4607      	mov	r7, r0
+ 80004ea:	f88d 0007 	strb.w	r0, [sp, #7]
+    sd_deselect();
+ 80004ee:	f7ff ff0b 	bl	8000308 <sd_deselect>
+
+    *ocr_out = ((uint32_t)ocr[0] << 24) |
+               ((uint32_t)ocr[1] << 16) |
+ 80004f2:	0424      	lsls	r4, r4, #16
+    *ocr_out = ((uint32_t)ocr[0] << 24) |
+ 80004f4:	ea44 6409 	orr.w	r4, r4, r9, lsl #24
+               ((uint32_t)ocr[1] << 16) |
+ 80004f8:	ea44 2408 	orr.w	r4, r4, r8, lsl #8
+               ((uint32_t)ocr[2] << 8) |
+ 80004fc:	433c      	orrs	r4, r7
+    *ocr_out = ((uint32_t)ocr[0] << 24) |
+ 80004fe:	602c      	str	r4, [r5, #0]
+               (uint32_t)ocr[3];
+    return true;
+}
+ 8000500:	4630      	mov	r0, r6
+ 8000502:	b003      	add	sp, #12
+ 8000504:	e8bd 83f0 	ldmia.w	sp!, {r4, r5, r6, r7, r8, r9, pc}
+        sd_deselect();
+ 8000508:	f7ff fefe 	bl	8000308 <sd_deselect>
+        return false;
+ 800050c:	e7f8      	b.n	8000500 <sd_read_ocr+0x64>
+        sd_deselect();
+ 800050e:	f7ff fefb 	bl	8000308 <sd_deselect>
+        return false;
+ 8000512:	2600      	movs	r6, #0
+ 8000514:	e7f4      	b.n	8000500 <sd_read_ocr+0x64>
+	...
+
+08000518 <sd_read_block>:
+
+static bool sd_read_block(uint32_t lba, uint8_t *buffer)
+{
+ 8000518:	b570      	push	{r4, r5, r6, lr}
+ 800051a:	4604      	mov	r4, r0
+ 800051c:	460d      	mov	r5, r1
+    uint32_t address = g_sd_is_sdhc ? lba : (lba * SD_SECTOR_SIZE);
+ 800051e:	4b12      	ldr	r3, [pc, #72]	@ (8000568 <sd_read_block+0x50>)
+ 8000520:	781b      	ldrb	r3, [r3, #0]
+ 8000522:	b903      	cbnz	r3, 8000526 <sd_read_block+0xe>
+ 8000524:	0244      	lsls	r4, r0, #9
+    uint8_t r1;
+
+    sd_deselect();
+ 8000526:	f7ff feef 	bl	8000308 <sd_deselect>
+    if (!sd_select()) {
+ 800052a:	f7ff ff07 	bl	800033c <sd_select>
+ 800052e:	4606      	mov	r6, r0
+ 8000530:	b178      	cbz	r0, 8000552 <sd_read_block+0x3a>
+        sd_deselect();
+        return false;
+    }
+
+    r1 = sd_send_command_selected(SD_CMD17, address, 0xFFu);
+ 8000532:	22ff      	movs	r2, #255	@ 0xff
+ 8000534:	4621      	mov	r1, r4
+ 8000536:	2011      	movs	r0, #17
+ 8000538:	f7ff ff18 	bl	800036c <sd_send_command_selected>
+    if (r1 != 0x00u) {
+ 800053c:	b968      	cbnz	r0, 800055a <sd_read_block+0x42>
+        sd_deselect();
+        return false;
+    }
+
+    if (!sd_read_data_selected(buffer, SD_SECTOR_SIZE)) {
+ 800053e:	f44f 7100 	mov.w	r1, #512	@ 0x200
+ 8000542:	4628      	mov	r0, r5
+ 8000544:	f7ff ff60 	bl	8000408 <sd_read_data_selected>
+ 8000548:	4606      	mov	r6, r0
+ 800054a:	b150      	cbz	r0, 8000562 <sd_read_block+0x4a>
+        sd_deselect();
+        return false;
+    }
+
+    sd_deselect();
+ 800054c:	f7ff fedc 	bl	8000308 <sd_deselect>
+    return true;
+ 8000550:	e001      	b.n	8000556 <sd_read_block+0x3e>
+        sd_deselect();
+ 8000552:	f7ff fed9 	bl	8000308 <sd_deselect>
+}
+ 8000556:	4630      	mov	r0, r6
+ 8000558:	bd70      	pop	{r4, r5, r6, pc}
+        sd_deselect();
+ 800055a:	f7ff fed5 	bl	8000308 <sd_deselect>
+        return false;
+ 800055e:	2600      	movs	r6, #0
+ 8000560:	e7f9      	b.n	8000556 <sd_read_block+0x3e>
+        sd_deselect();
+ 8000562:	f7ff fed1 	bl	8000308 <sd_deselect>
+        return false;
+ 8000566:	e7f6      	b.n	8000556 <sd_read_block+0x3e>
+ 8000568:	20000204 	.word	0x20000204
+
+0800056c <sd_extract_bits>:
+
+static uint32_t sd_extract_bits(const uint8_t *data, uint8_t msb, uint8_t lsb)
+{
+ 800056c:	b500      	push	{lr}
+ 800056e:	4686      	mov	lr, r0
+    uint32_t value = 0u;
+ 8000570:	2000      	movs	r0, #0
+    uint8_t bit;
+
+    for (bit = msb; bit >= lsb; bit--) {
+ 8000572:	e001      	b.n	8000578 <sd_extract_bits+0xc>
+ 8000574:	3901      	subs	r1, #1
+ 8000576:	b2c9      	uxtb	r1, r1
+ 8000578:	4291      	cmp	r1, r2
+ 800057a:	d30f      	bcc.n	800059c <sd_extract_bits+0x30>
+        uint8_t byte_index = (uint8_t)(15u - (bit / 8u));
+ 800057c:	08cb      	lsrs	r3, r1, #3
+ 800057e:	f1c3 030f 	rsb	r3, r3, #15
+ 8000582:	b2db      	uxtb	r3, r3
+        uint8_t bit_index = (uint8_t)(bit & 7u);
+ 8000584:	f001 0c07 	and.w	ip, r1, #7
+        value <<= 1;
+        value |= (uint32_t)((data[byte_index] >> bit_index) & 1u);
+ 8000588:	f81e 3003 	ldrb.w	r3, [lr, r3]
+ 800058c:	fa43 f30c 	asr.w	r3, r3, ip
+ 8000590:	f003 0301 	and.w	r3, r3, #1
+ 8000594:	ea43 0040 	orr.w	r0, r3, r0, lsl #1
+        if (bit == lsb) {
+ 8000598:	4291      	cmp	r1, r2
+ 800059a:	d1eb      	bne.n	8000574 <sd_extract_bits+0x8>
+            break;
+        }
+    }
+
+    return value;
+}
+ 800059c:	f85d fb04 	ldr.w	pc, [sp], #4
+
+080005a0 <sd_print_bytes>:
+
+static void sd_print_bytes(const uint8_t *data, uint32_t length)
+{
+ 80005a0:	b570      	push	{r4, r5, r6, lr}
+ 80005a2:	4606      	mov	r6, r0
+ 80005a4:	460d      	mov	r5, r1
+    uint32_t i;
+
+    for (i = 0u; i < length; i++) {
+ 80005a6:	2400      	movs	r4, #0
+ 80005a8:	e003      	b.n	80005b2 <sd_print_bytes+0x12>
+        if (i != 0u) {
+            usart1_putc(' ');
+        }
+        usart1_put_hex8(data[i]);
+ 80005aa:	5d30      	ldrb	r0, [r6, r4]
+ 80005ac:	f7ff fdbc 	bl	8000128 <usart1_put_hex8>
+    for (i = 0u; i < length; i++) {
+ 80005b0:	3401      	adds	r4, #1
+ 80005b2:	42ac      	cmp	r4, r5
+ 80005b4:	d205      	bcs.n	80005c2 <sd_print_bytes+0x22>
+        if (i != 0u) {
+ 80005b6:	2c00      	cmp	r4, #0
+ 80005b8:	d0f7      	beq.n	80005aa <sd_print_bytes+0xa>
+            usart1_putc(' ');
+ 80005ba:	2020      	movs	r0, #32
+ 80005bc:	f7ff fda0 	bl	8000100 <usart1_putc>
+ 80005c0:	e7f3      	b.n	80005aa <sd_print_bytes+0xa>
+    }
+    usart1_puts("\r\n");
+ 80005c2:	4802      	ldr	r0, [pc, #8]	@ (80005cc <sd_print_bytes+0x2c>)
+ 80005c4:	f7ff fda6 	bl	8000114 <usart1_puts>
+}
+ 80005c8:	bd70      	pop	{r4, r5, r6, pc}
+ 80005ca:	bf00      	nop
+ 80005cc:	080019c0 	.word	0x080019c0
+
+080005d0 <sector_has_string>:
+
+static bool sector_has_string(const uint8_t *sector, uint32_t offset, const char *text, uint32_t length)
+{
+    uint32_t i;
+
+    for (i = 0u; i < length; i++) {
+ 80005d0:	f04f 0c00 	mov.w	ip, #0
+ 80005d4:	459c      	cmp	ip, r3
+ 80005d6:	d20f      	bcs.n	80005f8 <sector_has_string+0x28>
+{
+ 80005d8:	b510      	push	{r4, lr}
+        if (sector[offset + i] != (uint8_t)text[i]) {
+ 80005da:	eb0c 0401 	add.w	r4, ip, r1
+ 80005de:	5d04      	ldrb	r4, [r0, r4]
+ 80005e0:	f812 e00c 	ldrb.w	lr, [r2, ip]
+ 80005e4:	4574      	cmp	r4, lr
+ 80005e6:	d105      	bne.n	80005f4 <sector_has_string+0x24>
+    for (i = 0u; i < length; i++) {
+ 80005e8:	f10c 0c01 	add.w	ip, ip, #1
+ 80005ec:	459c      	cmp	ip, r3
+ 80005ee:	d3f4      	bcc.n	80005da <sector_has_string+0xa>
+            return false;
+        }
+    }
+
+    return true;
+ 80005f0:	2001      	movs	r0, #1
+}
+ 80005f2:	bd10      	pop	{r4, pc}
+            return false;
+ 80005f4:	2000      	movs	r0, #0
+ 80005f6:	e7fc      	b.n	80005f2 <sector_has_string+0x22>
+    return true;
+ 80005f8:	2001      	movs	r0, #1
+}
+ 80005fa:	4770      	bx	lr
+
+080005fc <read_le16>:
+
+static uint16_t read_le16(const uint8_t *p)
+{
+    return (uint16_t)p[0] | ((uint16_t)p[1] << 8);
+ 80005fc:	7803      	ldrb	r3, [r0, #0]
+ 80005fe:	7840      	ldrb	r0, [r0, #1]
+}
+ 8000600:	ea43 2000 	orr.w	r0, r3, r0, lsl #8
+ 8000604:	4770      	bx	lr
+
+08000606 <read_le32>:
+
+static uint32_t read_le32(const uint8_t *p)
+{
+    return (uint32_t)p[0] |
+ 8000606:	7803      	ldrb	r3, [r0, #0]
+           ((uint32_t)p[1] << 8) |
+ 8000608:	7842      	ldrb	r2, [r0, #1]
+    return (uint32_t)p[0] |
+ 800060a:	ea43 2302 	orr.w	r3, r3, r2, lsl #8
+           ((uint32_t)p[2] << 16) |
+ 800060e:	7882      	ldrb	r2, [r0, #2]
+           ((uint32_t)p[1] << 8) |
+ 8000610:	ea43 4302 	orr.w	r3, r3, r2, lsl #16
+           ((uint32_t)p[3] << 24);
+ 8000614:	78c0      	ldrb	r0, [r0, #3]
+}
+ 8000616:	ea43 6000 	orr.w	r0, r3, r0, lsl #24
+ 800061a:	4770      	bx	lr
+
+0800061c <read_le64>:
+
+static uint64_t read_le64(const uint8_t *p)
+{
+ 800061c:	b538      	push	{r3, r4, r5, lr}
+ 800061e:	4605      	mov	r5, r0
+    return (uint64_t)read_le32(p) | ((uint64_t)read_le32(p + 4) << 32);
+ 8000620:	f7ff fff1 	bl	8000606 <read_le32>
+ 8000624:	4604      	mov	r4, r0
+ 8000626:	1d28      	adds	r0, r5, #4
+ 8000628:	f7ff ffed 	bl	8000606 <read_le32>
+ 800062c:	4601      	mov	r1, r0
+}
+ 800062e:	4620      	mov	r0, r4
+ 8000630:	bd38      	pop	{r3, r4, r5, pc}
+	...
+
+08000634 <sd_is_exfat_boot_sector>:
+
+static bool sd_is_exfat_boot_sector(const uint8_t *sector)
+{
+ 8000634:	b508      	push	{r3, lr}
+    return sector_has_string(sector, 3u, "EXFAT   ", 8u);
+ 8000636:	2308      	movs	r3, #8
+ 8000638:	4a02      	ldr	r2, [pc, #8]	@ (8000644 <sd_is_exfat_boot_sector+0x10>)
+ 800063a:	2103      	movs	r1, #3
+ 800063c:	f7ff ffc8 	bl	80005d0 <sector_has_string>
+}
+ 8000640:	bd08      	pop	{r3, pc}
+ 8000642:	bf00      	nop
+ 8000644:	080019c4 	.word	0x080019c4
+
+08000648 <sd_is_fat32_boot_sector>:
+
+static bool sd_is_fat32_boot_sector(const uint8_t *sector)
+{
+ 8000648:	b508      	push	{r3, lr}
+    return sector_has_string(sector, 82u, "FAT32   ", 8u);
+ 800064a:	2308      	movs	r3, #8
+ 800064c:	4a02      	ldr	r2, [pc, #8]	@ (8000658 <sd_is_fat32_boot_sector+0x10>)
+ 800064e:	2152      	movs	r1, #82	@ 0x52
+ 8000650:	f7ff ffbe 	bl	80005d0 <sector_has_string>
+}
+ 8000654:	bd08      	pop	{r3, pc}
+ 8000656:	bf00      	nop
+ 8000658:	080019d0 	.word	0x080019d0
+
+0800065c <sd_is_fat12_or_fat16_boot_sector>:
+
+static bool sd_is_fat12_or_fat16_boot_sector(const uint8_t *sector)
+{
+ 800065c:	b510      	push	{r4, lr}
+ 800065e:	4604      	mov	r4, r0
+    return sector_has_string(sector, 54u, "FAT12   ", 8u) ||
+ 8000660:	2308      	movs	r3, #8
+ 8000662:	4a08      	ldr	r2, [pc, #32]	@ (8000684 <sd_is_fat12_or_fat16_boot_sector+0x28>)
+ 8000664:	2136      	movs	r1, #54	@ 0x36
+ 8000666:	f7ff ffb3 	bl	80005d0 <sector_has_string>
+ 800066a:	b940      	cbnz	r0, 800067e <sd_is_fat12_or_fat16_boot_sector+0x22>
+           sector_has_string(sector, 54u, "FAT16   ", 8u);
+ 800066c:	2308      	movs	r3, #8
+ 800066e:	4a06      	ldr	r2, [pc, #24]	@ (8000688 <sd_is_fat12_or_fat16_boot_sector+0x2c>)
+ 8000670:	2136      	movs	r1, #54	@ 0x36
+ 8000672:	4620      	mov	r0, r4
+ 8000674:	f7ff ffac 	bl	80005d0 <sector_has_string>
+    return sector_has_string(sector, 54u, "FAT12   ", 8u) ||
+ 8000678:	b110      	cbz	r0, 8000680 <sd_is_fat12_or_fat16_boot_sector+0x24>
+ 800067a:	2001      	movs	r0, #1
+ 800067c:	e000      	b.n	8000680 <sd_is_fat12_or_fat16_boot_sector+0x24>
+ 800067e:	2001      	movs	r0, #1
+}
+ 8000680:	bd10      	pop	{r4, pc}
+ 8000682:	bf00      	nop
+ 8000684:	080019dc 	.word	0x080019dc
+ 8000688:	080019e8 	.word	0x080019e8
+
+0800068c <usart1_put_dec_u64>:
+
+static void usart1_put_dec_u64(uint64_t value)
+{
+ 800068c:	b530      	push	{r4, r5, lr}
+ 800068e:	b087      	sub	sp, #28
+    char buffer[20];
+    uint32_t i = 0u;
+
+    if (value == 0u) {
+ 8000690:	ea50 0301 	orrs.w	r3, r0, r1
+ 8000694:	d002      	beq.n	800069c <usart1_put_dec_u64+0x10>
+ 8000696:	4602      	mov	r2, r0
+    uint32_t i = 0u;
+ 8000698:	2400      	movs	r4, #0
+ 800069a:	e01f      	b.n	80006dc <usart1_put_dec_u64+0x50>
+        usart1_putc('0');
+ 800069c:	2030      	movs	r0, #48	@ 0x30
+ 800069e:	f7ff fd2f 	bl	8000100 <usart1_putc>
+        return;
+ 80006a2:	e055      	b.n	8000750 <usart1_put_dec_u64+0xc4>
+    }
+
+    while (value != 0u) {
+        buffer[i++] = (char)('0' + (value % 10u));
+ 80006a4:	2001      	movs	r0, #1
+ 80006a6:	e01f      	b.n	80006e8 <usart1_put_dec_u64+0x5c>
+        value /= 10u;
+ 80006a8:	4418      	add	r0, r3
+ 80006aa:	4c2a      	ldr	r4, [pc, #168]	@ (8000754 <usart1_put_dec_u64+0xc8>)
+ 80006ac:	fba4 3500 	umull	r3, r5, r4, r0
+ 80006b0:	f025 0303 	bic.w	r3, r5, #3
+ 80006b4:	eb03 0395 	add.w	r3, r3, r5, lsr #2
+ 80006b8:	1ac0      	subs	r0, r0, r3
+ 80006ba:	1a10      	subs	r0, r2, r0
+ 80006bc:	f161 0100 	sbc.w	r1, r1, #0
+ 80006c0:	f04f 33cc 	mov.w	r3, #3435973836	@ 0xcccccccc
+ 80006c4:	fb00 f303 	mul.w	r3, r0, r3
+ 80006c8:	fb04 3301 	mla	r3, r4, r1, r3
+ 80006cc:	fba0 0404 	umull	r0, r4, r0, r4
+ 80006d0:	4423      	add	r3, r4
+ 80006d2:	0840      	lsrs	r0, r0, #1
+ 80006d4:	ea40 72c3 	orr.w	r2, r0, r3, lsl #31
+ 80006d8:	0859      	lsrs	r1, r3, #1
+        buffer[i++] = (char)('0' + (value % 10u));
+ 80006da:	4664      	mov	r4, ip
+    while (value != 0u) {
+ 80006dc:	ea52 0301 	orrs.w	r3, r2, r1
+ 80006e0:	d034      	beq.n	800074c <usart1_put_dec_u64+0xc0>
+        buffer[i++] = (char)('0' + (value % 10u));
+ 80006e2:	2000      	movs	r0, #0
+ 80006e4:	1853      	adds	r3, r2, r1
+ 80006e6:	d2dd      	bcs.n	80006a4 <usart1_put_dec_u64+0x18>
+ 80006e8:	4403      	add	r3, r0
+ 80006ea:	4d1a      	ldr	r5, [pc, #104]	@ (8000754 <usart1_put_dec_u64+0xc8>)
+ 80006ec:	fba5 0c03 	umull	r0, ip, r5, r3
+ 80006f0:	f02c 0003 	bic.w	r0, ip, #3
+ 80006f4:	eb00 009c 	add.w	r0, r0, ip, lsr #2
+ 80006f8:	1a1b      	subs	r3, r3, r0
+ 80006fa:	1ad3      	subs	r3, r2, r3
+ 80006fc:	f161 0c00 	sbc.w	ip, r1, #0
+ 8000700:	f04f 30cc 	mov.w	r0, #3435973836	@ 0xcccccccc
+ 8000704:	fb03 f000 	mul.w	r0, r3, r0
+ 8000708:	fb05 000c 	mla	r0, r5, ip, r0
+ 800070c:	fba3 3505 	umull	r3, r5, r3, r5
+ 8000710:	4428      	add	r0, r5
+ 8000712:	085b      	lsrs	r3, r3, #1
+ 8000714:	ea43 73c0 	orr.w	r3, r3, r0, lsl #31
+ 8000718:	eb03 0383 	add.w	r3, r3, r3, lsl #2
+ 800071c:	eba2 0343 	sub.w	r3, r2, r3, lsl #1
+ 8000720:	f104 0c01 	add.w	ip, r4, #1
+ 8000724:	3330      	adds	r3, #48	@ 0x30
+ 8000726:	f104 0018 	add.w	r0, r4, #24
+ 800072a:	eb0d 0400 	add.w	r4, sp, r0
+ 800072e:	f804 3c14 	strb.w	r3, [r4, #-20]
+        value /= 10u;
+ 8000732:	2300      	movs	r3, #0
+ 8000734:	1850      	adds	r0, r2, r1
+ 8000736:	d3b7      	bcc.n	80006a8 <usart1_put_dec_u64+0x1c>
+ 8000738:	2301      	movs	r3, #1
+ 800073a:	e7b5      	b.n	80006a8 <usart1_put_dec_u64+0x1c>
+    }
+
+    while (i > 0u) {
+        usart1_putc(buffer[--i]);
+ 800073c:	3c01      	subs	r4, #1
+ 800073e:	f104 0318 	add.w	r3, r4, #24
+ 8000742:	446b      	add	r3, sp
+ 8000744:	f813 0c14 	ldrb.w	r0, [r3, #-20]
+ 8000748:	f7ff fcda 	bl	8000100 <usart1_putc>
+    while (i > 0u) {
+ 800074c:	2c00      	cmp	r4, #0
+ 800074e:	d1f5      	bne.n	800073c <usart1_put_dec_u64+0xb0>
+    }
+}
+ 8000750:	b007      	add	sp, #28
+ 8000752:	bd30      	pop	{r4, r5, pc}
+ 8000754:	cccccccd 	.word	0xcccccccd
+
+08000758 <usart1_put_escaped_byte>:
+
+static void usart1_put_escaped_byte(uint8_t value)
+{
+ 8000758:	b510      	push	{r4, lr}
+ 800075a:	4604      	mov	r4, r0
+    if (value >= 32u && value <= 126u) {
+ 800075c:	f1a0 0320 	sub.w	r3, r0, #32
+ 8000760:	b2db      	uxtb	r3, r3
+ 8000762:	2b5e      	cmp	r3, #94	@ 0x5e
+ 8000764:	d90a      	bls.n	800077c <usart1_put_escaped_byte+0x24>
+        usart1_putc((char)value);
+        return;
+    }
+
+    if (value == '\n') {
+ 8000766:	280a      	cmp	r0, #10
+ 8000768:	d00b      	beq.n	8000782 <usart1_put_escaped_byte+0x2a>
+        usart1_puts("\\n");
+        return;
+    }
+
+    if (value == '\r') {
+ 800076a:	280d      	cmp	r0, #13
+ 800076c:	d00d      	beq.n	800078a <usart1_put_escaped_byte+0x32>
+        usart1_puts("\\r");
+        return;
+    }
+
+    usart1_puts("\\x");
+ 800076e:	4809      	ldr	r0, [pc, #36]	@ (8000794 <usart1_put_escaped_byte+0x3c>)
+ 8000770:	f7ff fcd0 	bl	8000114 <usart1_puts>
+    usart1_put_hex8(value);
+ 8000774:	4620      	mov	r0, r4
+ 8000776:	f7ff fcd7 	bl	8000128 <usart1_put_hex8>
+}
+ 800077a:	bd10      	pop	{r4, pc}
+        usart1_putc((char)value);
+ 800077c:	f7ff fcc0 	bl	8000100 <usart1_putc>
+        return;
+ 8000780:	e7fb      	b.n	800077a <usart1_put_escaped_byte+0x22>
+        usart1_puts("\\n");
+ 8000782:	4805      	ldr	r0, [pc, #20]	@ (8000798 <usart1_put_escaped_byte+0x40>)
+ 8000784:	f7ff fcc6 	bl	8000114 <usart1_puts>
+        return;
+ 8000788:	e7f7      	b.n	800077a <usart1_put_escaped_byte+0x22>
+        usart1_puts("\\r");
+ 800078a:	4804      	ldr	r0, [pc, #16]	@ (800079c <usart1_put_escaped_byte+0x44>)
+ 800078c:	f7ff fcc2 	bl	8000114 <usart1_puts>
+        return;
+ 8000790:	e7f3      	b.n	800077a <usart1_put_escaped_byte+0x22>
+ 8000792:	bf00      	nop
+ 8000794:	080019fc 	.word	0x080019fc
+ 8000798:	080019f4 	.word	0x080019f4
+ 800079c:	080019f8 	.word	0x080019f8
+
+080007a0 <sd_print_sector_prefix>:
+
+static void sd_print_sector_prefix(const uint8_t *sector)
+{
+ 80007a0:	b570      	push	{r4, r5, r6, lr}
+ 80007a2:	4606      	mov	r6, r0
+    uint32_t offset;
+    uint32_t i;
+
+    for (offset = 0u; offset < 32u; offset += 16u) {
+ 80007a4:	2500      	movs	r5, #0
+ 80007a6:	e010      	b.n	80007ca <sd_print_sector_prefix+0x2a>
+        usart1_puts("sd: sector0 ");
+        usart1_put_hex16((uint16_t)offset);
+        usart1_puts(": ");
+        for (i = 0u; i < 16u; i++) {
+            if (i != 0u) {
+                usart1_putc(' ');
+ 80007a8:	2020      	movs	r0, #32
+ 80007aa:	f7ff fca9 	bl	8000100 <usart1_putc>
+            }
+            usart1_put_hex8(sector[offset + i]);
+ 80007ae:	192b      	adds	r3, r5, r4
+ 80007b0:	5cf0      	ldrb	r0, [r6, r3]
+ 80007b2:	f7ff fcb9 	bl	8000128 <usart1_put_hex8>
+        for (i = 0u; i < 16u; i++) {
+ 80007b6:	3401      	adds	r4, #1
+ 80007b8:	2c0f      	cmp	r4, #15
+ 80007ba:	d802      	bhi.n	80007c2 <sd_print_sector_prefix+0x22>
+            if (i != 0u) {
+ 80007bc:	2c00      	cmp	r4, #0
+ 80007be:	d0f6      	beq.n	80007ae <sd_print_sector_prefix+0xe>
+ 80007c0:	e7f2      	b.n	80007a8 <sd_print_sector_prefix+0x8>
+        }
+        usart1_puts("\r\n");
+ 80007c2:	4809      	ldr	r0, [pc, #36]	@ (80007e8 <sd_print_sector_prefix+0x48>)
+ 80007c4:	f7ff fca6 	bl	8000114 <usart1_puts>
+    for (offset = 0u; offset < 32u; offset += 16u) {
+ 80007c8:	3510      	adds	r5, #16
+ 80007ca:	2d1f      	cmp	r5, #31
+ 80007cc:	d80a      	bhi.n	80007e4 <sd_print_sector_prefix+0x44>
+        usart1_puts("sd: sector0 ");
+ 80007ce:	4807      	ldr	r0, [pc, #28]	@ (80007ec <sd_print_sector_prefix+0x4c>)
+ 80007d0:	f7ff fca0 	bl	8000114 <usart1_puts>
+        usart1_put_hex16((uint16_t)offset);
+ 80007d4:	b2a8      	uxth	r0, r5
+ 80007d6:	f7ff fcb7 	bl	8000148 <usart1_put_hex16>
+        usart1_puts(": ");
+ 80007da:	4805      	ldr	r0, [pc, #20]	@ (80007f0 <sd_print_sector_prefix+0x50>)
+ 80007dc:	f7ff fc9a 	bl	8000114 <usart1_puts>
+        for (i = 0u; i < 16u; i++) {
+ 80007e0:	2400      	movs	r4, #0
+ 80007e2:	e7e9      	b.n	80007b8 <sd_print_sector_prefix+0x18>
+    }
+}
+ 80007e4:	bd70      	pop	{r4, r5, r6, pc}
+ 80007e6:	bf00      	nop
+ 80007e8:	080019c0 	.word	0x080019c0
+ 80007ec:	08001a00 	.word	0x08001a00
+ 80007f0:	08001a10 	.word	0x08001a10
+
+080007f4 <sd_partition_type_is_fat_like>:
+
+static bool sd_partition_type_is_fat_like(uint8_t type)
+{
+    switch (type) {
+ 80007f4:	280e      	cmp	r0, #14
+ 80007f6:	d806      	bhi.n	8000806 <sd_partition_type_is_fat_like+0x12>
+ 80007f8:	f645 03d2 	movw	r3, #22738	@ 0x58d2
+ 80007fc:	fa23 f000 	lsr.w	r0, r3, r0
+ 8000800:	f000 0001 	and.w	r0, r0, #1
+ 8000804:	4770      	bx	lr
+    case 0x0Cu:
+    case 0x0Eu:
+    case 0x07u:
+        return true;
+    default:
+        return false;
+ 8000806:	2000      	movs	r0, #0
+    }
+}
+ 8000808:	4770      	bx	lr
+
+0800080a <sd_parse_partition_entry>:
+
+static void sd_parse_partition_entry(const uint8_t *entry, sd_partition_t *part)
+{
+ 800080a:	b538      	push	{r3, r4, r5, lr}
+ 800080c:	4605      	mov	r5, r0
+ 800080e:	460c      	mov	r4, r1
+    part->boot = entry[0];
+ 8000810:	7803      	ldrb	r3, [r0, #0]
+ 8000812:	700b      	strb	r3, [r1, #0]
+    part->type = entry[4];
+ 8000814:	7903      	ldrb	r3, [r0, #4]
+ 8000816:	704b      	strb	r3, [r1, #1]
+    part->start_lba = read_le32(entry + 8);
+ 8000818:	3008      	adds	r0, #8
+ 800081a:	f7ff fef4 	bl	8000606 <read_le32>
+ 800081e:	6060      	str	r0, [r4, #4]
+    part->sector_count = read_le32(entry + 12);
+ 8000820:	f105 000c 	add.w	r0, r5, #12
+ 8000824:	f7ff feef 	bl	8000606 <read_le32>
+ 8000828:	60a0      	str	r0, [r4, #8]
+}
+ 800082a:	bd38      	pop	{r3, r4, r5, pc}
+
+0800082c <sd_print_partition_entry>:
+
+static void sd_print_partition_entry(uint32_t index, const sd_partition_t *part)
+{
+ 800082c:	b538      	push	{r3, r4, r5, lr}
+ 800082e:	4605      	mov	r5, r0
+ 8000830:	460c      	mov	r4, r1
+
+    usart1_puts("sd: part");
+ 8000832:	4811      	ldr	r0, [pc, #68]	@ (8000878 <sd_print_partition_entry+0x4c>)
+ 8000834:	f7ff fc6e 	bl	8000114 <usart1_puts>
+    usart1_put_dec_u32(index);
+ 8000838:	4628      	mov	r0, r5
+ 800083a:	f7ff fc97 	bl	800016c <usart1_put_dec_u32>
+    usart1_puts(" boot=0x");
+ 800083e:	480f      	ldr	r0, [pc, #60]	@ (800087c <sd_print_partition_entry+0x50>)
+ 8000840:	f7ff fc68 	bl	8000114 <usart1_puts>
+    usart1_put_hex8(part->boot);
+ 8000844:	7820      	ldrb	r0, [r4, #0]
+ 8000846:	f7ff fc6f 	bl	8000128 <usart1_put_hex8>
+    usart1_puts(" type=0x");
+ 800084a:	480d      	ldr	r0, [pc, #52]	@ (8000880 <sd_print_partition_entry+0x54>)
+ 800084c:	f7ff fc62 	bl	8000114 <usart1_puts>
+    usart1_put_hex8(part->type);
+ 8000850:	7860      	ldrb	r0, [r4, #1]
+ 8000852:	f7ff fc69 	bl	8000128 <usart1_put_hex8>
+    usart1_puts(" start_lba=");
+ 8000856:	480b      	ldr	r0, [pc, #44]	@ (8000884 <sd_print_partition_entry+0x58>)
+ 8000858:	f7ff fc5c 	bl	8000114 <usart1_puts>
+    usart1_put_dec_u32(part->start_lba);
+ 800085c:	6860      	ldr	r0, [r4, #4]
+ 800085e:	f7ff fc85 	bl	800016c <usart1_put_dec_u32>
+    usart1_puts(" sectors=");
+ 8000862:	4809      	ldr	r0, [pc, #36]	@ (8000888 <sd_print_partition_entry+0x5c>)
+ 8000864:	f7ff fc56 	bl	8000114 <usart1_puts>
+    usart1_put_dec_u32(part->sector_count);
+ 8000868:	68a0      	ldr	r0, [r4, #8]
+ 800086a:	f7ff fc7f 	bl	800016c <usart1_put_dec_u32>
+    usart1_puts("\r\n");
+ 800086e:	4807      	ldr	r0, [pc, #28]	@ (800088c <sd_print_partition_entry+0x60>)
+ 8000870:	f7ff fc50 	bl	8000114 <usart1_puts>
+}
+ 8000874:	bd38      	pop	{r3, r4, r5, pc}
+ 8000876:	bf00      	nop
+ 8000878:	08001a14 	.word	0x08001a14
+ 800087c:	08001a20 	.word	0x08001a20
+ 8000880:	08001a2c 	.word	0x08001a2c
+ 8000884:	08001a38 	.word	0x08001a38
+ 8000888:	08001a44 	.word	0x08001a44
+ 800088c:	080019c0 	.word	0x080019c0
+
+08000890 <sd_find_primary_volume>:
+
+static bool sd_find_primary_volume(const uint8_t *mbr, uint32_t *start_lba_out, uint8_t *type_out)
+{
+ 8000890:	e92d 4ff0 	stmdb	sp!, {r4, r5, r6, r7, r8, r9, sl, fp, lr}
+ 8000894:	b089      	sub	sp, #36	@ 0x24
+ 8000896:	4693      	mov	fp, r2
+    bool found_any = false;
+    bool found_fat = false;
+    uint32_t first_start_lba = 0u;
+    uint8_t first_type = 0u;
+    uint32_t fat_start_lba = 0u;
+    uint8_t fat_type = 0u;
+ 8000898:	2600      	movs	r6, #0
+    uint32_t fat_start_lba = 0u;
+ 800089a:	9603      	str	r6, [sp, #12]
+    uint8_t first_type = 0u;
+ 800089c:	9602      	str	r6, [sp, #8]
+    uint32_t first_start_lba = 0u;
+ 800089e:	9601      	str	r6, [sp, #4]
+    bool found_fat = false;
+ 80008a0:	46b2      	mov	sl, r6
+    bool found_any = false;
+ 80008a2:	46b1      	mov	r9, r6
+
+    for (i = 0u; i < 4u; i++) {
+ 80008a4:	4634      	mov	r4, r6
+ 80008a6:	9100      	str	r1, [sp, #0]
+ 80008a8:	4680      	mov	r8, r0
+ 80008aa:	e000      	b.n	80008ae <sd_find_primary_volume+0x1e>
+ 80008ac:	3401      	adds	r4, #1
+ 80008ae:	2c03      	cmp	r4, #3
+ 80008b0:	d828      	bhi.n	8000904 <sd_find_primary_volume+0x74>
+        sd_partition_t part;
+
+        sd_parse_partition_entry(mbr + 446u + (i * 16u), &part);
+ 80008b2:	0120      	lsls	r0, r4, #4
+ 80008b4:	f500 70df 	add.w	r0, r0, #446	@ 0x1be
+ 80008b8:	ad05      	add	r5, sp, #20
+ 80008ba:	4629      	mov	r1, r5
+ 80008bc:	4440      	add	r0, r8
+ 80008be:	f7ff ffa4 	bl	800080a <sd_parse_partition_entry>
+        sd_print_partition_entry(i, &part);
+ 80008c2:	4629      	mov	r1, r5
+ 80008c4:	4620      	mov	r0, r4
+ 80008c6:	f7ff ffb1 	bl	800082c <sd_print_partition_entry>
+
+        if (part.type != 0u && part.start_lba != 0u && part.sector_count != 0u) {
+ 80008ca:	f89d 5015 	ldrb.w	r5, [sp, #21]
+ 80008ce:	2d00      	cmp	r5, #0
+ 80008d0:	d0ec      	beq.n	80008ac <sd_find_primary_volume+0x1c>
+ 80008d2:	9f06      	ldr	r7, [sp, #24]
+ 80008d4:	2f00      	cmp	r7, #0
+ 80008d6:	d0e9      	beq.n	80008ac <sd_find_primary_volume+0x1c>
+ 80008d8:	9b07      	ldr	r3, [sp, #28]
+ 80008da:	2b00      	cmp	r3, #0
+ 80008dc:	d0e6      	beq.n	80008ac <sd_find_primary_volume+0x1c>
+            if (!found_any) {
+ 80008de:	f1b9 0f00 	cmp.w	r9, #0
+ 80008e2:	d103      	bne.n	80008ec <sd_find_primary_volume+0x5c>
+                found_any = true;
+                first_start_lba = part.start_lba;
+                first_type = part.type;
+ 80008e4:	9502      	str	r5, [sp, #8]
+                first_start_lba = part.start_lba;
+ 80008e6:	9701      	str	r7, [sp, #4]
+                found_any = true;
+ 80008e8:	f04f 0901 	mov.w	r9, #1
+            }
+            if (!found_fat && sd_partition_type_is_fat_like(part.type)) {
+ 80008ec:	f1ba 0f00 	cmp.w	sl, #0
+ 80008f0:	d1dc      	bne.n	80008ac <sd_find_primary_volume+0x1c>
+ 80008f2:	4628      	mov	r0, r5
+ 80008f4:	f7ff ff7e 	bl	80007f4 <sd_partition_type_is_fat_like>
+ 80008f8:	2800      	cmp	r0, #0
+ 80008fa:	d0d7      	beq.n	80008ac <sd_find_primary_volume+0x1c>
+                found_fat = true;
+                fat_start_lba = part.start_lba;
+                fat_type = part.type;
+ 80008fc:	462e      	mov	r6, r5
+                fat_start_lba = part.start_lba;
+ 80008fe:	9703      	str	r7, [sp, #12]
+                found_fat = true;
+ 8000900:	4682      	mov	sl, r0
+ 8000902:	e7d3      	b.n	80008ac <sd_find_primary_volume+0x1c>
+            }
+        }
+    }
+
+    if (found_fat) {
+ 8000904:	f8dd 8000 	ldr.w	r8, [sp]
+ 8000908:	f1ba 0f00 	cmp.w	sl, #0
+ 800090c:	d106      	bne.n	800091c <sd_find_primary_volume+0x8c>
+        *start_lba_out = fat_start_lba;
+        *type_out = fat_type;
+        return true;
+    }
+
+    if (found_any) {
+ 800090e:	f1b9 0f00 	cmp.w	r9, #0
+ 8000912:	d10a      	bne.n	800092a <sd_find_primary_volume+0x9a>
+        *type_out = first_type;
+        return true;
+    }
+
+    return false;
+}
+ 8000914:	4648      	mov	r0, r9
+ 8000916:	b009      	add	sp, #36	@ 0x24
+ 8000918:	e8bd 8ff0 	ldmia.w	sp!, {r4, r5, r6, r7, r8, r9, sl, fp, pc}
+        *start_lba_out = fat_start_lba;
+ 800091c:	9b03      	ldr	r3, [sp, #12]
+ 800091e:	f8c8 3000 	str.w	r3, [r8]
+        *type_out = fat_type;
+ 8000922:	f88b 6000 	strb.w	r6, [fp]
+        return true;
+ 8000926:	46d1      	mov	r9, sl
+ 8000928:	e7f4      	b.n	8000914 <sd_find_primary_volume+0x84>
+        *start_lba_out = first_start_lba;
+ 800092a:	9b01      	ldr	r3, [sp, #4]
+ 800092c:	f8c8 3000 	str.w	r3, [r8]
+        *type_out = first_type;
+ 8000930:	9b02      	ldr	r3, [sp, #8]
+ 8000932:	f88b 3000 	strb.w	r3, [fp]
+        return true;
+ 8000936:	e7ed      	b.n	8000914 <sd_find_primary_volume+0x84>
+
+08000938 <sd_print_generic_bpb>:
+
+static void sd_print_generic_bpb(const uint8_t *sector)
+{
+ 8000938:	e92d 4ff0 	stmdb	sp!, {r4, r5, r6, r7, r8, r9, sl, fp, lr}
+ 800093c:	b085      	sub	sp, #20
+ 800093e:	4604      	mov	r4, r0
+    uint16_t bytes_per_sector = read_le16(sector + 11u);
+ 8000940:	300b      	adds	r0, #11
+ 8000942:	f7ff fe5b 	bl	80005fc <read_le16>
+ 8000946:	4607      	mov	r7, r0
+    uint8_t sectors_per_cluster = sector[13];
+ 8000948:	f894 b00d 	ldrb.w	fp, [r4, #13]
+    uint16_t reserved = read_le16(sector + 14u);
+ 800094c:	f104 000e 	add.w	r0, r4, #14
+ 8000950:	f7ff fe54 	bl	80005fc <read_le16>
+ 8000954:	9001      	str	r0, [sp, #4]
+    uint8_t fats = sector[16];
+ 8000956:	f894 a010 	ldrb.w	sl, [r4, #16]
+    uint16_t root_entries = read_le16(sector + 17u);
+ 800095a:	f104 0011 	add.w	r0, r4, #17
+ 800095e:	f7ff fe4d 	bl	80005fc <read_le16>
+ 8000962:	9002      	str	r0, [sp, #8]
+    uint32_t total_sectors = read_le16(sector + 19u);
+ 8000964:	f104 0013 	add.w	r0, r4, #19
+ 8000968:	f7ff fe48 	bl	80005fc <read_le16>
+ 800096c:	4606      	mov	r6, r0
+ 800096e:	4681      	mov	r9, r0
+    uint32_t fat_size = read_le16(sector + 22u);
+ 8000970:	f104 0016 	add.w	r0, r4, #22
+ 8000974:	f7ff fe42 	bl	80005fc <read_le16>
+ 8000978:	4605      	mov	r5, r0
+ 800097a:	4680      	mov	r8, r0
+    uint32_t hidden_sectors = read_le32(sector + 28u);
+ 800097c:	f104 001c 	add.w	r0, r4, #28
+ 8000980:	f7ff fe41 	bl	8000606 <read_le32>
+ 8000984:	9003      	str	r0, [sp, #12]
+
+    if (total_sectors == 0u) {
+ 8000986:	b926      	cbnz	r6, 8000992 <sd_print_generic_bpb+0x5a>
+        total_sectors = read_le32(sector + 32u);
+ 8000988:	f104 0020 	add.w	r0, r4, #32
+ 800098c:	f7ff fe3b 	bl	8000606 <read_le32>
+ 8000990:	4681      	mov	r9, r0
+    }
+    if (fat_size == 0u) {
+ 8000992:	b925      	cbnz	r5, 800099e <sd_print_generic_bpb+0x66>
+        fat_size = read_le32(sector + 36u);
+ 8000994:	f104 0024 	add.w	r0, r4, #36	@ 0x24
+ 8000998:	f7ff fe35 	bl	8000606 <read_le32>
+ 800099c:	4680      	mov	r8, r0
+    }
+
+    usart1_puts("sd: BPB bytes_per_sector=");
+ 800099e:	481d      	ldr	r0, [pc, #116]	@ (8000a14 <sd_print_generic_bpb+0xdc>)
+ 80009a0:	f7ff fbb8 	bl	8000114 <usart1_puts>
+    usart1_put_dec_u32(bytes_per_sector);
+ 80009a4:	4638      	mov	r0, r7
+ 80009a6:	f7ff fbe1 	bl	800016c <usart1_put_dec_u32>
+    usart1_puts(" sectors_per_cluster=");
+ 80009aa:	481b      	ldr	r0, [pc, #108]	@ (8000a18 <sd_print_generic_bpb+0xe0>)
+ 80009ac:	f7ff fbb2 	bl	8000114 <usart1_puts>
+    usart1_put_dec_u32(sectors_per_cluster);
+ 80009b0:	4658      	mov	r0, fp
+ 80009b2:	f7ff fbdb 	bl	800016c <usart1_put_dec_u32>
+    usart1_puts(" reserved=");
+ 80009b6:	4819      	ldr	r0, [pc, #100]	@ (8000a1c <sd_print_generic_bpb+0xe4>)
+ 80009b8:	f7ff fbac 	bl	8000114 <usart1_puts>
+    usart1_put_dec_u32(reserved);
+ 80009bc:	9801      	ldr	r0, [sp, #4]
+ 80009be:	f7ff fbd5 	bl	800016c <usart1_put_dec_u32>
+    usart1_puts(" fats=");
+ 80009c2:	4817      	ldr	r0, [pc, #92]	@ (8000a20 <sd_print_generic_bpb+0xe8>)
+ 80009c4:	f7ff fba6 	bl	8000114 <usart1_puts>
+    usart1_put_dec_u32(fats);
+ 80009c8:	4650      	mov	r0, sl
+ 80009ca:	f7ff fbcf 	bl	800016c <usart1_put_dec_u32>
+    usart1_puts("\r\n");
+ 80009ce:	4c15      	ldr	r4, [pc, #84]	@ (8000a24 <sd_print_generic_bpb+0xec>)
+ 80009d0:	4620      	mov	r0, r4
+ 80009d2:	f7ff fb9f 	bl	8000114 <usart1_puts>
+
+    usart1_puts("sd: BPB root_entries=");
+ 80009d6:	4814      	ldr	r0, [pc, #80]	@ (8000a28 <sd_print_generic_bpb+0xf0>)
+ 80009d8:	f7ff fb9c 	bl	8000114 <usart1_puts>
+    usart1_put_dec_u32(root_entries);
+ 80009dc:	9802      	ldr	r0, [sp, #8]
+ 80009de:	f7ff fbc5 	bl	800016c <usart1_put_dec_u32>
+    usart1_puts(" hidden_sectors=");
+ 80009e2:	4812      	ldr	r0, [pc, #72]	@ (8000a2c <sd_print_generic_bpb+0xf4>)
+ 80009e4:	f7ff fb96 	bl	8000114 <usart1_puts>
+    usart1_put_dec_u32(hidden_sectors);
+ 80009e8:	9803      	ldr	r0, [sp, #12]
+ 80009ea:	f7ff fbbf 	bl	800016c <usart1_put_dec_u32>
+    usart1_puts(" total_sectors=");
+ 80009ee:	4810      	ldr	r0, [pc, #64]	@ (8000a30 <sd_print_generic_bpb+0xf8>)
+ 80009f0:	f7ff fb90 	bl	8000114 <usart1_puts>
+    usart1_put_dec_u32(total_sectors);
+ 80009f4:	4648      	mov	r0, r9
+ 80009f6:	f7ff fbb9 	bl	800016c <usart1_put_dec_u32>
+    usart1_puts(" fat_sectors=");
+ 80009fa:	480e      	ldr	r0, [pc, #56]	@ (8000a34 <sd_print_generic_bpb+0xfc>)
+ 80009fc:	f7ff fb8a 	bl	8000114 <usart1_puts>
+    usart1_put_dec_u32(fat_size);
+ 8000a00:	4640      	mov	r0, r8
+ 8000a02:	f7ff fbb3 	bl	800016c <usart1_put_dec_u32>
+    usart1_puts("\r\n");
+ 8000a06:	4620      	mov	r0, r4
+ 8000a08:	f7ff fb84 	bl	8000114 <usart1_puts>
+}
+ 8000a0c:	b005      	add	sp, #20
+ 8000a0e:	e8bd 8ff0 	ldmia.w	sp!, {r4, r5, r6, r7, r8, r9, sl, fp, pc}
+ 8000a12:	bf00      	nop
+ 8000a14:	08001a50 	.word	0x08001a50
+ 8000a18:	08001a6c 	.word	0x08001a6c
+ 8000a1c:	08001a84 	.word	0x08001a84
+ 8000a20:	08001a90 	.word	0x08001a90
+ 8000a24:	080019c0 	.word	0x080019c0
+ 8000a28:	08001a98 	.word	0x08001a98
+ 8000a2c:	08001ab0 	.word	0x08001ab0
+ 8000a30:	08001ac4 	.word	0x08001ac4
+ 8000a34:	08001ad4 	.word	0x08001ad4
+
+08000a38 <sd_print_boot_sector_summary>:
+
+static void sd_print_boot_sector_summary(const uint8_t *sector, uint32_t lba)
+{
+ 8000a38:	e92d 4ff0 	stmdb	sp!, {r4, r5, r6, r7, r8, r9, sl, fp, lr}
+ 8000a3c:	b085      	sub	sp, #20
+ 8000a3e:	4604      	mov	r4, r0
+ 8000a40:	460d      	mov	r5, r1
+    usart1_puts("sd: boot sector lba=");
+ 8000a42:	486f      	ldr	r0, [pc, #444]	@ (8000c00 <sd_print_boot_sector_summary+0x1c8>)
+ 8000a44:	f7ff fb66 	bl	8000114 <usart1_puts>
+    usart1_put_dec_u32(lba);
+ 8000a48:	4628      	mov	r0, r5
+ 8000a4a:	f7ff fb8f 	bl	800016c <usart1_put_dec_u32>
+    usart1_puts(" signature=0x");
+ 8000a4e:	486d      	ldr	r0, [pc, #436]	@ (8000c04 <sd_print_boot_sector_summary+0x1cc>)
+ 8000a50:	f7ff fb60 	bl	8000114 <usart1_puts>
+    usart1_put_hex8(sector[511]);
+ 8000a54:	f894 01ff 	ldrb.w	r0, [r4, #511]	@ 0x1ff
+ 8000a58:	f7ff fb66 	bl	8000128 <usart1_put_hex8>
+    usart1_put_hex8(sector[510]);
+ 8000a5c:	f894 01fe 	ldrb.w	r0, [r4, #510]	@ 0x1fe
+ 8000a60:	f7ff fb62 	bl	8000128 <usart1_put_hex8>
+    usart1_puts("\r\n");
+ 8000a64:	4868      	ldr	r0, [pc, #416]	@ (8000c08 <sd_print_boot_sector_summary+0x1d0>)
+ 8000a66:	f7ff fb55 	bl	8000114 <usart1_puts>
+
+    if (sd_is_exfat_boot_sector(sector)) {
+ 8000a6a:	4620      	mov	r0, r4
+ 8000a6c:	f7ff fde2 	bl	8000634 <sd_is_exfat_boot_sector>
+ 8000a70:	b988      	cbnz	r0, 8000a96 <sd_print_boot_sector_summary+0x5e>
+        usart1_put_dec_u32(cluster_count);
+        usart1_puts("\r\n");
+        return;
+    }
+
+    if (sd_is_fat32_boot_sector(sector)) {
+ 8000a72:	4620      	mov	r0, r4
+ 8000a74:	f7ff fde8 	bl	8000648 <sd_is_fat32_boot_sector>
+ 8000a78:	2800      	cmp	r0, #0
+ 8000a7a:	f040 8086 	bne.w	8000b8a <sd_print_boot_sector_summary+0x152>
+        usart1_put_dec_u32(read_le16(sector + 50u));
+        usart1_puts("\r\n");
+        return;
+    }
+
+    if (sd_is_fat12_or_fat16_boot_sector(sector)) {
+ 8000a7e:	4620      	mov	r0, r4
+ 8000a80:	f7ff fdec 	bl	800065c <sd_is_fat12_or_fat16_boot_sector>
+ 8000a84:	2800      	cmp	r0, #0
+ 8000a86:	f040 80a5 	bne.w	8000bd4 <sd_print_boot_sector_summary+0x19c>
+        }
+        sd_print_generic_bpb(sector);
+        return;
+    }
+
+    usart1_puts("sd: filesystem type not recognized from boot sector\r\n");
+ 8000a8a:	4860      	ldr	r0, [pc, #384]	@ (8000c0c <sd_print_boot_sector_summary+0x1d4>)
+ 8000a8c:	f7ff fb42 	bl	8000114 <usart1_puts>
+}
+ 8000a90:	b005      	add	sp, #20
+ 8000a92:	e8bd 8ff0 	ldmia.w	sp!, {r4, r5, r6, r7, r8, r9, sl, fp, pc}
+        uint64_t partition_offset = read_le64(sector + 64u);
+ 8000a96:	f104 0040 	add.w	r0, r4, #64	@ 0x40
+ 8000a9a:	f7ff fdbf 	bl	800061c <read_le64>
+ 8000a9e:	4681      	mov	r9, r0
+ 8000aa0:	4688      	mov	r8, r1
+        uint64_t volume_length = read_le64(sector + 72u);
+ 8000aa2:	f104 0048 	add.w	r0, r4, #72	@ 0x48
+ 8000aa6:	f7ff fdb9 	bl	800061c <read_le64>
+ 8000aaa:	4607      	mov	r7, r0
+ 8000aac:	460e      	mov	r6, r1
+        uint32_t fat_offset = read_le32(sector + 80u);
+ 8000aae:	f104 0050 	add.w	r0, r4, #80	@ 0x50
+ 8000ab2:	f7ff fda8 	bl	8000606 <read_le32>
+ 8000ab6:	9000      	str	r0, [sp, #0]
+        uint32_t fat_length = read_le32(sector + 84u);
+ 8000ab8:	f104 0054 	add.w	r0, r4, #84	@ 0x54
+ 8000abc:	f7ff fda3 	bl	8000606 <read_le32>
+ 8000ac0:	9001      	str	r0, [sp, #4]
+        uint32_t cluster_heap_offset = read_le32(sector + 88u);
+ 8000ac2:	f104 0058 	add.w	r0, r4, #88	@ 0x58
+ 8000ac6:	f7ff fd9e 	bl	8000606 <read_le32>
+ 8000aca:	9002      	str	r0, [sp, #8]
+        uint32_t cluster_count = read_le32(sector + 92u);
+ 8000acc:	f104 005c 	add.w	r0, r4, #92	@ 0x5c
+ 8000ad0:	f7ff fd99 	bl	8000606 <read_le32>
+ 8000ad4:	9003      	str	r0, [sp, #12]
+        uint32_t root_cluster = read_le32(sector + 96u);
+ 8000ad6:	f104 0060 	add.w	r0, r4, #96	@ 0x60
+ 8000ada:	f7ff fd94 	bl	8000606 <read_le32>
+ 8000ade:	4682      	mov	sl, r0
+        uint8_t sector_shift = sector[108];
+ 8000ae0:	f894 b06c 	ldrb.w	fp, [r4, #108]	@ 0x6c
+        uint8_t cluster_shift = sector[109];
+ 8000ae4:	f894 306d 	ldrb.w	r3, [r4, #109]	@ 0x6d
+        uint32_t bytes_per_sector = 1u << sector_shift;
+ 8000ae8:	2501      	movs	r5, #1
+ 8000aea:	fa05 fb0b 	lsl.w	fp, r5, fp
+        uint32_t sectors_per_cluster = 1u << cluster_shift;
+ 8000aee:	409d      	lsls	r5, r3
+        usart1_puts("sd: filesystem=exFAT\r\n");
+ 8000af0:	4847      	ldr	r0, [pc, #284]	@ (8000c10 <sd_print_boot_sector_summary+0x1d8>)
+ 8000af2:	f7ff fb0f 	bl	8000114 <usart1_puts>
+        usart1_puts("sd: exFAT bytes_per_sector=");
+ 8000af6:	4847      	ldr	r0, [pc, #284]	@ (8000c14 <sd_print_boot_sector_summary+0x1dc>)
+ 8000af8:	f7ff fb0c 	bl	8000114 <usart1_puts>
+        usart1_put_dec_u32(bytes_per_sector);
+ 8000afc:	4658      	mov	r0, fp
+ 8000afe:	f7ff fb35 	bl	800016c <usart1_put_dec_u32>
+        usart1_puts(" sectors_per_cluster=");
+ 8000b02:	4845      	ldr	r0, [pc, #276]	@ (8000c18 <sd_print_boot_sector_summary+0x1e0>)
+ 8000b04:	f7ff fb06 	bl	8000114 <usart1_puts>
+        usart1_put_dec_u32(sectors_per_cluster);
+ 8000b08:	4628      	mov	r0, r5
+ 8000b0a:	f7ff fb2f 	bl	800016c <usart1_put_dec_u32>
+        usart1_puts(" fats=");
+ 8000b0e:	4843      	ldr	r0, [pc, #268]	@ (8000c1c <sd_print_boot_sector_summary+0x1e4>)
+ 8000b10:	f7ff fb00 	bl	8000114 <usart1_puts>
+        usart1_put_dec_u32(sector[110]);
+ 8000b14:	f894 006e 	ldrb.w	r0, [r4, #110]	@ 0x6e
+ 8000b18:	f7ff fb28 	bl	800016c <usart1_put_dec_u32>
+        usart1_puts(" root_cluster=");
+ 8000b1c:	4840      	ldr	r0, [pc, #256]	@ (8000c20 <sd_print_boot_sector_summary+0x1e8>)
+ 8000b1e:	f7ff faf9 	bl	8000114 <usart1_puts>
+        usart1_put_dec_u32(root_cluster);
+ 8000b22:	4650      	mov	r0, sl
+ 8000b24:	f7ff fb22 	bl	800016c <usart1_put_dec_u32>
+        usart1_puts("\r\n");
+ 8000b28:	4c37      	ldr	r4, [pc, #220]	@ (8000c08 <sd_print_boot_sector_summary+0x1d0>)
+ 8000b2a:	4620      	mov	r0, r4
+ 8000b2c:	f7ff faf2 	bl	8000114 <usart1_puts>
+        usart1_puts("sd: exFAT partition_offset=");
+ 8000b30:	483c      	ldr	r0, [pc, #240]	@ (8000c24 <sd_print_boot_sector_summary+0x1ec>)
+ 8000b32:	f7ff faef 	bl	8000114 <usart1_puts>
+        usart1_put_dec_u64(partition_offset);
+ 8000b36:	4648      	mov	r0, r9
+ 8000b38:	4641      	mov	r1, r8
+ 8000b3a:	f7ff fda7 	bl	800068c <usart1_put_dec_u64>
+        usart1_puts(" volume_length=");
+ 8000b3e:	483a      	ldr	r0, [pc, #232]	@ (8000c28 <sd_print_boot_sector_summary+0x1f0>)
+ 8000b40:	f7ff fae8 	bl	8000114 <usart1_puts>
+        usart1_put_dec_u64(volume_length);
+ 8000b44:	4638      	mov	r0, r7
+ 8000b46:	4631      	mov	r1, r6
+ 8000b48:	f7ff fda0 	bl	800068c <usart1_put_dec_u64>
+        usart1_puts("\r\n");
+ 8000b4c:	4620      	mov	r0, r4
+ 8000b4e:	f7ff fae1 	bl	8000114 <usart1_puts>
+        usart1_puts("sd: exFAT fat_offset=");
+ 8000b52:	4836      	ldr	r0, [pc, #216]	@ (8000c2c <sd_print_boot_sector_summary+0x1f4>)
+ 8000b54:	f7ff fade 	bl	8000114 <usart1_puts>
+        usart1_put_dec_u32(fat_offset);
+ 8000b58:	9800      	ldr	r0, [sp, #0]
+ 8000b5a:	f7ff fb07 	bl	800016c <usart1_put_dec_u32>
+        usart1_puts(" fat_length=");
+ 8000b5e:	4834      	ldr	r0, [pc, #208]	@ (8000c30 <sd_print_boot_sector_summary+0x1f8>)
+ 8000b60:	f7ff fad8 	bl	8000114 <usart1_puts>
+        usart1_put_dec_u32(fat_length);
+ 8000b64:	9801      	ldr	r0, [sp, #4]
+ 8000b66:	f7ff fb01 	bl	800016c <usart1_put_dec_u32>
+        usart1_puts(" heap_offset=");
+ 8000b6a:	4832      	ldr	r0, [pc, #200]	@ (8000c34 <sd_print_boot_sector_summary+0x1fc>)
+ 8000b6c:	f7ff fad2 	bl	8000114 <usart1_puts>
+        usart1_put_dec_u32(cluster_heap_offset);
+ 8000b70:	9802      	ldr	r0, [sp, #8]
+ 8000b72:	f7ff fafb 	bl	800016c <usart1_put_dec_u32>
+        usart1_puts(" cluster_count=");
+ 8000b76:	4830      	ldr	r0, [pc, #192]	@ (8000c38 <sd_print_boot_sector_summary+0x200>)
+ 8000b78:	f7ff facc 	bl	8000114 <usart1_puts>
+        usart1_put_dec_u32(cluster_count);
+ 8000b7c:	9803      	ldr	r0, [sp, #12]
+ 8000b7e:	f7ff faf5 	bl	800016c <usart1_put_dec_u32>
+        usart1_puts("\r\n");
+ 8000b82:	4620      	mov	r0, r4
+ 8000b84:	f7ff fac6 	bl	8000114 <usart1_puts>
+        return;
+ 8000b88:	e782      	b.n	8000a90 <sd_print_boot_sector_summary+0x58>
+        usart1_puts("sd: filesystem=FAT32\r\n");
+ 8000b8a:	482c      	ldr	r0, [pc, #176]	@ (8000c3c <sd_print_boot_sector_summary+0x204>)
+ 8000b8c:	f7ff fac2 	bl	8000114 <usart1_puts>
+        sd_print_generic_bpb(sector);
+ 8000b90:	4620      	mov	r0, r4
+ 8000b92:	f7ff fed1 	bl	8000938 <sd_print_generic_bpb>
+        usart1_puts("sd: FAT32 root_cluster=");
+ 8000b96:	482a      	ldr	r0, [pc, #168]	@ (8000c40 <sd_print_boot_sector_summary+0x208>)
+ 8000b98:	f7ff fabc 	bl	8000114 <usart1_puts>
+        usart1_put_dec_u32(read_le32(sector + 44u));
+ 8000b9c:	f104 002c 	add.w	r0, r4, #44	@ 0x2c
+ 8000ba0:	f7ff fd31 	bl	8000606 <read_le32>
+ 8000ba4:	f7ff fae2 	bl	800016c <usart1_put_dec_u32>
+        usart1_puts(" fsinfo=");
+ 8000ba8:	4826      	ldr	r0, [pc, #152]	@ (8000c44 <sd_print_boot_sector_summary+0x20c>)
+ 8000baa:	f7ff fab3 	bl	8000114 <usart1_puts>
+        usart1_put_dec_u32(read_le16(sector + 48u));
+ 8000bae:	f104 0030 	add.w	r0, r4, #48	@ 0x30
+ 8000bb2:	f7ff fd23 	bl	80005fc <read_le16>
+ 8000bb6:	f7ff fad9 	bl	800016c <usart1_put_dec_u32>
+        usart1_puts(" backup_boot=");
+ 8000bba:	4823      	ldr	r0, [pc, #140]	@ (8000c48 <sd_print_boot_sector_summary+0x210>)
+ 8000bbc:	f7ff faaa 	bl	8000114 <usart1_puts>
+        usart1_put_dec_u32(read_le16(sector + 50u));
+ 8000bc0:	f104 0032 	add.w	r0, r4, #50	@ 0x32
+ 8000bc4:	f7ff fd1a 	bl	80005fc <read_le16>
+ 8000bc8:	f7ff fad0 	bl	800016c <usart1_put_dec_u32>
+        usart1_puts("\r\n");
+ 8000bcc:	480e      	ldr	r0, [pc, #56]	@ (8000c08 <sd_print_boot_sector_summary+0x1d0>)
+ 8000bce:	f7ff faa1 	bl	8000114 <usart1_puts>
+        return;
+ 8000bd2:	e75d      	b.n	8000a90 <sd_print_boot_sector_summary+0x58>
+        usart1_puts("sd: filesystem=");
+ 8000bd4:	481d      	ldr	r0, [pc, #116]	@ (8000c4c <sd_print_boot_sector_summary+0x214>)
+ 8000bd6:	f7ff fa9d 	bl	8000114 <usart1_puts>
+        if (sector_has_string(sector, 54u, "FAT12   ", 8u)) {
+ 8000bda:	2308      	movs	r3, #8
+ 8000bdc:	4a1c      	ldr	r2, [pc, #112]	@ (8000c50 <sd_print_boot_sector_summary+0x218>)
+ 8000bde:	2136      	movs	r1, #54	@ 0x36
+ 8000be0:	4620      	mov	r0, r4
+ 8000be2:	f7ff fcf5 	bl	80005d0 <sector_has_string>
+ 8000be6:	b130      	cbz	r0, 8000bf6 <sd_print_boot_sector_summary+0x1be>
+            usart1_puts("FAT12\r\n");
+ 8000be8:	481a      	ldr	r0, [pc, #104]	@ (8000c54 <sd_print_boot_sector_summary+0x21c>)
+ 8000bea:	f7ff fa93 	bl	8000114 <usart1_puts>
+        sd_print_generic_bpb(sector);
+ 8000bee:	4620      	mov	r0, r4
+ 8000bf0:	f7ff fea2 	bl	8000938 <sd_print_generic_bpb>
+        return;
+ 8000bf4:	e74c      	b.n	8000a90 <sd_print_boot_sector_summary+0x58>
+            usart1_puts("FAT16\r\n");
+ 8000bf6:	4818      	ldr	r0, [pc, #96]	@ (8000c58 <sd_print_boot_sector_summary+0x220>)
+ 8000bf8:	f7ff fa8c 	bl	8000114 <usart1_puts>
+ 8000bfc:	e7f7      	b.n	8000bee <sd_print_boot_sector_summary+0x1b6>
+ 8000bfe:	bf00      	nop
+ 8000c00:	08001ae4 	.word	0x08001ae4
+ 8000c04:	08001afc 	.word	0x08001afc
+ 8000c08:	080019c0 	.word	0x080019c0
+ 8000c0c:	08001c30 	.word	0x08001c30
+ 8000c10:	08001b0c 	.word	0x08001b0c
+ 8000c14:	08001b24 	.word	0x08001b24
+ 8000c18:	08001a6c 	.word	0x08001a6c
+ 8000c1c:	08001a90 	.word	0x08001a90
+ 8000c20:	08001b40 	.word	0x08001b40
+ 8000c24:	08001b50 	.word	0x08001b50
+ 8000c28:	08001b6c 	.word	0x08001b6c
+ 8000c2c:	08001b7c 	.word	0x08001b7c
+ 8000c30:	08001b94 	.word	0x08001b94
+ 8000c34:	08001ba4 	.word	0x08001ba4
+ 8000c38:	08001bb4 	.word	0x08001bb4
+ 8000c3c:	08001bc4 	.word	0x08001bc4
+ 8000c40:	08001bdc 	.word	0x08001bdc
+ 8000c44:	08001bf4 	.word	0x08001bf4
+ 8000c48:	08001c00 	.word	0x08001c00
+ 8000c4c:	08001c10 	.word	0x08001c10
+ 8000c50:	080019dc 	.word	0x080019dc
+ 8000c54:	08001c20 	.word	0x08001c20
+ 8000c58:	08001c28 	.word	0x08001c28
+
+08000c5c <sd_print_data_prefix>:
+
+static void sd_print_data_prefix(const char *label, const uint8_t *data, uint32_t count)
+{
+ 8000c5c:	b570      	push	{r4, r5, r6, lr}
+ 8000c5e:	460e      	mov	r6, r1
+ 8000c60:	4615      	mov	r5, r2
+    uint32_t i;
+
+    usart1_puts(label);
+ 8000c62:	f7ff fa57 	bl	8000114 <usart1_puts>
+    for (i = 0u; i < count; i++) {
+ 8000c66:	2400      	movs	r4, #0
+ 8000c68:	e003      	b.n	8000c72 <sd_print_data_prefix+0x16>
+        if (i != 0u) {
+            usart1_putc(' ');
+        }
+        usart1_put_hex8(data[i]);
+ 8000c6a:	5d30      	ldrb	r0, [r6, r4]
+ 8000c6c:	f7ff fa5c 	bl	8000128 <usart1_put_hex8>
+    for (i = 0u; i < count; i++) {
+ 8000c70:	3401      	adds	r4, #1
+ 8000c72:	42ac      	cmp	r4, r5
+ 8000c74:	d205      	bcs.n	8000c82 <sd_print_data_prefix+0x26>
+        if (i != 0u) {
+ 8000c76:	2c00      	cmp	r4, #0
+ 8000c78:	d0f7      	beq.n	8000c6a <sd_print_data_prefix+0xe>
+            usart1_putc(' ');
+ 8000c7a:	2020      	movs	r0, #32
+ 8000c7c:	f7ff fa40 	bl	8000100 <usart1_putc>
+ 8000c80:	e7f3      	b.n	8000c6a <sd_print_data_prefix+0xe>
+    }
+    usart1_puts("\r\n");
+ 8000c82:	4802      	ldr	r0, [pc, #8]	@ (8000c8c <sd_print_data_prefix+0x30>)
+ 8000c84:	f7ff fa46 	bl	8000114 <usart1_puts>
+}
+ 8000c88:	bd70      	pop	{r4, r5, r6, pc}
+ 8000c8a:	bf00      	nop
+ 8000c8c:	080019c0 	.word	0x080019c0
+
+08000c90 <sd_probe_fat32_aux>:
+
+static bool sd_probe_fat32_aux(uint32_t volume_lba, const uint8_t *boot_sector)
+{
+ 8000c90:	e92d 43f8 	stmdb	sp!, {r3, r4, r5, r6, r7, r8, r9, lr}
+ 8000c94:	4606      	mov	r6, r0
+ 8000c96:	460d      	mov	r5, r1
+    uint16_t fsinfo_sector = read_le16(boot_sector + 48u);
+ 8000c98:	f101 0030 	add.w	r0, r1, #48	@ 0x30
+ 8000c9c:	f7ff fcae 	bl	80005fc <read_le16>
+ 8000ca0:	4604      	mov	r4, r0
+    uint16_t reserved = read_le16(boot_sector + 14u);
+ 8000ca2:	f105 000e 	add.w	r0, r5, #14
+ 8000ca6:	f7ff fca9 	bl	80005fc <read_le16>
+    uint32_t fat_lba = volume_lba + (uint32_t)reserved;
+ 8000caa:	1985      	adds	r5, r0, r6
+
+    if (fsinfo_sector != 0u && fsinfo_sector != 0xFFFFu) {
+ 8000cac:	1e63      	subs	r3, r4, #1
+ 8000cae:	b29b      	uxth	r3, r3
+ 8000cb0:	f64f 72fd 	movw	r2, #65533	@ 0xfffd
+ 8000cb4:	4293      	cmp	r3, r2
+ 8000cb6:	d853      	bhi.n	8000d60 <sd_probe_fat32_aux+0xd0>
+        uint32_t fsinfo_lba = volume_lba + (uint32_t)fsinfo_sector;
+ 8000cb8:	4434      	add	r4, r6
+        uint32_t struct_sig;
+        uint32_t free_count;
+        uint32_t next_free;
+        uint32_t trail_sig;
+
+        usart1_puts("sd: reading FSInfo sector at lba ");
+ 8000cba:	4839      	ldr	r0, [pc, #228]	@ (8000da0 <sd_probe_fat32_aux+0x110>)
+ 8000cbc:	f7ff fa2a 	bl	8000114 <usart1_puts>
+        usart1_put_dec_u32(fsinfo_lba);
+ 8000cc0:	4620      	mov	r0, r4
+ 8000cc2:	f7ff fa53 	bl	800016c <usart1_put_dec_u32>
+        usart1_puts("\r\n");
+ 8000cc6:	4837      	ldr	r0, [pc, #220]	@ (8000da4 <sd_probe_fat32_aux+0x114>)
+ 8000cc8:	f7ff fa24 	bl	8000114 <usart1_puts>
+
+        if (!sd_read_block(fsinfo_lba, g_sector0)) {
+ 8000ccc:	4936      	ldr	r1, [pc, #216]	@ (8000da8 <sd_probe_fat32_aux+0x118>)
+ 8000cce:	4620      	mov	r0, r4
+ 8000cd0:	f7ff fc22 	bl	8000518 <sd_read_block>
+ 8000cd4:	4604      	mov	r4, r0
+ 8000cd6:	2800      	cmp	r0, #0
+ 8000cd8:	d051      	beq.n	8000d7e <sd_probe_fat32_aux+0xee>
+            return false;
+        }
+
+        lead_sig = read_le32(g_sector0 + 0u);
+ 8000cda:	4c33      	ldr	r4, [pc, #204]	@ (8000da8 <sd_probe_fat32_aux+0x118>)
+ 8000cdc:	4620      	mov	r0, r4
+ 8000cde:	f7ff fc92 	bl	8000606 <read_le32>
+ 8000ce2:	4681      	mov	r9, r0
+        struct_sig = read_le32(g_sector0 + 484u);
+ 8000ce4:	f504 70f2 	add.w	r0, r4, #484	@ 0x1e4
+ 8000ce8:	f7ff fc8d 	bl	8000606 <read_le32>
+ 8000cec:	4680      	mov	r8, r0
+        free_count = read_le32(g_sector0 + 488u);
+ 8000cee:	f504 70f4 	add.w	r0, r4, #488	@ 0x1e8
+ 8000cf2:	f7ff fc88 	bl	8000606 <read_le32>
+ 8000cf6:	4607      	mov	r7, r0
+        next_free = read_le32(g_sector0 + 492u);
+ 8000cf8:	f504 70f6 	add.w	r0, r4, #492	@ 0x1ec
+ 8000cfc:	f7ff fc83 	bl	8000606 <read_le32>
+ 8000d00:	4606      	mov	r6, r0
+        trail_sig = read_le32(g_sector0 + 508u);
+ 8000d02:	f504 70fe 	add.w	r0, r4, #508	@ 0x1fc
+ 8000d06:	f7ff fc7e 	bl	8000606 <read_le32>
+ 8000d0a:	4604      	mov	r4, r0
+
+        usart1_puts("sd: FSInfo lead=0x");
+ 8000d0c:	4827      	ldr	r0, [pc, #156]	@ (8000dac <sd_probe_fat32_aux+0x11c>)
+ 8000d0e:	f7ff fa01 	bl	8000114 <usart1_puts>
+        usart1_put_hex32(lead_sig);
+ 8000d12:	4648      	mov	r0, r9
+ 8000d14:	f7ff fa21 	bl	800015a <usart1_put_hex32>
+        usart1_puts(" struct=0x");
+ 8000d18:	4825      	ldr	r0, [pc, #148]	@ (8000db0 <sd_probe_fat32_aux+0x120>)
+ 8000d1a:	f7ff f9fb 	bl	8000114 <usart1_puts>
+        usart1_put_hex32(struct_sig);
+ 8000d1e:	4640      	mov	r0, r8
+ 8000d20:	f7ff fa1b 	bl	800015a <usart1_put_hex32>
+        usart1_puts(" trail=0x");
+ 8000d24:	4823      	ldr	r0, [pc, #140]	@ (8000db4 <sd_probe_fat32_aux+0x124>)
+ 8000d26:	f7ff f9f5 	bl	8000114 <usart1_puts>
+        usart1_put_hex32(trail_sig);
+ 8000d2a:	4620      	mov	r0, r4
+ 8000d2c:	f7ff fa15 	bl	800015a <usart1_put_hex32>
+        usart1_puts("\r\n");
+ 8000d30:	481c      	ldr	r0, [pc, #112]	@ (8000da4 <sd_probe_fat32_aux+0x114>)
+ 8000d32:	f7ff f9ef 	bl	8000114 <usart1_puts>
+        usart1_puts("sd: FSInfo free_clusters=");
+ 8000d36:	4820      	ldr	r0, [pc, #128]	@ (8000db8 <sd_probe_fat32_aux+0x128>)
+ 8000d38:	f7ff f9ec 	bl	8000114 <usart1_puts>
+        if (free_count == 0xFFFFFFFFu) {
+ 8000d3c:	f1b7 3fff 	cmp.w	r7, #4294967295	@ 0xffffffff
+ 8000d40:	d020      	beq.n	8000d84 <sd_probe_fat32_aux+0xf4>
+            usart1_puts("unknown");
+        } else {
+            usart1_put_dec_u32(free_count);
+ 8000d42:	4638      	mov	r0, r7
+ 8000d44:	f7ff fa12 	bl	800016c <usart1_put_dec_u32>
+        }
+        usart1_puts(" next_free=");
+ 8000d48:	481c      	ldr	r0, [pc, #112]	@ (8000dbc <sd_probe_fat32_aux+0x12c>)
+ 8000d4a:	f7ff f9e3 	bl	8000114 <usart1_puts>
+        if (next_free == 0xFFFFFFFFu) {
+ 8000d4e:	f1b6 3fff 	cmp.w	r6, #4294967295	@ 0xffffffff
+ 8000d52:	d01b      	beq.n	8000d8c <sd_probe_fat32_aux+0xfc>
+            usart1_puts("unknown");
+        } else {
+            usart1_put_dec_u32(next_free);
+ 8000d54:	4630      	mov	r0, r6
+ 8000d56:	f7ff fa09 	bl	800016c <usart1_put_dec_u32>
+        }
+        usart1_puts("\r\n");
+ 8000d5a:	4812      	ldr	r0, [pc, #72]	@ (8000da4 <sd_probe_fat32_aux+0x114>)
+ 8000d5c:	f7ff f9da 	bl	8000114 <usart1_puts>
+    }
+
+    usart1_puts("sd: reading FAT sector at lba ");
+ 8000d60:	4817      	ldr	r0, [pc, #92]	@ (8000dc0 <sd_probe_fat32_aux+0x130>)
+ 8000d62:	f7ff f9d7 	bl	8000114 <usart1_puts>
+    usart1_put_dec_u32(fat_lba);
+ 8000d66:	4628      	mov	r0, r5
+ 8000d68:	f7ff fa00 	bl	800016c <usart1_put_dec_u32>
+    usart1_puts("\r\n");
+ 8000d6c:	480d      	ldr	r0, [pc, #52]	@ (8000da4 <sd_probe_fat32_aux+0x114>)
+ 8000d6e:	f7ff f9d1 	bl	8000114 <usart1_puts>
+    if (!sd_read_block(fat_lba, g_sector0)) {
+ 8000d72:	490d      	ldr	r1, [pc, #52]	@ (8000da8 <sd_probe_fat32_aux+0x118>)
+ 8000d74:	4628      	mov	r0, r5
+ 8000d76:	f7ff fbcf 	bl	8000518 <sd_read_block>
+ 8000d7a:	4604      	mov	r4, r0
+ 8000d7c:	b950      	cbnz	r0, 8000d94 <sd_probe_fat32_aux+0x104>
+        return false;
+    }
+    sd_print_data_prefix("sd: FAT[0] first16=", g_sector0, 16u);
+    return true;
+}
+ 8000d7e:	4620      	mov	r0, r4
+ 8000d80:	e8bd 83f8 	ldmia.w	sp!, {r3, r4, r5, r6, r7, r8, r9, pc}
+            usart1_puts("unknown");
+ 8000d84:	480f      	ldr	r0, [pc, #60]	@ (8000dc4 <sd_probe_fat32_aux+0x134>)
+ 8000d86:	f7ff f9c5 	bl	8000114 <usart1_puts>
+ 8000d8a:	e7dd      	b.n	8000d48 <sd_probe_fat32_aux+0xb8>
+            usart1_puts("unknown");
+ 8000d8c:	480d      	ldr	r0, [pc, #52]	@ (8000dc4 <sd_probe_fat32_aux+0x134>)
+ 8000d8e:	f7ff f9c1 	bl	8000114 <usart1_puts>
+ 8000d92:	e7e2      	b.n	8000d5a <sd_probe_fat32_aux+0xca>
+    sd_print_data_prefix("sd: FAT[0] first16=", g_sector0, 16u);
+ 8000d94:	2210      	movs	r2, #16
+ 8000d96:	4904      	ldr	r1, [pc, #16]	@ (8000da8 <sd_probe_fat32_aux+0x118>)
+ 8000d98:	480b      	ldr	r0, [pc, #44]	@ (8000dc8 <sd_probe_fat32_aux+0x138>)
+ 8000d9a:	f7ff ff5f 	bl	8000c5c <sd_print_data_prefix>
+    return true;
+ 8000d9e:	e7ee      	b.n	8000d7e <sd_probe_fat32_aux+0xee>
+ 8000da0:	08001c68 	.word	0x08001c68
+ 8000da4:	080019c0 	.word	0x080019c0
+ 8000da8:	20000004 	.word	0x20000004
+ 8000dac:	08001c8c 	.word	0x08001c8c
+ 8000db0:	08001ca0 	.word	0x08001ca0
+ 8000db4:	08001cac 	.word	0x08001cac
+ 8000db8:	08001cb8 	.word	0x08001cb8
+ 8000dbc:	08001cdc 	.word	0x08001cdc
+ 8000dc0:	08001ce8 	.word	0x08001ce8
+ 8000dc4:	08001cd4 	.word	0x08001cd4
+ 8000dc8:	08001d08 	.word	0x08001d08
+
+08000dcc <fat32_parse_volume>:
+
+static bool fat32_parse_volume(const uint8_t *boot_sector, uint32_t volume_lba, fat32_volume_t *volume)
+{
+ 8000dcc:	e92d 4ff0 	stmdb	sp!, {r4, r5, r6, r7, r8, r9, sl, fp, lr}
+ 8000dd0:	b083      	sub	sp, #12
+ 8000dd2:	4604      	mov	r4, r0
+ 8000dd4:	9101      	str	r1, [sp, #4]
+ 8000dd6:	4615      	mov	r5, r2
+    uint32_t total_sectors;
+    uint32_t data_sectors;
+
+    volume->bytes_per_sector = read_le16(boot_sector + 11u);
+ 8000dd8:	300b      	adds	r0, #11
+ 8000dda:	f7ff fc0f 	bl	80005fc <read_le16>
+ 8000dde:	4606      	mov	r6, r0
+ 8000de0:	80a8      	strh	r0, [r5, #4]
+    volume->sectors_per_cluster = boot_sector[13];
+ 8000de2:	f894 a00d 	ldrb.w	sl, [r4, #13]
+ 8000de6:	f885 a006 	strb.w	sl, [r5, #6]
+    volume->reserved_sectors = read_le16(boot_sector + 14u);
+ 8000dea:	f104 000e 	add.w	r0, r4, #14
+ 8000dee:	f7ff fc05 	bl	80005fc <read_le16>
+ 8000df2:	4680      	mov	r8, r0
+ 8000df4:	8128      	strh	r0, [r5, #8]
+    volume->fat_count = boot_sector[16];
+ 8000df6:	f894 b010 	ldrb.w	fp, [r4, #16]
+ 8000dfa:	f885 b00a 	strb.w	fp, [r5, #10]
+    volume->sectors_per_fat = read_le32(boot_sector + 36u);
+ 8000dfe:	f104 0024 	add.w	r0, r4, #36	@ 0x24
+ 8000e02:	f7ff fc00 	bl	8000606 <read_le32>
+ 8000e06:	4607      	mov	r7, r0
+ 8000e08:	60e8      	str	r0, [r5, #12]
+    volume->root_cluster = read_le32(boot_sector + 44u);
+ 8000e0a:	f104 002c 	add.w	r0, r4, #44	@ 0x2c
+ 8000e0e:	f7ff fbfa 	bl	8000606 <read_le32>
+ 8000e12:	4681      	mov	r9, r0
+ 8000e14:	6128      	str	r0, [r5, #16]
+    total_sectors = read_le32(boot_sector + 32u);
+ 8000e16:	f104 0020 	add.w	r0, r4, #32
+ 8000e1a:	f7ff fbf4 	bl	8000606 <read_le32>
+    if (total_sectors == 0u) {
+ 8000e1e:	4603      	mov	r3, r0
+ 8000e20:	b920      	cbnz	r0, 8000e2c <fat32_parse_volume+0x60>
+        total_sectors = read_le16(boot_sector + 19u);
+ 8000e22:	f104 0013 	add.w	r0, r4, #19
+ 8000e26:	f7ff fbe9 	bl	80005fc <read_le16>
+ 8000e2a:	4603      	mov	r3, r0
+    }
+
+    if (volume->bytes_per_sector != SD_SECTOR_SIZE ||
+ 8000e2c:	f5b6 7f00 	cmp.w	r6, #512	@ 0x200
+ 8000e30:	d11a      	bne.n	8000e68 <fat32_parse_volume+0x9c>
+ 8000e32:	f1ba 0f00 	cmp.w	sl, #0
+ 8000e36:	d01b      	beq.n	8000e70 <fat32_parse_volume+0xa4>
+        volume->sectors_per_cluster == 0u ||
+ 8000e38:	f1bb 0f00 	cmp.w	fp, #0
+ 8000e3c:	d01a      	beq.n	8000e74 <fat32_parse_volume+0xa8>
+        volume->fat_count == 0u ||
+ 8000e3e:	b1df      	cbz	r7, 8000e78 <fat32_parse_volume+0xac>
+        volume->sectors_per_fat == 0u ||
+ 8000e40:	f1b9 0f01 	cmp.w	r9, #1
+ 8000e44:	d91a      	bls.n	8000e7c <fat32_parse_volume+0xb0>
+        volume->root_cluster < 2u) {
+        return false;
+    }
+
+    volume->volume_lba = volume_lba;
+ 8000e46:	9a01      	ldr	r2, [sp, #4]
+ 8000e48:	602a      	str	r2, [r5, #0]
+    volume->total_sectors = total_sectors;
+ 8000e4a:	61eb      	str	r3, [r5, #28]
+    volume->fat_start_lba = volume_lba + (uint32_t)volume->reserved_sectors;
+ 8000e4c:	4442      	add	r2, r8
+ 8000e4e:	616a      	str	r2, [r5, #20]
+    volume->data_start_lba = volume->fat_start_lba +
+                             ((uint32_t)volume->fat_count * volume->sectors_per_fat);
+ 8000e50:	fb0b f707 	mul.w	r7, fp, r7
+    volume->data_start_lba = volume->fat_start_lba +
+ 8000e54:	443a      	add	r2, r7
+ 8000e56:	61aa      	str	r2, [r5, #24]
+    data_sectors = total_sectors -
+                   ((uint32_t)volume->reserved_sectors +
+ 8000e58:	44b8      	add	r8, r7
+    data_sectors = total_sectors -
+ 8000e5a:	eba3 0308 	sub.w	r3, r3, r8
+                    ((uint32_t)volume->fat_count * volume->sectors_per_fat));
+    volume->cluster_count = data_sectors / (uint32_t)volume->sectors_per_cluster;
+ 8000e5e:	fbb3 f3fa 	udiv	r3, r3, sl
+ 8000e62:	622b      	str	r3, [r5, #32]
+    return true;
+ 8000e64:	2001      	movs	r0, #1
+ 8000e66:	e000      	b.n	8000e6a <fat32_parse_volume+0x9e>
+        return false;
+ 8000e68:	2000      	movs	r0, #0
+}
+ 8000e6a:	b003      	add	sp, #12
+ 8000e6c:	e8bd 8ff0 	ldmia.w	sp!, {r4, r5, r6, r7, r8, r9, sl, fp, pc}
+        return false;
+ 8000e70:	2000      	movs	r0, #0
+ 8000e72:	e7fa      	b.n	8000e6a <fat32_parse_volume+0x9e>
+ 8000e74:	2000      	movs	r0, #0
+ 8000e76:	e7f8      	b.n	8000e6a <fat32_parse_volume+0x9e>
+ 8000e78:	2000      	movs	r0, #0
+ 8000e7a:	e7f6      	b.n	8000e6a <fat32_parse_volume+0x9e>
+ 8000e7c:	2000      	movs	r0, #0
+ 8000e7e:	e7f4      	b.n	8000e6a <fat32_parse_volume+0x9e>
+
+08000e80 <fat32_cluster_to_lba>:
+
+static uint32_t fat32_cluster_to_lba(const fat32_volume_t *volume, uint32_t cluster)
+{
+    return volume->data_start_lba +
+ 8000e80:	6983      	ldr	r3, [r0, #24]
+           ((cluster - 2u) * (uint32_t)volume->sectors_per_cluster);
+ 8000e82:	3902      	subs	r1, #2
+ 8000e84:	7980      	ldrb	r0, [r0, #6]
+}
+ 8000e86:	fb00 3001 	mla	r0, r0, r1, r3
+ 8000e8a:	4770      	bx	lr
+
+08000e8c <fat32_read_fat_entry>:
+
+static bool fat32_read_fat_entry(const fat32_volume_t *volume, uint32_t cluster, uint32_t *next_cluster_out)
+{
+ 8000e8c:	b570      	push	{r4, r5, r6, lr}
+ 8000e8e:	4614      	mov	r4, r2
+    uint32_t fat_offset = cluster * 4u;
+ 8000e90:	008b      	lsls	r3, r1, #2
+    uint32_t fat_sector_lba = volume->fat_start_lba + (fat_offset / SD_SECTOR_SIZE);
+ 8000e92:	6942      	ldr	r2, [r0, #20]
+ 8000e94:	f3c1 10d6 	ubfx	r0, r1, #7, #23
+    uint32_t fat_sector_offset = fat_offset % SD_SECTOR_SIZE;
+ 8000e98:	f3c3 0508 	ubfx	r5, r3, #0, #9
+
+    if (!sd_read_block(fat_sector_lba, g_sector0)) {
+ 8000e9c:	4907      	ldr	r1, [pc, #28]	@ (8000ebc <fat32_read_fat_entry+0x30>)
+ 8000e9e:	4410      	add	r0, r2
+ 8000ea0:	f7ff fb3a 	bl	8000518 <sd_read_block>
+ 8000ea4:	4606      	mov	r6, r0
+ 8000ea6:	b130      	cbz	r0, 8000eb6 <fat32_read_fat_entry+0x2a>
+        return false;
+    }
+
+    *next_cluster_out = read_le32(g_sector0 + fat_sector_offset) & 0x0FFFFFFFu;
+ 8000ea8:	4804      	ldr	r0, [pc, #16]	@ (8000ebc <fat32_read_fat_entry+0x30>)
+ 8000eaa:	4428      	add	r0, r5
+ 8000eac:	f7ff fbab 	bl	8000606 <read_le32>
+ 8000eb0:	f020 4070 	bic.w	r0, r0, #4026531840	@ 0xf0000000
+ 8000eb4:	6020      	str	r0, [r4, #0]
+    return true;
+}
+ 8000eb6:	4630      	mov	r0, r6
+ 8000eb8:	bd70      	pop	{r4, r5, r6, pc}
+ 8000eba:	bf00      	nop
+ 8000ebc:	20000004 	.word	0x20000004
+
+08000ec0 <fat32_cluster_is_eoc>:
+
+static bool fat32_cluster_is_eoc(uint32_t cluster)
+{
+    return cluster >= 0x0FFFFFF8u;
+}
+ 8000ec0:	4b02      	ldr	r3, [pc, #8]	@ (8000ecc <fat32_cluster_is_eoc+0xc>)
+ 8000ec2:	4298      	cmp	r0, r3
+ 8000ec4:	bf94      	ite	ls
+ 8000ec6:	2000      	movls	r0, #0
+ 8000ec8:	2001      	movhi	r0, #1
+ 8000eca:	4770      	bx	lr
+ 8000ecc:	0ffffff7 	.word	0x0ffffff7
+
+08000ed0 <fat32_format_short_name>:
+
+static void fat32_format_short_name(const uint8_t *raw_name, char *out, uint32_t out_size)
+{
+ 8000ed0:	b570      	push	{r4, r5, r6, lr}
+    uint32_t i;
+    uint32_t pos = 0u;
+    uint32_t base_len = 8u;
+ 8000ed2:	2308      	movs	r3, #8
+    uint32_t ext_len = 3u;
+
+    while (base_len > 0u && raw_name[base_len - 1u] == ' ') {
+ 8000ed4:	e000      	b.n	8000ed8 <fat32_format_short_name+0x8>
+        base_len--;
+ 8000ed6:	4623      	mov	r3, r4
+    while (base_len > 0u && raw_name[base_len - 1u] == ' ') {
+ 8000ed8:	b1eb      	cbz	r3, 8000f16 <fat32_format_short_name+0x46>
+ 8000eda:	1e5c      	subs	r4, r3, #1
+ 8000edc:	5d05      	ldrb	r5, [r0, r4]
+ 8000ede:	2d20      	cmp	r5, #32
+ 8000ee0:	d0f9      	beq.n	8000ed6 <fat32_format_short_name+0x6>
+ 8000ee2:	2503      	movs	r5, #3
+ 8000ee4:	e000      	b.n	8000ee8 <fat32_format_short_name+0x18>
+    }
+    while (ext_len > 0u && raw_name[8u + ext_len - 1u] == ' ') {
+        ext_len--;
+ 8000ee6:	3d01      	subs	r5, #1
+    while (ext_len > 0u && raw_name[8u + ext_len - 1u] == ' ') {
+ 8000ee8:	b11d      	cbz	r5, 8000ef2 <fat32_format_short_name+0x22>
+ 8000eea:	1944      	adds	r4, r0, r5
+ 8000eec:	79e4      	ldrb	r4, [r4, #7]
+ 8000eee:	2c20      	cmp	r4, #32
+ 8000ef0:	d0f9      	beq.n	8000ee6 <fat32_format_short_name+0x16>
+    }
+
+    if (out_size == 0u) {
+ 8000ef2:	b36a      	cbz	r2, 8000f50 <fat32_format_short_name+0x80>
+    uint32_t pos = 0u;
+ 8000ef4:	f04f 0c00 	mov.w	ip, #0
+        return;
+    }
+
+    for (i = 0u; i < base_len && pos + 1u < out_size; i++) {
+ 8000ef8:	46e6      	mov	lr, ip
+ 8000efa:	459e      	cmp	lr, r3
+ 8000efc:	d20d      	bcs.n	8000f1a <fat32_format_short_name+0x4a>
+ 8000efe:	f10c 0401 	add.w	r4, ip, #1
+ 8000f02:	4294      	cmp	r4, r2
+ 8000f04:	d209      	bcs.n	8000f1a <fat32_format_short_name+0x4a>
+        out[pos++] = (char)raw_name[i];
+ 8000f06:	f810 600e 	ldrb.w	r6, [r0, lr]
+ 8000f0a:	f801 600c 	strb.w	r6, [r1, ip]
+    for (i = 0u; i < base_len && pos + 1u < out_size; i++) {
+ 8000f0e:	f10e 0e01 	add.w	lr, lr, #1
+        out[pos++] = (char)raw_name[i];
+ 8000f12:	46a4      	mov	ip, r4
+ 8000f14:	e7f1      	b.n	8000efa <fat32_format_short_name+0x2a>
+ 8000f16:	2503      	movs	r5, #3
+ 8000f18:	e7e6      	b.n	8000ee8 <fat32_format_short_name+0x18>
+    }
+    if (ext_len > 0u && pos + 1u < out_size) {
+ 8000f1a:	b1b5      	cbz	r5, 8000f4a <fat32_format_short_name+0x7a>
+ 8000f1c:	f10c 0301 	add.w	r3, ip, #1
+ 8000f20:	4293      	cmp	r3, r2
+ 8000f22:	d212      	bcs.n	8000f4a <fat32_format_short_name+0x7a>
+        out[pos++] = '.';
+ 8000f24:	242e      	movs	r4, #46	@ 0x2e
+ 8000f26:	f801 400c 	strb.w	r4, [r1, ip]
+ 8000f2a:	469c      	mov	ip, r3
+        for (i = 0u; i < ext_len && pos + 1u < out_size; i++) {
+ 8000f2c:	2300      	movs	r3, #0
+ 8000f2e:	e006      	b.n	8000f3e <fat32_format_short_name+0x6e>
+            out[pos++] = (char)raw_name[8u + i];
+ 8000f30:	f103 0608 	add.w	r6, r3, #8
+ 8000f34:	5d86      	ldrb	r6, [r0, r6]
+ 8000f36:	f801 600c 	strb.w	r6, [r1, ip]
+        for (i = 0u; i < ext_len && pos + 1u < out_size; i++) {
+ 8000f3a:	3301      	adds	r3, #1
+            out[pos++] = (char)raw_name[8u + i];
+ 8000f3c:	46a4      	mov	ip, r4
+        for (i = 0u; i < ext_len && pos + 1u < out_size; i++) {
+ 8000f3e:	42ab      	cmp	r3, r5
+ 8000f40:	d203      	bcs.n	8000f4a <fat32_format_short_name+0x7a>
+ 8000f42:	f10c 0401 	add.w	r4, ip, #1
+ 8000f46:	4294      	cmp	r4, r2
+ 8000f48:	d3f2      	bcc.n	8000f30 <fat32_format_short_name+0x60>
+        }
+    }
+    out[pos] = '\0';
+ 8000f4a:	2300      	movs	r3, #0
+ 8000f4c:	f801 300c 	strb.w	r3, [r1, ip]
+}
+ 8000f50:	bd70      	pop	{r4, r5, r6, pc}
+	...
+
+08000f54 <fat32_print_dir_entry>:
+
+static void fat32_print_dir_entry(const fat32_dir_entry_t *entry)
+{
+ 8000f54:	b510      	push	{r4, lr}
+ 8000f56:	b084      	sub	sp, #16
+ 8000f58:	4604      	mov	r4, r0
+    char name[16];
+
+    fat32_format_short_name(entry->short_name, name, sizeof(name));
+ 8000f5a:	2210      	movs	r2, #16
+ 8000f5c:	4669      	mov	r1, sp
+ 8000f5e:	f7ff ffb7 	bl	8000ed0 <fat32_format_short_name>
+    usart1_puts("fat32: ");
+ 8000f62:	4811      	ldr	r0, [pc, #68]	@ (8000fa8 <fat32_print_dir_entry+0x54>)
+ 8000f64:	f7ff f8d6 	bl	8000114 <usart1_puts>
+    if ((entry->attr & 0x10u) != 0u) {
+ 8000f68:	7ae3      	ldrb	r3, [r4, #11]
+ 8000f6a:	f013 0f10 	tst.w	r3, #16
+ 8000f6e:	d016      	beq.n	8000f9e <fat32_print_dir_entry+0x4a>
+        usart1_puts("DIR  ");
+ 8000f70:	480e      	ldr	r0, [pc, #56]	@ (8000fac <fat32_print_dir_entry+0x58>)
+ 8000f72:	f7ff f8cf 	bl	8000114 <usart1_puts>
+    } else {
+        usart1_puts("FILE ");
+    }
+    usart1_puts(name);
+ 8000f76:	4668      	mov	r0, sp
+ 8000f78:	f7ff f8cc 	bl	8000114 <usart1_puts>
+    usart1_puts(" cluster=");
+ 8000f7c:	480c      	ldr	r0, [pc, #48]	@ (8000fb0 <fat32_print_dir_entry+0x5c>)
+ 8000f7e:	f7ff f8c9 	bl	8000114 <usart1_puts>
+    usart1_put_dec_u32(entry->first_cluster);
+ 8000f82:	68e0      	ldr	r0, [r4, #12]
+ 8000f84:	f7ff f8f2 	bl	800016c <usart1_put_dec_u32>
+    usart1_puts(" size=");
+ 8000f88:	480a      	ldr	r0, [pc, #40]	@ (8000fb4 <fat32_print_dir_entry+0x60>)
+ 8000f8a:	f7ff f8c3 	bl	8000114 <usart1_puts>
+    usart1_put_dec_u32(entry->size_bytes);
+ 8000f8e:	6920      	ldr	r0, [r4, #16]
+ 8000f90:	f7ff f8ec 	bl	800016c <usart1_put_dec_u32>
+    usart1_puts("\r\n");
+ 8000f94:	4808      	ldr	r0, [pc, #32]	@ (8000fb8 <fat32_print_dir_entry+0x64>)
+ 8000f96:	f7ff f8bd 	bl	8000114 <usart1_puts>
+}
+ 8000f9a:	b004      	add	sp, #16
+ 8000f9c:	bd10      	pop	{r4, pc}
+        usart1_puts("FILE ");
+ 8000f9e:	4807      	ldr	r0, [pc, #28]	@ (8000fbc <fat32_print_dir_entry+0x68>)
+ 8000fa0:	f7ff f8b8 	bl	8000114 <usart1_puts>
+ 8000fa4:	e7e7      	b.n	8000f76 <fat32_print_dir_entry+0x22>
+ 8000fa6:	bf00      	nop
+ 8000fa8:	08001d1c 	.word	0x08001d1c
+ 8000fac:	08001d24 	.word	0x08001d24
+ 8000fb0:	08001d34 	.word	0x08001d34
+ 8000fb4:	08001d40 	.word	0x08001d40
+ 8000fb8:	080019c0 	.word	0x080019c0
+ 8000fbc:	08001d2c 	.word	0x08001d2c
+
+08000fc0 <fat32_parse_dir_entry>:
+
+static bool fat32_parse_dir_entry(const uint8_t *raw, fat32_dir_entry_t *entry)
+{
+ 8000fc0:	b570      	push	{r4, r5, r6, lr}
+ 8000fc2:	460d      	mov	r5, r1
+    uint8_t attr = raw[11];
+ 8000fc4:	7ac1      	ldrb	r1, [r0, #11]
+
+    if (raw[0] == 0x00u || raw[0] == 0xE5u || attr == 0x0Fu) {
+ 8000fc6:	7803      	ldrb	r3, [r0, #0]
+ 8000fc8:	b1f3      	cbz	r3, 8001008 <fat32_parse_dir_entry+0x48>
+ 8000fca:	4604      	mov	r4, r0
+ 8000fcc:	2be5      	cmp	r3, #229	@ 0xe5
+ 8000fce:	d01d      	beq.n	800100c <fat32_parse_dir_entry+0x4c>
+ 8000fd0:	290f      	cmp	r1, #15
+ 8000fd2:	d01d      	beq.n	8001010 <fat32_parse_dir_entry+0x50>
+        return false;
+    }
+
+    for (uint32_t i = 0u; i < 11u; i++) {
+ 8000fd4:	2300      	movs	r3, #0
+ 8000fd6:	e002      	b.n	8000fde <fat32_parse_dir_entry+0x1e>
+        entry->short_name[i] = raw[i];
+ 8000fd8:	5ce2      	ldrb	r2, [r4, r3]
+ 8000fda:	54ea      	strb	r2, [r5, r3]
+    for (uint32_t i = 0u; i < 11u; i++) {
+ 8000fdc:	3301      	adds	r3, #1
+ 8000fde:	2b0a      	cmp	r3, #10
+ 8000fe0:	d9fa      	bls.n	8000fd8 <fat32_parse_dir_entry+0x18>
+    }
+    entry->attr = attr;
+ 8000fe2:	72e9      	strb	r1, [r5, #11]
+    entry->first_cluster = ((uint32_t)read_le16(raw + 20u) << 16) |
+ 8000fe4:	f104 0014 	add.w	r0, r4, #20
+ 8000fe8:	f7ff fb08 	bl	80005fc <read_le16>
+ 8000fec:	0406      	lsls	r6, r0, #16
+                           (uint32_t)read_le16(raw + 26u);
+ 8000fee:	f104 001a 	add.w	r0, r4, #26
+ 8000ff2:	f7ff fb03 	bl	80005fc <read_le16>
+    entry->first_cluster = ((uint32_t)read_le16(raw + 20u) << 16) |
+ 8000ff6:	4306      	orrs	r6, r0
+ 8000ff8:	60ee      	str	r6, [r5, #12]
+    entry->size_bytes = read_le32(raw + 28u);
+ 8000ffa:	f104 001c 	add.w	r0, r4, #28
+ 8000ffe:	f7ff fb02 	bl	8000606 <read_le32>
+ 8001002:	6128      	str	r0, [r5, #16]
+    return true;
+ 8001004:	2001      	movs	r0, #1
+}
+ 8001006:	bd70      	pop	{r4, r5, r6, pc}
+        return false;
+ 8001008:	2000      	movs	r0, #0
+ 800100a:	e7fc      	b.n	8001006 <fat32_parse_dir_entry+0x46>
+ 800100c:	2000      	movs	r0, #0
+ 800100e:	e7fa      	b.n	8001006 <fat32_parse_dir_entry+0x46>
+ 8001010:	2000      	movs	r0, #0
+ 8001012:	e7f8      	b.n	8001006 <fat32_parse_dir_entry+0x46>
+
+08001014 <fat32_list_directory>:
+
+static bool fat32_list_directory(const fat32_volume_t *volume, uint32_t start_cluster, uint32_t max_entries)
+{
+ 8001014:	e92d 43f0 	stmdb	sp!, {r4, r5, r6, r7, r8, r9, lr}
+ 8001018:	b087      	sub	sp, #28
+ 800101a:	4680      	mov	r8, r0
+ 800101c:	4616      	mov	r6, r2
+    uint32_t cluster = start_cluster;
+ 800101e:	9105      	str	r1, [sp, #20]
+    uint32_t printed = 0u;
+ 8001020:	2500      	movs	r5, #0
+
+    while (cluster >= 2u && !fat32_cluster_is_eoc(cluster)) {
+ 8001022:	9805      	ldr	r0, [sp, #20]
+ 8001024:	2801      	cmp	r0, #1
+ 8001026:	d93a      	bls.n	800109e <fat32_list_directory+0x8a>
+ 8001028:	f7ff ff4a 	bl	8000ec0 <fat32_cluster_is_eoc>
+ 800102c:	4681      	mov	r9, r0
+ 800102e:	b9b8      	cbnz	r0, 8001060 <fat32_list_directory+0x4c>
+        uint32_t sector_index;
+
+        for (sector_index = 0u; sector_index < volume->sectors_per_cluster; sector_index++) {
+ 8001030:	2700      	movs	r7, #0
+ 8001032:	e01a      	b.n	800106a <fat32_list_directory+0x56>
+
+            if (!sd_read_block(lba, g_sector0)) {
+                return false;
+            }
+
+            for (offset = 0u; offset < SD_SECTOR_SIZE; offset += 32u) {
+ 8001034:	3420      	adds	r4, #32
+ 8001036:	f5b4 7f00 	cmp.w	r4, #512	@ 0x200
+ 800103a:	d215      	bcs.n	8001068 <fat32_list_directory+0x54>
+                fat32_dir_entry_t entry;
+                const uint8_t *raw = g_sector0 + offset;
+ 800103c:	4b19      	ldr	r3, [pc, #100]	@ (80010a4 <fat32_list_directory+0x90>)
+ 800103e:	18e0      	adds	r0, r4, r3
+
+                if (raw[0] == 0x00u) {
+ 8001040:	5d1b      	ldrb	r3, [r3, r4]
+ 8001042:	b16b      	cbz	r3, 8001060 <fat32_list_directory+0x4c>
+                    return true;
+                }
+                if (!fat32_parse_dir_entry(raw, &entry)) {
+ 8001044:	4669      	mov	r1, sp
+ 8001046:	f7ff ffbb 	bl	8000fc0 <fat32_parse_dir_entry>
+ 800104a:	2800      	cmp	r0, #0
+ 800104c:	d0f2      	beq.n	8001034 <fat32_list_directory+0x20>
+                    continue;
+                }
+                fat32_print_dir_entry(&entry);
+ 800104e:	4668      	mov	r0, sp
+ 8001050:	f7ff ff80 	bl	8000f54 <fat32_print_dir_entry>
+                printed++;
+ 8001054:	3501      	adds	r5, #1
+                if (printed >= max_entries) {
+ 8001056:	42b5      	cmp	r5, r6
+ 8001058:	d3ec      	bcc.n	8001034 <fat32_list_directory+0x20>
+                    usart1_puts("fat32: directory listing truncated\r\n");
+ 800105a:	4813      	ldr	r0, [pc, #76]	@ (80010a8 <fat32_list_directory+0x94>)
+ 800105c:	f7ff f85a 	bl	8000114 <usart1_puts>
+            return false;
+        }
+    }
+
+    return true;
+}
+ 8001060:	4648      	mov	r0, r9
+ 8001062:	b007      	add	sp, #28
+ 8001064:	e8bd 83f0 	ldmia.w	sp!, {r4, r5, r6, r7, r8, r9, pc}
+        for (sector_index = 0u; sector_index < volume->sectors_per_cluster; sector_index++) {
+ 8001068:	3701      	adds	r7, #1
+ 800106a:	f898 3006 	ldrb.w	r3, [r8, #6]
+ 800106e:	42bb      	cmp	r3, r7
+ 8001070:	d90c      	bls.n	800108c <fat32_list_directory+0x78>
+            uint32_t lba = fat32_cluster_to_lba(volume, cluster) + sector_index;
+ 8001072:	9905      	ldr	r1, [sp, #20]
+ 8001074:	4640      	mov	r0, r8
+ 8001076:	f7ff ff03 	bl	8000e80 <fat32_cluster_to_lba>
+            if (!sd_read_block(lba, g_sector0)) {
+ 800107a:	490a      	ldr	r1, [pc, #40]	@ (80010a4 <fat32_list_directory+0x90>)
+ 800107c:	4438      	add	r0, r7
+ 800107e:	f7ff fa4b 	bl	8000518 <sd_read_block>
+ 8001082:	4681      	mov	r9, r0
+ 8001084:	2800      	cmp	r0, #0
+ 8001086:	d0eb      	beq.n	8001060 <fat32_list_directory+0x4c>
+            for (offset = 0u; offset < SD_SECTOR_SIZE; offset += 32u) {
+ 8001088:	2400      	movs	r4, #0
+ 800108a:	e7d4      	b.n	8001036 <fat32_list_directory+0x22>
+        if (!fat32_read_fat_entry(volume, cluster, &cluster)) {
+ 800108c:	aa05      	add	r2, sp, #20
+ 800108e:	9905      	ldr	r1, [sp, #20]
+ 8001090:	4640      	mov	r0, r8
+ 8001092:	f7ff fefb 	bl	8000e8c <fat32_read_fat_entry>
+ 8001096:	4681      	mov	r9, r0
+ 8001098:	2800      	cmp	r0, #0
+ 800109a:	d1c2      	bne.n	8001022 <fat32_list_directory+0xe>
+ 800109c:	e7e0      	b.n	8001060 <fat32_list_directory+0x4c>
+    return true;
+ 800109e:	f04f 0901 	mov.w	r9, #1
+ 80010a2:	e7dd      	b.n	8001060 <fat32_list_directory+0x4c>
+ 80010a4:	20000004 	.word	0x20000004
+ 80010a8:	08001d48 	.word	0x08001d48
+
+080010ac <fat32_find_in_root>:
+
+static bool fat32_find_in_root(const fat32_volume_t *volume, const uint8_t target_name[11], fat32_dir_entry_t *match)
+{
+ 80010ac:	e92d 43f0 	stmdb	sp!, {r4, r5, r6, r7, r8, r9, lr}
+ 80010b0:	b087      	sub	sp, #28
+ 80010b2:	4606      	mov	r6, r0
+ 80010b4:	460d      	mov	r5, r1
+ 80010b6:	4691      	mov	r9, r2
+    uint32_t cluster = volume->root_cluster;
+ 80010b8:	6903      	ldr	r3, [r0, #16]
+ 80010ba:	9305      	str	r3, [sp, #20]
+
+    while (cluster >= 2u && !fat32_cluster_is_eoc(cluster)) {
+ 80010bc:	9805      	ldr	r0, [sp, #20]
+ 80010be:	2801      	cmp	r0, #1
+ 80010c0:	d950      	bls.n	8001164 <fat32_find_in_root+0xb8>
+ 80010c2:	f7ff fefd 	bl	8000ec0 <fat32_cluster_is_eoc>
+ 80010c6:	4680      	mov	r8, r0
+ 80010c8:	2800      	cmp	r0, #0
+ 80010ca:	d148      	bne.n	800115e <fat32_find_in_root+0xb2>
+        uint32_t sector_index;
+
+        for (sector_index = 0u; sector_index < volume->sectors_per_cluster; sector_index++) {
+ 80010cc:	2700      	movs	r7, #0
+ 80010ce:	e02e      	b.n	800112e <fat32_find_in_root+0x82>
+            uint32_t lba = fat32_cluster_to_lba(volume, cluster) + sector_index;
+            uint32_t offset;
+
+            if (!sd_read_block(lba, g_sector0)) {
+                return false;
+ 80010d0:	4680      	mov	r8, r0
+ 80010d2:	e027      	b.n	8001124 <fat32_find_in_root+0x78>
+                    continue;
+                }
+
+                for (i = 0u; i < 11u; i++) {
+                    if (entry.short_name[i] != target_name[i]) {
+                        same = false;
+ 80010d4:	46c6      	mov	lr, r8
+                        break;
+                    }
+                }
+                if (same) {
+ 80010d6:	f1be 0f00 	cmp.w	lr, #0
+ 80010da:	d11b      	bne.n	8001114 <fat32_find_in_root+0x68>
+            for (offset = 0u; offset < SD_SECTOR_SIZE; offset += 32u) {
+ 80010dc:	3420      	adds	r4, #32
+ 80010de:	f5b4 7f00 	cmp.w	r4, #512	@ 0x200
+ 80010e2:	d223      	bcs.n	800112c <fat32_find_in_root+0x80>
+                const uint8_t *raw = g_sector0 + offset;
+ 80010e4:	4b21      	ldr	r3, [pc, #132]	@ (800116c <fat32_find_in_root+0xc0>)
+ 80010e6:	18e0      	adds	r0, r4, r3
+                if (raw[0] == 0x00u) {
+ 80010e8:	5d1b      	ldrb	r3, [r3, r4]
+ 80010ea:	b1db      	cbz	r3, 8001124 <fat32_find_in_root+0x78>
+                if (!fat32_parse_dir_entry(raw, &entry)) {
+ 80010ec:	4669      	mov	r1, sp
+ 80010ee:	f7ff ff67 	bl	8000fc0 <fat32_parse_dir_entry>
+ 80010f2:	4686      	mov	lr, r0
+ 80010f4:	2800      	cmp	r0, #0
+ 80010f6:	d0f1      	beq.n	80010dc <fat32_find_in_root+0x30>
+                for (i = 0u; i < 11u; i++) {
+ 80010f8:	2300      	movs	r3, #0
+ 80010fa:	2b0a      	cmp	r3, #10
+ 80010fc:	d8eb      	bhi.n	80010d6 <fat32_find_in_root+0x2a>
+                    if (entry.short_name[i] != target_name[i]) {
+ 80010fe:	f103 0218 	add.w	r2, r3, #24
+ 8001102:	446a      	add	r2, sp
+ 8001104:	f812 2c18 	ldrb.w	r2, [r2, #-24]
+ 8001108:	f815 c003 	ldrb.w	ip, [r5, r3]
+ 800110c:	4562      	cmp	r2, ip
+ 800110e:	d1e1      	bne.n	80010d4 <fat32_find_in_root+0x28>
+                for (i = 0u; i < 11u; i++) {
+ 8001110:	3301      	adds	r3, #1
+ 8001112:	e7f2      	b.n	80010fa <fat32_find_in_root+0x4e>
+                    *match = entry;
+ 8001114:	466c      	mov	r4, sp
+ 8001116:	cc0f      	ldmia	r4!, {r0, r1, r2, r3}
+ 8001118:	e8a9 000f 	stmia.w	r9!, {r0, r1, r2, r3}
+ 800111c:	6823      	ldr	r3, [r4, #0]
+ 800111e:	f8c9 3000 	str.w	r3, [r9]
+                    return true;
+ 8001122:	46f0      	mov	r8, lr
+            return false;
+        }
+    }
+
+    return false;
+}
+ 8001124:	4640      	mov	r0, r8
+ 8001126:	b007      	add	sp, #28
+ 8001128:	e8bd 83f0 	ldmia.w	sp!, {r4, r5, r6, r7, r8, r9, pc}
+        for (sector_index = 0u; sector_index < volume->sectors_per_cluster; sector_index++) {
+ 800112c:	3701      	adds	r7, #1
+ 800112e:	79b3      	ldrb	r3, [r6, #6]
+ 8001130:	42bb      	cmp	r3, r7
+ 8001132:	d90b      	bls.n	800114c <fat32_find_in_root+0xa0>
+            uint32_t lba = fat32_cluster_to_lba(volume, cluster) + sector_index;
+ 8001134:	9905      	ldr	r1, [sp, #20]
+ 8001136:	4630      	mov	r0, r6
+ 8001138:	f7ff fea2 	bl	8000e80 <fat32_cluster_to_lba>
+            if (!sd_read_block(lba, g_sector0)) {
+ 800113c:	490b      	ldr	r1, [pc, #44]	@ (800116c <fat32_find_in_root+0xc0>)
+ 800113e:	4438      	add	r0, r7
+ 8001140:	f7ff f9ea 	bl	8000518 <sd_read_block>
+ 8001144:	2800      	cmp	r0, #0
+ 8001146:	d0c3      	beq.n	80010d0 <fat32_find_in_root+0x24>
+            for (offset = 0u; offset < SD_SECTOR_SIZE; offset += 32u) {
+ 8001148:	2400      	movs	r4, #0
+ 800114a:	e7c8      	b.n	80010de <fat32_find_in_root+0x32>
+        if (!fat32_read_fat_entry(volume, cluster, &cluster)) {
+ 800114c:	aa05      	add	r2, sp, #20
+ 800114e:	9905      	ldr	r1, [sp, #20]
+ 8001150:	4630      	mov	r0, r6
+ 8001152:	f7ff fe9b 	bl	8000e8c <fat32_read_fat_entry>
+ 8001156:	4680      	mov	r8, r0
+ 8001158:	2800      	cmp	r0, #0
+ 800115a:	d1af      	bne.n	80010bc <fat32_find_in_root+0x10>
+ 800115c:	e7e2      	b.n	8001124 <fat32_find_in_root+0x78>
+    return false;
+ 800115e:	f04f 0800 	mov.w	r8, #0
+ 8001162:	e7df      	b.n	8001124 <fat32_find_in_root+0x78>
+ 8001164:	f04f 0800 	mov.w	r8, #0
+ 8001168:	e7dc      	b.n	8001124 <fat32_find_in_root+0x78>
+ 800116a:	bf00      	nop
+ 800116c:	20000004 	.word	0x20000004
+
+08001170 <fat32_dump_file_prefix>:
+
+static bool fat32_dump_file_prefix(const fat32_volume_t *volume,
+                                   const fat32_dir_entry_t *entry,
+                                   uint32_t max_bytes)
+{
+ 8001170:	e92d 47f0 	stmdb	sp!, {r4, r5, r6, r7, r8, r9, sl, lr}
+ 8001174:	b082      	sub	sp, #8
+ 8001176:	4616      	mov	r6, r2
+    uint32_t cluster = entry->first_cluster;
+ 8001178:	68cb      	ldr	r3, [r1, #12]
+ 800117a:	9301      	str	r3, [sp, #4]
+    uint32_t remaining = entry->size_bytes;
+ 800117c:	690b      	ldr	r3, [r1, #16]
+    uint32_t emitted = 0u;
+
+    if ((entry->attr & 0x10u) != 0u) {
+ 800117e:	7aca      	ldrb	r2, [r1, #11]
+ 8001180:	f012 0f10 	tst.w	r2, #16
+ 8001184:	d149      	bne.n	800121a <fat32_dump_file_prefix+0xaa>
+ 8001186:	4680      	mov	r8, r0
+ 8001188:	468a      	mov	sl, r1
+        return false;
+    }
+
+    if (max_bytes < remaining) {
+ 800118a:	42b3      	cmp	r3, r6
+ 800118c:	d800      	bhi.n	8001190 <fat32_dump_file_prefix+0x20>
+    uint32_t remaining = entry->size_bytes;
+ 800118e:	461e      	mov	r6, r3
+ 8001190:	f04f 0900 	mov.w	r9, #0
+ 8001194:	e022      	b.n	80011dc <fat32_dump_file_prefix+0x6c>
+            uint32_t lba = fat32_cluster_to_lba(volume, cluster) + sector_index;
+            uint32_t byte_count = remaining;
+            uint32_t i;
+
+            if (byte_count > SD_SECTOR_SIZE) {
+                byte_count = SD_SECTOR_SIZE;
+ 8001196:	f44f 7500 	mov.w	r5, #512	@ 0x200
+ 800119a:	e017      	b.n	80011cc <fat32_dump_file_prefix+0x5c>
+            if (!sd_read_block(lba, g_sector0)) {
+                return false;
+            }
+
+            for (i = 0u; i < byte_count; i++) {
+                usart1_put_escaped_byte(g_sector0[i]);
+ 800119c:	4b21      	ldr	r3, [pc, #132]	@ (8001224 <fat32_dump_file_prefix+0xb4>)
+ 800119e:	5d18      	ldrb	r0, [r3, r4]
+ 80011a0:	f7ff fada 	bl	8000758 <usart1_put_escaped_byte>
+            for (i = 0u; i < byte_count; i++) {
+ 80011a4:	3401      	adds	r4, #1
+ 80011a6:	42a5      	cmp	r5, r4
+ 80011a8:	d8f8      	bhi.n	800119c <fat32_dump_file_prefix+0x2c>
+            }
+            emitted += byte_count;
+ 80011aa:	44a9      	add	r9, r5
+            remaining -= byte_count;
+ 80011ac:	1b76      	subs	r6, r6, r5
+        for (sector_index = 0u; sector_index < volume->sectors_per_cluster && remaining > 0u; sector_index++) {
+ 80011ae:	3701      	adds	r7, #1
+ 80011b0:	f898 3006 	ldrb.w	r3, [r8, #6]
+ 80011b4:	42bb      	cmp	r3, r7
+ 80011b6:	d910      	bls.n	80011da <fat32_dump_file_prefix+0x6a>
+ 80011b8:	b17e      	cbz	r6, 80011da <fat32_dump_file_prefix+0x6a>
+            uint32_t lba = fat32_cluster_to_lba(volume, cluster) + sector_index;
+ 80011ba:	9901      	ldr	r1, [sp, #4]
+ 80011bc:	4640      	mov	r0, r8
+ 80011be:	f7ff fe5f 	bl	8000e80 <fat32_cluster_to_lba>
+ 80011c2:	4438      	add	r0, r7
+            if (byte_count > SD_SECTOR_SIZE) {
+ 80011c4:	f5b6 7f00 	cmp.w	r6, #512	@ 0x200
+ 80011c8:	d8e5      	bhi.n	8001196 <fat32_dump_file_prefix+0x26>
+            uint32_t byte_count = remaining;
+ 80011ca:	4635      	mov	r5, r6
+            if (!sd_read_block(lba, g_sector0)) {
+ 80011cc:	4915      	ldr	r1, [pc, #84]	@ (8001224 <fat32_dump_file_prefix+0xb4>)
+ 80011ce:	f7ff f9a3 	bl	8000518 <sd_read_block>
+ 80011d2:	4603      	mov	r3, r0
+ 80011d4:	b310      	cbz	r0, 800121c <fat32_dump_file_prefix+0xac>
+            for (i = 0u; i < byte_count; i++) {
+ 80011d6:	2400      	movs	r4, #0
+ 80011d8:	e7e5      	b.n	80011a6 <fat32_dump_file_prefix+0x36>
+        }
+
+        if (remaining > 0u) {
+ 80011da:	b946      	cbnz	r6, 80011ee <fat32_dump_file_prefix+0x7e>
+    while (cluster >= 2u && !fat32_cluster_is_eoc(cluster) && remaining > 0u) {
+ 80011dc:	9801      	ldr	r0, [sp, #4]
+ 80011de:	2801      	cmp	r0, #1
+ 80011e0:	d90e      	bls.n	8001200 <fat32_dump_file_prefix+0x90>
+ 80011e2:	f7ff fe6d 	bl	8000ec0 <fat32_cluster_is_eoc>
+ 80011e6:	b958      	cbnz	r0, 8001200 <fat32_dump_file_prefix+0x90>
+ 80011e8:	b156      	cbz	r6, 8001200 <fat32_dump_file_prefix+0x90>
+        for (sector_index = 0u; sector_index < volume->sectors_per_cluster && remaining > 0u; sector_index++) {
+ 80011ea:	2700      	movs	r7, #0
+ 80011ec:	e7e0      	b.n	80011b0 <fat32_dump_file_prefix+0x40>
+            if (!fat32_read_fat_entry(volume, cluster, &cluster)) {
+ 80011ee:	aa01      	add	r2, sp, #4
+ 80011f0:	9901      	ldr	r1, [sp, #4]
+ 80011f2:	4640      	mov	r0, r8
+ 80011f4:	f7ff fe4a 	bl	8000e8c <fat32_read_fat_entry>
+ 80011f8:	4603      	mov	r3, r0
+ 80011fa:	2800      	cmp	r0, #0
+ 80011fc:	d1ee      	bne.n	80011dc <fat32_dump_file_prefix+0x6c>
+ 80011fe:	e00d      	b.n	800121c <fat32_dump_file_prefix+0xac>
+                return false;
+            }
+        }
+    }
+
+    if (emitted < entry->size_bytes) {
+ 8001200:	f8da 3010 	ldr.w	r3, [sl, #16]
+ 8001204:	454b      	cmp	r3, r9
+ 8001206:	d804      	bhi.n	8001212 <fat32_dump_file_prefix+0xa2>
+        usart1_puts("...");
+    }
+    usart1_puts("\r\n");
+ 8001208:	4807      	ldr	r0, [pc, #28]	@ (8001228 <fat32_dump_file_prefix+0xb8>)
+ 800120a:	f7fe ff83 	bl	8000114 <usart1_puts>
+    return true;
+ 800120e:	2301      	movs	r3, #1
+ 8001210:	e004      	b.n	800121c <fat32_dump_file_prefix+0xac>
+        usart1_puts("...");
+ 8001212:	4806      	ldr	r0, [pc, #24]	@ (800122c <fat32_dump_file_prefix+0xbc>)
+ 8001214:	f7fe ff7e 	bl	8000114 <usart1_puts>
+ 8001218:	e7f6      	b.n	8001208 <fat32_dump_file_prefix+0x98>
+        return false;
+ 800121a:	2300      	movs	r3, #0
+}
+ 800121c:	4618      	mov	r0, r3
+ 800121e:	b002      	add	sp, #8
+ 8001220:	e8bd 87f0 	ldmia.w	sp!, {r4, r5, r6, r7, r8, r9, sl, pc}
+ 8001224:	20000004 	.word	0x20000004
+ 8001228:	080019c0 	.word	0x080019c0
+ 800122c:	08001d70 	.word	0x08001d70
+
+08001230 <sd_print_cid_summary>:
+
+static void sd_print_cid_summary(const uint8_t *cid)
+{
+ 8001230:	b5f8      	push	{r3, r4, r5, r6, r7, lr}
+ 8001232:	4604      	mov	r4, r0
+    uint32_t serial = ((uint32_t)cid[9] << 24) |
+ 8001234:	7a43      	ldrb	r3, [r0, #9]
+                      ((uint32_t)cid[10] << 16) |
+ 8001236:	7a85      	ldrb	r5, [r0, #10]
+ 8001238:	042d      	lsls	r5, r5, #16
+    uint32_t serial = ((uint32_t)cid[9] << 24) |
+ 800123a:	ea45 6503 	orr.w	r5, r5, r3, lsl #24
+                      ((uint32_t)cid[11] << 8) |
+ 800123e:	7ac3      	ldrb	r3, [r0, #11]
+                      ((uint32_t)cid[10] << 16) |
+ 8001240:	ea45 2503 	orr.w	r5, r5, r3, lsl #8
+                      (uint32_t)cid[12];
+ 8001244:	7b03      	ldrb	r3, [r0, #12]
+    uint32_t serial = ((uint32_t)cid[9] << 24) |
+ 8001246:	431d      	orrs	r5, r3
+    uint32_t year = 2000u + sd_extract_bits(cid, 19u, 12u);
+ 8001248:	220c      	movs	r2, #12
+ 800124a:	2113      	movs	r1, #19
+ 800124c:	f7ff f98e 	bl	800056c <sd_extract_bits>
+ 8001250:	f500 67fa 	add.w	r7, r0, #2000	@ 0x7d0
+    uint32_t month = sd_extract_bits(cid, 11u, 8u);
+ 8001254:	2208      	movs	r2, #8
+ 8001256:	210b      	movs	r1, #11
+ 8001258:	4620      	mov	r0, r4
+ 800125a:	f7ff f987 	bl	800056c <sd_extract_bits>
+ 800125e:	4606      	mov	r6, r0
+
+    usart1_puts("sd: CID raw: ");
+ 8001260:	4829      	ldr	r0, [pc, #164]	@ (8001308 <sd_print_cid_summary+0xd8>)
+ 8001262:	f7fe ff57 	bl	8000114 <usart1_puts>
+    sd_print_bytes(cid, 16u);
+ 8001266:	2110      	movs	r1, #16
+ 8001268:	4620      	mov	r0, r4
+ 800126a:	f7ff f999 	bl	80005a0 <sd_print_bytes>
+
+    usart1_puts("sd: CID MID=0x");
+ 800126e:	4827      	ldr	r0, [pc, #156]	@ (800130c <sd_print_cid_summary+0xdc>)
+ 8001270:	f7fe ff50 	bl	8000114 <usart1_puts>
+    usart1_put_hex8(cid[0]);
+ 8001274:	7820      	ldrb	r0, [r4, #0]
+ 8001276:	f7fe ff57 	bl	8000128 <usart1_put_hex8>
+    usart1_puts(" OID=");
+ 800127a:	4825      	ldr	r0, [pc, #148]	@ (8001310 <sd_print_cid_summary+0xe0>)
+ 800127c:	f7fe ff4a 	bl	8000114 <usart1_puts>
+    usart1_putc((char)cid[1]);
+ 8001280:	7860      	ldrb	r0, [r4, #1]
+ 8001282:	f7fe ff3d 	bl	8000100 <usart1_putc>
+    usart1_putc((char)cid[2]);
+ 8001286:	78a0      	ldrb	r0, [r4, #2]
+ 8001288:	f7fe ff3a 	bl	8000100 <usart1_putc>
+    usart1_puts(" PNM=");
+ 800128c:	4821      	ldr	r0, [pc, #132]	@ (8001314 <sd_print_cid_summary+0xe4>)
+ 800128e:	f7fe ff41 	bl	8000114 <usart1_puts>
+    usart1_putc((char)cid[3]);
+ 8001292:	78e0      	ldrb	r0, [r4, #3]
+ 8001294:	f7fe ff34 	bl	8000100 <usart1_putc>
+    usart1_putc((char)cid[4]);
+ 8001298:	7920      	ldrb	r0, [r4, #4]
+ 800129a:	f7fe ff31 	bl	8000100 <usart1_putc>
+    usart1_putc((char)cid[5]);
+ 800129e:	7960      	ldrb	r0, [r4, #5]
+ 80012a0:	f7fe ff2e 	bl	8000100 <usart1_putc>
+    usart1_putc((char)cid[6]);
+ 80012a4:	79a0      	ldrb	r0, [r4, #6]
+ 80012a6:	f7fe ff2b 	bl	8000100 <usart1_putc>
+    usart1_putc((char)cid[7]);
+ 80012aa:	79e0      	ldrb	r0, [r4, #7]
+ 80012ac:	f7fe ff28 	bl	8000100 <usart1_putc>
+    usart1_puts(" PRV=");
+ 80012b0:	4819      	ldr	r0, [pc, #100]	@ (8001318 <sd_print_cid_summary+0xe8>)
+ 80012b2:	f7fe ff2f 	bl	8000114 <usart1_puts>
+    usart1_put_dec_u32((uint32_t)(cid[8] >> 4));
+ 80012b6:	7a20      	ldrb	r0, [r4, #8]
+ 80012b8:	0900      	lsrs	r0, r0, #4
+ 80012ba:	f7fe ff57 	bl	800016c <usart1_put_dec_u32>
+    usart1_putc('.');
+ 80012be:	202e      	movs	r0, #46	@ 0x2e
+ 80012c0:	f7fe ff1e 	bl	8000100 <usart1_putc>
+    usart1_put_dec_u32((uint32_t)(cid[8] & 0x0Fu));
+ 80012c4:	7a20      	ldrb	r0, [r4, #8]
+ 80012c6:	f000 000f 	and.w	r0, r0, #15
+ 80012ca:	f7fe ff4f 	bl	800016c <usart1_put_dec_u32>
+    usart1_puts(" PSN=0x");
+ 80012ce:	4813      	ldr	r0, [pc, #76]	@ (800131c <sd_print_cid_summary+0xec>)
+ 80012d0:	f7fe ff20 	bl	8000114 <usart1_puts>
+    usart1_put_hex32(serial);
+ 80012d4:	4628      	mov	r0, r5
+ 80012d6:	f7fe ff40 	bl	800015a <usart1_put_hex32>
+    usart1_puts(" MDT=");
+ 80012da:	4811      	ldr	r0, [pc, #68]	@ (8001320 <sd_print_cid_summary+0xf0>)
+ 80012dc:	f7fe ff1a 	bl	8000114 <usart1_puts>
+    usart1_put_dec_u32(year);
+ 80012e0:	4638      	mov	r0, r7
+ 80012e2:	f7fe ff43 	bl	800016c <usart1_put_dec_u32>
+    usart1_putc('-');
+ 80012e6:	202d      	movs	r0, #45	@ 0x2d
+ 80012e8:	f7fe ff0a 	bl	8000100 <usart1_putc>
+    if (month < 10u) {
+ 80012ec:	2e09      	cmp	r6, #9
+ 80012ee:	d906      	bls.n	80012fe <sd_print_cid_summary+0xce>
+        usart1_putc('0');
+    }
+    usart1_put_dec_u32(month);
+ 80012f0:	4630      	mov	r0, r6
+ 80012f2:	f7fe ff3b 	bl	800016c <usart1_put_dec_u32>
+    usart1_puts("\r\n");
+ 80012f6:	480b      	ldr	r0, [pc, #44]	@ (8001324 <sd_print_cid_summary+0xf4>)
+ 80012f8:	f7fe ff0c 	bl	8000114 <usart1_puts>
+}
+ 80012fc:	bdf8      	pop	{r3, r4, r5, r6, r7, pc}
+        usart1_putc('0');
+ 80012fe:	2030      	movs	r0, #48	@ 0x30
+ 8001300:	f7fe fefe 	bl	8000100 <usart1_putc>
+ 8001304:	e7f4      	b.n	80012f0 <sd_print_cid_summary+0xc0>
+ 8001306:	bf00      	nop
+ 8001308:	08001d74 	.word	0x08001d74
+ 800130c:	08001d84 	.word	0x08001d84
+ 8001310:	08001d94 	.word	0x08001d94
+ 8001314:	08001d9c 	.word	0x08001d9c
+ 8001318:	08001da4 	.word	0x08001da4
+ 800131c:	08001dac 	.word	0x08001dac
+ 8001320:	08001db4 	.word	0x08001db4
+ 8001324:	080019c0 	.word	0x080019c0
+
+08001328 <sd_print_csd_summary>:
+
+static void sd_print_csd_summary(const uint8_t *csd)
+{
+ 8001328:	b570      	push	{r4, r5, r6, lr}
+ 800132a:	4605      	mov	r5, r0
+    uint32_t csd_structure = sd_extract_bits(csd, 127u, 126u);
+ 800132c:	227e      	movs	r2, #126	@ 0x7e
+ 800132e:	217f      	movs	r1, #127	@ 0x7f
+ 8001330:	f7ff f91c 	bl	800056c <sd_extract_bits>
+ 8001334:	4604      	mov	r4, r0
+    uint32_t sector_count = 0u;
+    uint32_t capacity_mib;
+
+    usart1_puts("sd: CSD raw: ");
+ 8001336:	4823      	ldr	r0, [pc, #140]	@ (80013c4 <sd_print_csd_summary+0x9c>)
+ 8001338:	f7fe feec 	bl	8000114 <usart1_puts>
+    sd_print_bytes(csd, 16u);
+ 800133c:	2110      	movs	r1, #16
+ 800133e:	4628      	mov	r0, r5
+ 8001340:	f7ff f92e 	bl	80005a0 <sd_print_bytes>
+    usart1_puts("sd: CSD structure ");
+ 8001344:	4820      	ldr	r0, [pc, #128]	@ (80013c8 <sd_print_csd_summary+0xa0>)
+ 8001346:	f7fe fee5 	bl	8000114 <usart1_puts>
+    usart1_put_dec_u32(csd_structure);
+ 800134a:	4620      	mov	r0, r4
+ 800134c:	f7fe ff0e 	bl	800016c <usart1_put_dec_u32>
+    usart1_puts("\r\n");
+ 8001350:	481e      	ldr	r0, [pc, #120]	@ (80013cc <sd_print_csd_summary+0xa4>)
+ 8001352:	f7fe fedf 	bl	8000114 <usart1_puts>
+
+    if (csd_structure == 1u) {
+ 8001356:	2c01      	cmp	r4, #1
+ 8001358:	d017      	beq.n	800138a <sd_print_csd_summary+0x62>
+        uint32_t c_size = sd_extract_bits(csd, 69u, 48u);
+        sector_count = (c_size + 1u) * 1024u;
+    } else if (csd_structure == 0u) {
+ 800135a:	b9f4      	cbnz	r4, 800139a <sd_print_csd_summary+0x72>
+        uint32_t read_bl_len = sd_extract_bits(csd, 83u, 80u);
+ 800135c:	2250      	movs	r2, #80	@ 0x50
+ 800135e:	2153      	movs	r1, #83	@ 0x53
+ 8001360:	4628      	mov	r0, r5
+ 8001362:	f7ff f903 	bl	800056c <sd_extract_bits>
+ 8001366:	4606      	mov	r6, r0
+        uint32_t c_size = sd_extract_bits(csd, 73u, 62u);
+ 8001368:	223e      	movs	r2, #62	@ 0x3e
+ 800136a:	2149      	movs	r1, #73	@ 0x49
+ 800136c:	4628      	mov	r0, r5
+ 800136e:	f7ff f8fd 	bl	800056c <sd_extract_bits>
+ 8001372:	4604      	mov	r4, r0
+        uint32_t c_size_mult = sd_extract_bits(csd, 49u, 47u);
+ 8001374:	222f      	movs	r2, #47	@ 0x2f
+ 8001376:	2131      	movs	r1, #49	@ 0x31
+ 8001378:	4628      	mov	r0, r5
+ 800137a:	f7ff f8f7 	bl	800056c <sd_extract_bits>
+        uint32_t block_len = 1u << read_bl_len;
+        uint32_t blocknr = (c_size + 1u) * (1u << (c_size_mult + 2u));
+ 800137e:	3401      	adds	r4, #1
+ 8001380:	3002      	adds	r0, #2
+ 8001382:	4084      	lsls	r4, r0
+        sector_count = (blocknr * block_len) / SD_SECTOR_SIZE;
+ 8001384:	40b4      	lsls	r4, r6
+ 8001386:	0a64      	lsrs	r4, r4, #9
+ 8001388:	e006      	b.n	8001398 <sd_print_csd_summary+0x70>
+        uint32_t c_size = sd_extract_bits(csd, 69u, 48u);
+ 800138a:	2230      	movs	r2, #48	@ 0x30
+ 800138c:	2145      	movs	r1, #69	@ 0x45
+ 800138e:	4628      	mov	r0, r5
+ 8001390:	f7ff f8ec 	bl	800056c <sd_extract_bits>
+        sector_count = (c_size + 1u) * 1024u;
+ 8001394:	1c44      	adds	r4, r0, #1
+ 8001396:	02a4      	lsls	r4, r4, #10
+    }
+
+    if (sector_count != 0u) {
+ 8001398:	b91c      	cbnz	r4, 80013a2 <sd_print_csd_summary+0x7a>
+        usart1_put_dec_u32(sector_count);
+        usart1_puts(" capacity_mib=");
+        usart1_put_dec_u32(capacity_mib);
+        usart1_puts("\r\n");
+    } else {
+        usart1_puts("sd: capacity parse unsupported for this CSD layout\r\n");
+ 800139a:	480d      	ldr	r0, [pc, #52]	@ (80013d0 <sd_print_csd_summary+0xa8>)
+ 800139c:	f7fe feba 	bl	8000114 <usart1_puts>
+    }
+}
+ 80013a0:	bd70      	pop	{r4, r5, r6, pc}
+        capacity_mib = sector_count / 2048u;
+ 80013a2:	0ae5      	lsrs	r5, r4, #11
+        usart1_puts("sd: sectors=");
+ 80013a4:	480b      	ldr	r0, [pc, #44]	@ (80013d4 <sd_print_csd_summary+0xac>)
+ 80013a6:	f7fe feb5 	bl	8000114 <usart1_puts>
+        usart1_put_dec_u32(sector_count);
+ 80013aa:	4620      	mov	r0, r4
+ 80013ac:	f7fe fede 	bl	800016c <usart1_put_dec_u32>
+        usart1_puts(" capacity_mib=");
+ 80013b0:	4809      	ldr	r0, [pc, #36]	@ (80013d8 <sd_print_csd_summary+0xb0>)
+ 80013b2:	f7fe feaf 	bl	8000114 <usart1_puts>
+        usart1_put_dec_u32(capacity_mib);
+ 80013b6:	4628      	mov	r0, r5
+ 80013b8:	f7fe fed8 	bl	800016c <usart1_put_dec_u32>
+        usart1_puts("\r\n");
+ 80013bc:	4803      	ldr	r0, [pc, #12]	@ (80013cc <sd_print_csd_summary+0xa4>)
+ 80013be:	f7fe fea9 	bl	8000114 <usart1_puts>
+ 80013c2:	e7ed      	b.n	80013a0 <sd_print_csd_summary+0x78>
+ 80013c4:	08001dbc 	.word	0x08001dbc
+ 80013c8:	08001dcc 	.word	0x08001dcc
+ 80013cc:	080019c0 	.word	0x080019c0
+ 80013d0:	08001e00 	.word	0x08001e00
+ 80013d4:	08001de0 	.word	0x08001de0
+ 80013d8:	08001df0 	.word	0x08001df0
+
+080013dc <sd_card_init>:
+
+static bool sd_card_init(uint32_t *ocr_out, uint8_t *cid, uint8_t *csd)
+{
+ 80013dc:	e92d 4ff0 	stmdb	sp!, {r4, r5, r6, r7, r8, r9, sl, fp, lr}
+ 80013e0:	b083      	sub	sp, #12
+ 80013e2:	4606      	mov	r6, r0
+ 80013e4:	460f      	mov	r7, r1
+ 80013e6:	4690      	mov	r8, r2
+ 80013e8:	2400      	movs	r4, #0
+    uint32_t i;
+    uint8_t r1;
+    uint8_t r7[4];
+
+    g_sd_is_sdhc = false;
+ 80013ea:	4b7e      	ldr	r3, [pc, #504]	@ (80015e4 <sd_card_init+0x208>)
+ 80013ec:	701c      	strb	r4, [r3, #0]
+
+    sd_send_initial_clocks();
+ 80013ee:	f7fe ffb1 	bl	8000354 <sd_send_initial_clocks>
+
+    usart1_puts("sd: CMD0...\r\n");
+ 80013f2:	487d      	ldr	r0, [pc, #500]	@ (80015e8 <sd_card_init+0x20c>)
+ 80013f4:	f7fe fe8e 	bl	8000114 <usart1_puts>
+    for (i = 0u; i < 20u; i++) {
+ 80013f8:	4625      	mov	r5, r4
+ 80013fa:	2d13      	cmp	r5, #19
+ 80013fc:	d809      	bhi.n	8001412 <sd_card_init+0x36>
+        r1 = sd_send_command(SD_CMD0, 0u, 0x95u);
+ 80013fe:	2295      	movs	r2, #149	@ 0x95
+ 8001400:	2100      	movs	r1, #0
+ 8001402:	4608      	mov	r0, r1
+ 8001404:	f7fe ffd7 	bl	80003b6 <sd_send_command>
+ 8001408:	4604      	mov	r4, r0
+        if (r1 == SD_R1_IDLE) {
+ 800140a:	2801      	cmp	r0, #1
+ 800140c:	d001      	beq.n	8001412 <sd_card_init+0x36>
+    for (i = 0u; i < 20u; i++) {
+ 800140e:	3501      	adds	r5, #1
+ 8001410:	e7f3      	b.n	80013fa <sd_card_init+0x1e>
+            break;
+        }
+    }
+    usart1_puts("sd: CMD0 R1=0x");
+ 8001412:	4876      	ldr	r0, [pc, #472]	@ (80015ec <sd_card_init+0x210>)
+ 8001414:	f7fe fe7e 	bl	8000114 <usart1_puts>
+    usart1_put_hex8(r1);
+ 8001418:	4620      	mov	r0, r4
+ 800141a:	f7fe fe85 	bl	8000128 <usart1_put_hex8>
+    usart1_puts("\r\n");
+ 800141e:	4874      	ldr	r0, [pc, #464]	@ (80015f0 <sd_card_init+0x214>)
+ 8001420:	f7fe fe78 	bl	8000114 <usart1_puts>
+    if (r1 != SD_R1_IDLE) {
+ 8001424:	2c01      	cmp	r4, #1
+ 8001426:	d004      	beq.n	8001432 <sd_card_init+0x56>
+        return false;
+ 8001428:	2400      	movs	r4, #0
+        return false;
+    }
+
+    sd_spi_set_prescaler(SD_SPI_BR_RUN);
+    return true;
+}
+ 800142a:	4620      	mov	r0, r4
+ 800142c:	b003      	add	sp, #12
+ 800142e:	e8bd 8ff0 	ldmia.w	sp!, {r4, r5, r6, r7, r8, r9, sl, fp, pc}
+    sd_deselect();
+ 8001432:	f7fe ff69 	bl	8000308 <sd_deselect>
+    if (!sd_select()) {
+ 8001436:	f7fe ff81 	bl	800033c <sd_select>
+ 800143a:	4604      	mov	r4, r0
+ 800143c:	2800      	cmp	r0, #0
+ 800143e:	d051      	beq.n	80014e4 <sd_card_init+0x108>
+    r1 = sd_send_command_selected(SD_CMD8, 0x000001AAu, 0x87u);
+ 8001440:	2287      	movs	r2, #135	@ 0x87
+ 8001442:	f44f 71d5 	mov.w	r1, #426	@ 0x1aa
+ 8001446:	2008      	movs	r0, #8
+ 8001448:	f7fe ff90 	bl	800036c <sd_send_command_selected>
+ 800144c:	4605      	mov	r5, r0
+    r7[0] = sd_spi_xfer(0xFFu);
+ 800144e:	20ff      	movs	r0, #255	@ 0xff
+ 8001450:	f7fe ff48 	bl	80002e4 <sd_spi_xfer>
+ 8001454:	4683      	mov	fp, r0
+ 8001456:	f88d 0004 	strb.w	r0, [sp, #4]
+    r7[1] = sd_spi_xfer(0xFFu);
+ 800145a:	20ff      	movs	r0, #255	@ 0xff
+ 800145c:	f7fe ff42 	bl	80002e4 <sd_spi_xfer>
+ 8001460:	4682      	mov	sl, r0
+ 8001462:	f88d 0005 	strb.w	r0, [sp, #5]
+    r7[2] = sd_spi_xfer(0xFFu);
+ 8001466:	20ff      	movs	r0, #255	@ 0xff
+ 8001468:	f7fe ff3c 	bl	80002e4 <sd_spi_xfer>
+ 800146c:	4681      	mov	r9, r0
+ 800146e:	f88d 0006 	strb.w	r0, [sp, #6]
+    r7[3] = sd_spi_xfer(0xFFu);
+ 8001472:	20ff      	movs	r0, #255	@ 0xff
+ 8001474:	f7fe ff36 	bl	80002e4 <sd_spi_xfer>
+ 8001478:	4604      	mov	r4, r0
+ 800147a:	f88d 0007 	strb.w	r0, [sp, #7]
+    sd_deselect();
+ 800147e:	f7fe ff43 	bl	8000308 <sd_deselect>
+    usart1_puts("sd: CMD8 R1=0x");
+ 8001482:	485c      	ldr	r0, [pc, #368]	@ (80015f4 <sd_card_init+0x218>)
+ 8001484:	f7fe fe46 	bl	8000114 <usart1_puts>
+    usart1_put_hex8(r1);
+ 8001488:	4628      	mov	r0, r5
+ 800148a:	f7fe fe4d 	bl	8000128 <usart1_put_hex8>
+    usart1_puts(" R7=");
+ 800148e:	485a      	ldr	r0, [pc, #360]	@ (80015f8 <sd_card_init+0x21c>)
+ 8001490:	f7fe fe40 	bl	8000114 <usart1_puts>
+    usart1_put_hex8(r7[0]);
+ 8001494:	4658      	mov	r0, fp
+ 8001496:	f7fe fe47 	bl	8000128 <usart1_put_hex8>
+    usart1_putc(' ');
+ 800149a:	2020      	movs	r0, #32
+ 800149c:	f7fe fe30 	bl	8000100 <usart1_putc>
+    usart1_put_hex8(r7[1]);
+ 80014a0:	4650      	mov	r0, sl
+ 80014a2:	f7fe fe41 	bl	8000128 <usart1_put_hex8>
+    usart1_putc(' ');
+ 80014a6:	2020      	movs	r0, #32
+ 80014a8:	f7fe fe2a 	bl	8000100 <usart1_putc>
+    usart1_put_hex8(r7[2]);
+ 80014ac:	4648      	mov	r0, r9
+ 80014ae:	f7fe fe3b 	bl	8000128 <usart1_put_hex8>
+    usart1_putc(' ');
+ 80014b2:	2020      	movs	r0, #32
+ 80014b4:	f7fe fe24 	bl	8000100 <usart1_putc>
+    usart1_put_hex8(r7[3]);
+ 80014b8:	4620      	mov	r0, r4
+ 80014ba:	f7fe fe35 	bl	8000128 <usart1_put_hex8>
+    usart1_puts("\r\n");
+ 80014be:	484c      	ldr	r0, [pc, #304]	@ (80015f0 <sd_card_init+0x214>)
+ 80014c0:	f7fe fe28 	bl	8000114 <usart1_puts>
+    if ((r1 & SD_R1_ILLEGAL) == 0u) {
+ 80014c4:	f015 0f04 	tst.w	r5, #4
+ 80014c8:	d00f      	beq.n	80014ea <sd_card_init+0x10e>
+        for (i = 0u; i < 1000u; i++) {
+ 80014ca:	2400      	movs	r4, #0
+ 80014cc:	f5b4 7f7a 	cmp.w	r4, #1000	@ 0x3e8
+ 80014d0:	d271      	bcs.n	80015b6 <sd_card_init+0x1da>
+            r1 = sd_send_app_command(SD_ACMD41, 0u);
+ 80014d2:	2100      	movs	r1, #0
+ 80014d4:	2029      	movs	r0, #41	@ 0x29
+ 80014d6:	f7fe ff85 	bl	80003e4 <sd_send_app_command>
+            if (r1 == 0x00u) {
+ 80014da:	4605      	mov	r5, r0
+ 80014dc:	2800      	cmp	r0, #0
+ 80014de:	d06a      	beq.n	80015b6 <sd_card_init+0x1da>
+        for (i = 0u; i < 1000u; i++) {
+ 80014e0:	3401      	adds	r4, #1
+ 80014e2:	e7f3      	b.n	80014cc <sd_card_init+0xf0>
+        sd_deselect();
+ 80014e4:	f7fe ff10 	bl	8000308 <sd_deselect>
+        return false;
+ 80014e8:	e79f      	b.n	800142a <sd_card_init+0x4e>
+        for (i = 0u; i < 1000u; i++) {
+ 80014ea:	2400      	movs	r4, #0
+ 80014ec:	f5b4 7f7a 	cmp.w	r4, #1000	@ 0x3e8
+ 80014f0:	d208      	bcs.n	8001504 <sd_card_init+0x128>
+            r1 = sd_send_app_command(SD_ACMD41, 0x40000000u);
+ 80014f2:	f04f 4180 	mov.w	r1, #1073741824	@ 0x40000000
+ 80014f6:	2029      	movs	r0, #41	@ 0x29
+ 80014f8:	f7fe ff74 	bl	80003e4 <sd_send_app_command>
+            if (r1 == 0x00u) {
+ 80014fc:	4605      	mov	r5, r0
+ 80014fe:	b108      	cbz	r0, 8001504 <sd_card_init+0x128>
+        for (i = 0u; i < 1000u; i++) {
+ 8001500:	3401      	adds	r4, #1
+ 8001502:	e7f3      	b.n	80014ec <sd_card_init+0x110>
+        usart1_puts("sd: ACMD41(v2) polls=");
+ 8001504:	483d      	ldr	r0, [pc, #244]	@ (80015fc <sd_card_init+0x220>)
+ 8001506:	f7fe fe05 	bl	8000114 <usart1_puts>
+        usart1_put_dec_u32(i + 1u);
+ 800150a:	1c60      	adds	r0, r4, #1
+ 800150c:	f7fe fe2e 	bl	800016c <usart1_put_dec_u32>
+        usart1_puts(" R1=0x");
+ 8001510:	483b      	ldr	r0, [pc, #236]	@ (8001600 <sd_card_init+0x224>)
+ 8001512:	f7fe fdff 	bl	8000114 <usart1_puts>
+        usart1_put_hex8(r1);
+ 8001516:	4628      	mov	r0, r5
+ 8001518:	f7fe fe06 	bl	8000128 <usart1_put_hex8>
+        usart1_puts("\r\n");
+ 800151c:	4834      	ldr	r0, [pc, #208]	@ (80015f0 <sd_card_init+0x214>)
+ 800151e:	f7fe fdf9 	bl	8000114 <usart1_puts>
+        if (r1 != 0x00u) {
+ 8001522:	2d00      	cmp	r5, #0
+ 8001524:	d15c      	bne.n	80015e0 <sd_card_init+0x204>
+    if (!sd_read_ocr(ocr_out)) {
+ 8001526:	4630      	mov	r0, r6
+ 8001528:	f7fe ffb8 	bl	800049c <sd_read_ocr>
+ 800152c:	4604      	mov	r4, r0
+ 800152e:	2800      	cmp	r0, #0
+ 8001530:	f43f af7b 	beq.w	800142a <sd_card_init+0x4e>
+    g_sd_is_sdhc = ((*ocr_out & 0x40000000u) != 0u);
+ 8001534:	6833      	ldr	r3, [r6, #0]
+ 8001536:	f3c3 7380 	ubfx	r3, r3, #30, #1
+ 800153a:	4c2a      	ldr	r4, [pc, #168]	@ (80015e4 <sd_card_init+0x208>)
+ 800153c:	7023      	strb	r3, [r4, #0]
+    usart1_puts("sd: OCR=0x");
+ 800153e:	4831      	ldr	r0, [pc, #196]	@ (8001604 <sd_card_init+0x228>)
+ 8001540:	f7fe fde8 	bl	8000114 <usart1_puts>
+    usart1_put_hex32(*ocr_out);
+ 8001544:	6830      	ldr	r0, [r6, #0]
+ 8001546:	f7fe fe08 	bl	800015a <usart1_put_hex32>
+    usart1_puts(" type=");
+ 800154a:	482f      	ldr	r0, [pc, #188]	@ (8001608 <sd_card_init+0x22c>)
+ 800154c:	f7fe fde2 	bl	8000114 <usart1_puts>
+    usart1_puts(g_sd_is_sdhc ? "SDHC/SDXC" : "SDSC");
+ 8001550:	7823      	ldrb	r3, [r4, #0]
+ 8001552:	2b00      	cmp	r3, #0
+ 8001554:	d042      	beq.n	80015dc <sd_card_init+0x200>
+ 8001556:	482d      	ldr	r0, [pc, #180]	@ (800160c <sd_card_init+0x230>)
+ 8001558:	f7fe fddc 	bl	8000114 <usart1_puts>
+    usart1_puts("\r\n");
+ 800155c:	4824      	ldr	r0, [pc, #144]	@ (80015f0 <sd_card_init+0x214>)
+ 800155e:	f7fe fdd9 	bl	8000114 <usart1_puts>
+    if (!g_sd_is_sdhc) {
+ 8001562:	4b20      	ldr	r3, [pc, #128]	@ (80015e4 <sd_card_init+0x208>)
+ 8001564:	781c      	ldrb	r4, [r3, #0]
+ 8001566:	b994      	cbnz	r4, 800158e <sd_card_init+0x1b2>
+        r1 = sd_send_command(SD_CMD16, SD_SECTOR_SIZE, 0xFFu);
+ 8001568:	22ff      	movs	r2, #255	@ 0xff
+ 800156a:	f44f 7100 	mov.w	r1, #512	@ 0x200
+ 800156e:	2010      	movs	r0, #16
+ 8001570:	f7fe ff21 	bl	80003b6 <sd_send_command>
+ 8001574:	4605      	mov	r5, r0
+        usart1_puts("sd: CMD16 R1=0x");
+ 8001576:	4826      	ldr	r0, [pc, #152]	@ (8001610 <sd_card_init+0x234>)
+ 8001578:	f7fe fdcc 	bl	8000114 <usart1_puts>
+        usart1_put_hex8(r1);
+ 800157c:	4628      	mov	r0, r5
+ 800157e:	f7fe fdd3 	bl	8000128 <usart1_put_hex8>
+        usart1_puts("\r\n");
+ 8001582:	481b      	ldr	r0, [pc, #108]	@ (80015f0 <sd_card_init+0x214>)
+ 8001584:	f7fe fdc6 	bl	8000114 <usart1_puts>
+        if (r1 != 0x00u) {
+ 8001588:	2d00      	cmp	r5, #0
+ 800158a:	f47f af4e 	bne.w	800142a <sd_card_init+0x4e>
+    if (!sd_read_register(SD_CMD10, cid)) {
+ 800158e:	4639      	mov	r1, r7
+ 8001590:	200a      	movs	r0, #10
+ 8001592:	f7fe ff5f 	bl	8000454 <sd_read_register>
+ 8001596:	4604      	mov	r4, r0
+ 8001598:	2800      	cmp	r0, #0
+ 800159a:	f43f af46 	beq.w	800142a <sd_card_init+0x4e>
+    if (!sd_read_register(SD_CMD9, csd)) {
+ 800159e:	4641      	mov	r1, r8
+ 80015a0:	2009      	movs	r0, #9
+ 80015a2:	f7fe ff57 	bl	8000454 <sd_read_register>
+ 80015a6:	4604      	mov	r4, r0
+ 80015a8:	2800      	cmp	r0, #0
+ 80015aa:	f43f af3e 	beq.w	800142a <sd_card_init+0x4e>
+    sd_spi_set_prescaler(SD_SPI_BR_RUN);
+ 80015ae:	2010      	movs	r0, #16
+ 80015b0:	f7fe fe5c 	bl	800026c <sd_spi_set_prescaler>
+    return true;
+ 80015b4:	e739      	b.n	800142a <sd_card_init+0x4e>
+        usart1_puts("sd: ACMD41(v1) polls=");
+ 80015b6:	4817      	ldr	r0, [pc, #92]	@ (8001614 <sd_card_init+0x238>)
+ 80015b8:	f7fe fdac 	bl	8000114 <usart1_puts>
+        usart1_put_dec_u32(i + 1u);
+ 80015bc:	1c60      	adds	r0, r4, #1
+ 80015be:	f7fe fdd5 	bl	800016c <usart1_put_dec_u32>
+        usart1_puts(" R1=0x");
+ 80015c2:	480f      	ldr	r0, [pc, #60]	@ (8001600 <sd_card_init+0x224>)
+ 80015c4:	f7fe fda6 	bl	8000114 <usart1_puts>
+        usart1_put_hex8(r1);
+ 80015c8:	4628      	mov	r0, r5
+ 80015ca:	f7fe fdad 	bl	8000128 <usart1_put_hex8>
+        usart1_puts("\r\n");
+ 80015ce:	4808      	ldr	r0, [pc, #32]	@ (80015f0 <sd_card_init+0x214>)
+ 80015d0:	f7fe fda0 	bl	8000114 <usart1_puts>
+        if (r1 != 0x00u) {
+ 80015d4:	2d00      	cmp	r5, #0
+ 80015d6:	d0a6      	beq.n	8001526 <sd_card_init+0x14a>
+            return false;
+ 80015d8:	2400      	movs	r4, #0
+ 80015da:	e726      	b.n	800142a <sd_card_init+0x4e>
+    usart1_puts(g_sd_is_sdhc ? "SDHC/SDXC" : "SDSC");
+ 80015dc:	480e      	ldr	r0, [pc, #56]	@ (8001618 <sd_card_init+0x23c>)
+ 80015de:	e7bb      	b.n	8001558 <sd_card_init+0x17c>
+            return false;
+ 80015e0:	2400      	movs	r4, #0
+ 80015e2:	e722      	b.n	800142a <sd_card_init+0x4e>
+ 80015e4:	20000204 	.word	0x20000204
+ 80015e8:	08001e4c 	.word	0x08001e4c
+ 80015ec:	08001e5c 	.word	0x08001e5c
+ 80015f0:	080019c0 	.word	0x080019c0
+ 80015f4:	08001e6c 	.word	0x08001e6c
+ 80015f8:	08001e7c 	.word	0x08001e7c
+ 80015fc:	08001e84 	.word	0x08001e84
+ 8001600:	08001e64 	.word	0x08001e64
+ 8001604:	08001eb4 	.word	0x08001eb4
+ 8001608:	08001ec0 	.word	0x08001ec0
+ 800160c:	08001e38 	.word	0x08001e38
+ 8001610:	08001ec8 	.word	0x08001ec8
+ 8001614:	08001e9c 	.word	0x08001e9c
+ 8001618:	08001e44 	.word	0x08001e44
+
+0800161c <SysTick_Handler>:
+    g_ms_ticks++;
+ 800161c:	4a02      	ldr	r2, [pc, #8]	@ (8001628 <SysTick_Handler+0xc>)
+ 800161e:	6813      	ldr	r3, [r2, #0]
+ 8001620:	3301      	adds	r3, #1
+ 8001622:	6013      	str	r3, [r2, #0]
+}
+ 8001624:	4770      	bx	lr
+ 8001626:	bf00      	nop
+ 8001628:	20000208 	.word	0x20000208
+
+0800162c <main>:
+
+int main(void)
+{
+ 800162c:	b500      	push	{lr}
+ 800162e:	b09b      	sub	sp, #108	@ 0x6c
+    uint32_t ocr = 0u;
+ 8001630:	2300      	movs	r3, #0
+ 8001632:	9319      	str	r3, [sp, #100]	@ 0x64
+    uint32_t volume_lba = 0u;
+ 8001634:	9318      	str	r3, [sp, #96]	@ 0x60
+    uint8_t volume_type = 0u;
+ 8001636:	f88d 305f 	strb.w	r3, [sp, #95]	@ 0x5f
+    fat32_volume_t volume;
+    fat32_dir_entry_t file_entry;
+    static const uint8_t cmdline_name[11] = { 'C', 'M', 'D', 'L', 'I', 'N', 'E', ' ', 'T', 'X', 'T' };
+    static const uint8_t config_name[11] = { 'C', 'O', 'N', 'F', 'I', 'G', ' ', ' ', 'T', 'X', 'T' };
+
+    SystemCoreClockUpdate();
+ 800163a:	f000 f977 	bl	800192c <SystemCoreClockUpdate>
+    SysTick_Config(SystemCoreClock / 1000u);
+ 800163e:	4b8b      	ldr	r3, [pc, #556]	@ (800186c <main+0x240>)
+ 8001640:	681b      	ldr	r3, [r3, #0]
+ 8001642:	4a8b      	ldr	r2, [pc, #556]	@ (8001870 <main+0x244>)
+ 8001644:	fba2 2303 	umull	r2, r3, r2, r3
+ 8001648:	099b      	lsrs	r3, r3, #6
+           function <b>SysTick_Config</b> is not included. In this case, the file <b><i>device</i>.h</b>
+           must contain a vendor-specific implementation of this function.
+ */
+__STATIC_INLINE uint32_t SysTick_Config(uint32_t ticks)
+{
+  if ((ticks - 1UL) > SysTick_LOAD_RELOAD_Msk)
+ 800164a:	3b01      	subs	r3, #1
+ 800164c:	f1b3 7f80 	cmp.w	r3, #16777216	@ 0x1000000
+ 8001650:	d20a      	bcs.n	8001668 <main+0x3c>
+  {
+    return (1UL);                                                   /* Reload value impossible */
+  }
+
+  SysTick->LOAD  = (uint32_t)(ticks - 1UL);                         /* set reload register */
+ 8001652:	f04f 22e0 	mov.w	r2, #3758153728	@ 0xe000e000
+ 8001656:	6153      	str	r3, [r2, #20]
+    SCB->SHP[(((uint32_t)IRQn) & 0xFUL)-4UL] = (uint8_t)((priority << (8U - __NVIC_PRIO_BITS)) & (uint32_t)0xFFUL);
+ 8001658:	4b86      	ldr	r3, [pc, #536]	@ (8001874 <main+0x248>)
+ 800165a:	21f0      	movs	r1, #240	@ 0xf0
+ 800165c:	f883 1023 	strb.w	r1, [r3, #35]	@ 0x23
+  NVIC_SetPriority (SysTick_IRQn, (1UL << __NVIC_PRIO_BITS) - 1UL); /* set Priority for Systick Interrupt */
+  SysTick->VAL   = 0UL;                                             /* Load the SysTick Counter Value */
+ 8001660:	2300      	movs	r3, #0
+ 8001662:	6193      	str	r3, [r2, #24]
+  SysTick->CTRL  = SysTick_CTRL_CLKSOURCE_Msk |
+ 8001664:	2307      	movs	r3, #7
+ 8001666:	6113      	str	r3, [r2, #16]
+    led_init();
+ 8001668:	f7fe fddc 	bl	8000224 <led_init>
+    usart1_init();
+ 800166c:	f7fe fdaa 	bl	80001c4 <usart1_init>
+    sd_spi_init();
+ 8001670:	f7fe fe0e 	bl	8000290 <sd_spi_init>
+
+    usart1_puts("\r\nsd_fat32_ro: STM32F103C8 SPI1 / USART1\r\n");
+ 8001674:	4880      	ldr	r0, [pc, #512]	@ (8001878 <main+0x24c>)
+ 8001676:	f7fe fd4d 	bl	8000114 <usart1_puts>
+    usart1_puts("sd_fat32_ro: PA4=CS PA5=SCK PA6=MISO PA7=MOSI\r\n");
+ 800167a:	4880      	ldr	r0, [pc, #512]	@ (800187c <main+0x250>)
+ 800167c:	f7fe fd4a 	bl	8000114 <usart1_puts>
+    usart1_puts("sd_fat32_ro: starting probe in 1000 ms\r\n");
+ 8001680:	487f      	ldr	r0, [pc, #508]	@ (8001880 <main+0x254>)
+ 8001682:	f7fe fd47 	bl	8000114 <usart1_puts>
+    delay_ms(1000u);
+ 8001686:	f44f 707a 	mov.w	r0, #1000	@ 0x3e8
+ 800168a:	f7fe fd2f 	bl	80000ec <delay_ms>
+
+    led_set(true);
+ 800168e:	2001      	movs	r0, #1
+ 8001690:	f7fe fdde 	bl	8000250 <led_set>
+
+    if (!sd_card_init(&ocr, cid, csd)) {
+ 8001694:	aa0f      	add	r2, sp, #60	@ 0x3c
+ 8001696:	a913      	add	r1, sp, #76	@ 0x4c
+ 8001698:	a819      	add	r0, sp, #100	@ 0x64
+ 800169a:	f7ff fe9f 	bl	80013dc <sd_card_init>
+ 800169e:	b948      	cbnz	r0, 80016b4 <main+0x88>
+        led_set(false);
+ 80016a0:	f7fe fdd6 	bl	8000250 <led_set>
+        usart1_puts("sd: init failed\r\n");
+ 80016a4:	4877      	ldr	r0, [pc, #476]	@ (8001884 <main+0x258>)
+ 80016a6:	f7fe fd35 	bl	8000114 <usart1_puts>
+        while (1) {
+            delay_ms(1000u);
+ 80016aa:	f44f 707a 	mov.w	r0, #1000	@ 0x3e8
+ 80016ae:	f7fe fd1d 	bl	80000ec <delay_ms>
+        while (1) {
+ 80016b2:	e7fa      	b.n	80016aa <main+0x7e>
+        }
+    }
+
+    sd_print_cid_summary(cid);
+ 80016b4:	a813      	add	r0, sp, #76	@ 0x4c
+ 80016b6:	f7ff fdbb 	bl	8001230 <sd_print_cid_summary>
+    sd_print_csd_summary(csd);
+ 80016ba:	a80f      	add	r0, sp, #60	@ 0x3c
+ 80016bc:	f7ff fe34 	bl	8001328 <sd_print_csd_summary>
+
+    usart1_puts("sd: reading sector 0\r\n");
+ 80016c0:	4871      	ldr	r0, [pc, #452]	@ (8001888 <main+0x25c>)
+ 80016c2:	f7fe fd27 	bl	8000114 <usart1_puts>
+    if (!sd_read_block(0u, g_sector0)) {
+ 80016c6:	4971      	ldr	r1, [pc, #452]	@ (800188c <main+0x260>)
+ 80016c8:	2000      	movs	r0, #0
+ 80016ca:	f7fe ff25 	bl	8000518 <sd_read_block>
+ 80016ce:	b948      	cbnz	r0, 80016e4 <main+0xb8>
+        led_set(false);
+ 80016d0:	f7fe fdbe 	bl	8000250 <led_set>
+        usart1_puts("sd: CMD17 block 0 failed\r\n");
+ 80016d4:	486e      	ldr	r0, [pc, #440]	@ (8001890 <main+0x264>)
+ 80016d6:	f7fe fd1d 	bl	8000114 <usart1_puts>
+        while (1) {
+            delay_ms(1000u);
+ 80016da:	f44f 707a 	mov.w	r0, #1000	@ 0x3e8
+ 80016de:	f7fe fd05 	bl	80000ec <delay_ms>
+        while (1) {
+ 80016e2:	e7fa      	b.n	80016da <main+0xae>
+        }
+    }
+
+    sd_print_sector_prefix(g_sector0);
+ 80016e4:	4c69      	ldr	r4, [pc, #420]	@ (800188c <main+0x260>)
+ 80016e6:	4620      	mov	r0, r4
+ 80016e8:	f7ff f85a 	bl	80007a0 <sd_print_sector_prefix>
+    usart1_puts("sd: sector0 signature=0x");
+ 80016ec:	4869      	ldr	r0, [pc, #420]	@ (8001894 <main+0x268>)
+ 80016ee:	f7fe fd11 	bl	8000114 <usart1_puts>
+    usart1_put_hex8(g_sector0[511]);
+ 80016f2:	f894 01ff 	ldrb.w	r0, [r4, #511]	@ 0x1ff
+ 80016f6:	f7fe fd17 	bl	8000128 <usart1_put_hex8>
+    usart1_put_hex8(g_sector0[510]);
+ 80016fa:	f894 01fe 	ldrb.w	r0, [r4, #510]	@ 0x1fe
+ 80016fe:	f7fe fd13 	bl	8000128 <usart1_put_hex8>
+    usart1_puts("\r\n");
+ 8001702:	4865      	ldr	r0, [pc, #404]	@ (8001898 <main+0x26c>)
+ 8001704:	f7fe fd06 	bl	8000114 <usart1_puts>
+
+    if (sd_find_primary_volume(g_sector0, &volume_lba, &volume_type)) {
+ 8001708:	f10d 025f 	add.w	r2, sp, #95	@ 0x5f
+ 800170c:	a918      	add	r1, sp, #96	@ 0x60
+ 800170e:	4620      	mov	r0, r4
+ 8001710:	f7ff f8be 	bl	8000890 <sd_find_primary_volume>
+ 8001714:	b310      	cbz	r0, 800175c <main+0x130>
+        usart1_puts("sd: selected partition type 0x");
+ 8001716:	4861      	ldr	r0, [pc, #388]	@ (800189c <main+0x270>)
+ 8001718:	f7fe fcfc 	bl	8000114 <usart1_puts>
+        usart1_put_hex8(volume_type);
+ 800171c:	f89d 005f 	ldrb.w	r0, [sp, #95]	@ 0x5f
+ 8001720:	f7fe fd02 	bl	8000128 <usart1_put_hex8>
+        usart1_puts("\r\n");
+ 8001724:	4c5c      	ldr	r4, [pc, #368]	@ (8001898 <main+0x26c>)
+ 8001726:	4620      	mov	r0, r4
+ 8001728:	f7fe fcf4 	bl	8000114 <usart1_puts>
+        usart1_puts("sd: reading boot sector at lba ");
+ 800172c:	485c      	ldr	r0, [pc, #368]	@ (80018a0 <main+0x274>)
+ 800172e:	f7fe fcf1 	bl	8000114 <usart1_puts>
+        usart1_put_dec_u32(volume_lba);
+ 8001732:	9818      	ldr	r0, [sp, #96]	@ 0x60
+ 8001734:	f7fe fd1a 	bl	800016c <usart1_put_dec_u32>
+        usart1_puts("\r\n");
+ 8001738:	4620      	mov	r0, r4
+ 800173a:	f7fe fceb 	bl	8000114 <usart1_puts>
+        if (!sd_read_block(volume_lba, g_sector0)) {
+ 800173e:	4953      	ldr	r1, [pc, #332]	@ (800188c <main+0x260>)
+ 8001740:	9818      	ldr	r0, [sp, #96]	@ 0x60
+ 8001742:	f7fe fee9 	bl	8000518 <sd_read_block>
+ 8001746:	b970      	cbnz	r0, 8001766 <main+0x13a>
+            led_set(false);
+ 8001748:	f7fe fd82 	bl	8000250 <led_set>
+            usart1_puts("sd: boot sector read failed\r\n");
+ 800174c:	4855      	ldr	r0, [pc, #340]	@ (80018a4 <main+0x278>)
+ 800174e:	f7fe fce1 	bl	8000114 <usart1_puts>
+            while (1) {
+                delay_ms(1000u);
+ 8001752:	f44f 707a 	mov.w	r0, #1000	@ 0x3e8
+ 8001756:	f7fe fcc9 	bl	80000ec <delay_ms>
+            while (1) {
+ 800175a:	e7fa      	b.n	8001752 <main+0x126>
+            }
+        }
+    } else {
+        usart1_puts("sd: no partition entry found; treating sector 0 as boot sector\r\n");
+ 800175c:	4852      	ldr	r0, [pc, #328]	@ (80018a8 <main+0x27c>)
+ 800175e:	f7fe fcd9 	bl	8000114 <usart1_puts>
+        volume_lba = 0u;
+ 8001762:	2300      	movs	r3, #0
+ 8001764:	9318      	str	r3, [sp, #96]	@ 0x60
+    }
+
+    sd_print_boot_sector_summary(g_sector0, volume_lba);
+ 8001766:	4c49      	ldr	r4, [pc, #292]	@ (800188c <main+0x260>)
+ 8001768:	9918      	ldr	r1, [sp, #96]	@ 0x60
+ 800176a:	4620      	mov	r0, r4
+ 800176c:	f7ff f964 	bl	8000a38 <sd_print_boot_sector_summary>
+    if (sd_is_fat32_boot_sector(g_sector0)) {
+ 8001770:	4620      	mov	r0, r4
+ 8001772:	f7fe ff69 	bl	8000648 <sd_is_fat32_boot_sector>
+ 8001776:	2800      	cmp	r0, #0
+ 8001778:	d069      	beq.n	800184e <main+0x222>
+        if (!fat32_parse_volume(g_sector0, volume_lba, &volume)) {
+ 800177a:	aa06      	add	r2, sp, #24
+ 800177c:	9918      	ldr	r1, [sp, #96]	@ 0x60
+ 800177e:	4620      	mov	r0, r4
+ 8001780:	f7ff fb24 	bl	8000dcc <fat32_parse_volume>
+ 8001784:	b948      	cbnz	r0, 800179a <main+0x16e>
+            led_set(false);
+ 8001786:	f7fe fd63 	bl	8000250 <led_set>
+            usart1_puts("fat32: unsupported BPB\r\n");
+ 800178a:	4848      	ldr	r0, [pc, #288]	@ (80018ac <main+0x280>)
+ 800178c:	f7fe fcc2 	bl	8000114 <usart1_puts>
+            while (1) {
+                delay_ms(1000u);
+ 8001790:	f44f 707a 	mov.w	r0, #1000	@ 0x3e8
+ 8001794:	f7fe fcaa 	bl	80000ec <delay_ms>
+            while (1) {
+ 8001798:	e7fa      	b.n	8001790 <main+0x164>
+            }
+        }
+
+        if (!sd_probe_fat32_aux(volume_lba, g_sector0)) {
+ 800179a:	493c      	ldr	r1, [pc, #240]	@ (800188c <main+0x260>)
+ 800179c:	9818      	ldr	r0, [sp, #96]	@ 0x60
+ 800179e:	f7ff fa77 	bl	8000c90 <sd_probe_fat32_aux>
+ 80017a2:	b948      	cbnz	r0, 80017b8 <main+0x18c>
+            led_set(false);
+ 80017a4:	f7fe fd54 	bl	8000250 <led_set>
+            usart1_puts("sd: FAT32 auxiliary probe failed\r\n");
+ 80017a8:	4841      	ldr	r0, [pc, #260]	@ (80018b0 <main+0x284>)
+ 80017aa:	f7fe fcb3 	bl	8000114 <usart1_puts>
+            while (1) {
+                delay_ms(1000u);
+ 80017ae:	f44f 707a 	mov.w	r0, #1000	@ 0x3e8
+ 80017b2:	f7fe fc9b 	bl	80000ec <delay_ms>
+            while (1) {
+ 80017b6:	e7fa      	b.n	80017ae <main+0x182>
+            }
+        }
+
+        usart1_puts("fat32: root directory\r\n");
+ 80017b8:	483e      	ldr	r0, [pc, #248]	@ (80018b4 <main+0x288>)
+ 80017ba:	f7fe fcab 	bl	8000114 <usart1_puts>
+        if (!fat32_list_directory(&volume, volume.root_cluster, 64u)) {
+ 80017be:	2240      	movs	r2, #64	@ 0x40
+ 80017c0:	990a      	ldr	r1, [sp, #40]	@ 0x28
+ 80017c2:	a806      	add	r0, sp, #24
+ 80017c4:	f7ff fc26 	bl	8001014 <fat32_list_directory>
+ 80017c8:	b948      	cbnz	r0, 80017de <main+0x1b2>
+            led_set(false);
+ 80017ca:	f7fe fd41 	bl	8000250 <led_set>
+            usart1_puts("fat32: root directory read failed\r\n");
+ 80017ce:	483a      	ldr	r0, [pc, #232]	@ (80018b8 <main+0x28c>)
+ 80017d0:	f7fe fca0 	bl	8000114 <usart1_puts>
+            while (1) {
+                delay_ms(1000u);
+ 80017d4:	f44f 707a 	mov.w	r0, #1000	@ 0x3e8
+ 80017d8:	f7fe fc88 	bl	80000ec <delay_ms>
+            while (1) {
+ 80017dc:	e7fa      	b.n	80017d4 <main+0x1a8>
+            }
+        }
+
+        if (fat32_find_in_root(&volume, cmdline_name, &file_entry)) {
+ 80017de:	aa01      	add	r2, sp, #4
+ 80017e0:	4936      	ldr	r1, [pc, #216]	@ (80018bc <main+0x290>)
+ 80017e2:	a806      	add	r0, sp, #24
+ 80017e4:	f7ff fc62 	bl	80010ac <fat32_find_in_root>
+ 80017e8:	b170      	cbz	r0, 8001808 <main+0x1dc>
+            usart1_puts("fat32: CMDLINE.TXT ");
+ 80017ea:	4835      	ldr	r0, [pc, #212]	@ (80018c0 <main+0x294>)
+ 80017ec:	f7fe fc92 	bl	8000114 <usart1_puts>
+            usart1_put_dec_u32(file_entry.size_bytes);
+ 80017f0:	9805      	ldr	r0, [sp, #20]
+ 80017f2:	f7fe fcbb 	bl	800016c <usart1_put_dec_u32>
+            usart1_puts(" bytes: ");
+ 80017f6:	4833      	ldr	r0, [pc, #204]	@ (80018c4 <main+0x298>)
+ 80017f8:	f7fe fc8c 	bl	8000114 <usart1_puts>
+            if (!fat32_dump_file_prefix(&volume, &file_entry, 160u)) {
+ 80017fc:	22a0      	movs	r2, #160	@ 0xa0
+ 80017fe:	a901      	add	r1, sp, #4
+ 8001800:	a806      	add	r0, sp, #24
+ 8001802:	f7ff fcb5 	bl	8001170 <fat32_dump_file_prefix>
+ 8001806:	b1c0      	cbz	r0, 800183a <main+0x20e>
+                    delay_ms(1000u);
+                }
+            }
+        }
+
+        if (fat32_find_in_root(&volume, config_name, &file_entry)) {
+ 8001808:	aa01      	add	r2, sp, #4
+ 800180a:	492f      	ldr	r1, [pc, #188]	@ (80018c8 <main+0x29c>)
+ 800180c:	a806      	add	r0, sp, #24
+ 800180e:	f7ff fc4d 	bl	80010ac <fat32_find_in_root>
+ 8001812:	b1f8      	cbz	r0, 8001854 <main+0x228>
+            usart1_puts("fat32: CONFIG.TXT prefix: ");
+ 8001814:	482d      	ldr	r0, [pc, #180]	@ (80018cc <main+0x2a0>)
+ 8001816:	f7fe fc7d 	bl	8000114 <usart1_puts>
+            if (!fat32_dump_file_prefix(&volume, &file_entry, 160u)) {
+ 800181a:	22a0      	movs	r2, #160	@ 0xa0
+ 800181c:	a901      	add	r1, sp, #4
+ 800181e:	a806      	add	r0, sp, #24
+ 8001820:	f7ff fca6 	bl	8001170 <fat32_dump_file_prefix>
+ 8001824:	b9b0      	cbnz	r0, 8001854 <main+0x228>
+                led_set(false);
+ 8001826:	f7fe fd13 	bl	8000250 <led_set>
+                usart1_puts("fat32: CONFIG.TXT read failed\r\n");
+ 800182a:	4829      	ldr	r0, [pc, #164]	@ (80018d0 <main+0x2a4>)
+ 800182c:	f7fe fc72 	bl	8000114 <usart1_puts>
+                while (1) {
+                    delay_ms(1000u);
+ 8001830:	f44f 707a 	mov.w	r0, #1000	@ 0x3e8
+ 8001834:	f7fe fc5a 	bl	80000ec <delay_ms>
+                while (1) {
+ 8001838:	e7fa      	b.n	8001830 <main+0x204>
+                led_set(false);
+ 800183a:	f7fe fd09 	bl	8000250 <led_set>
+                usart1_puts("fat32: CMDLINE.TXT read failed\r\n");
+ 800183e:	4825      	ldr	r0, [pc, #148]	@ (80018d4 <main+0x2a8>)
+ 8001840:	f7fe fc68 	bl	8000114 <usart1_puts>
+                    delay_ms(1000u);
+ 8001844:	f44f 707a 	mov.w	r0, #1000	@ 0x3e8
+ 8001848:	f7fe fc50 	bl	80000ec <delay_ms>
+                while (1) {
+ 800184c:	e7fa      	b.n	8001844 <main+0x218>
+                }
+            }
+        }
+    } else {
+        usart1_puts("fat32: selected volume is not FAT32\r\n");
+ 800184e:	4822      	ldr	r0, [pc, #136]	@ (80018d8 <main+0x2ac>)
+ 8001850:	f7fe fc60 	bl	8000114 <usart1_puts>
+    }
+    usart1_puts("sd_fat32_ro: complete\r\n");
+ 8001854:	4821      	ldr	r0, [pc, #132]	@ (80018dc <main+0x2b0>)
+ 8001856:	f7fe fc5d 	bl	8000114 <usart1_puts>
+    led_set(false);
+ 800185a:	2000      	movs	r0, #0
+ 800185c:	f7fe fcf8 	bl	8000250 <led_set>
+
+    while (1) {
+        delay_ms(1000u);
+ 8001860:	f44f 707a 	mov.w	r0, #1000	@ 0x3e8
+ 8001864:	f7fe fc42 	bl	80000ec <delay_ms>
+    while (1) {
+ 8001868:	e7fa      	b.n	8001860 <main+0x234>
+ 800186a:	bf00      	nop
+ 800186c:	20000000 	.word	0x20000000
+ 8001870:	10624dd3 	.word	0x10624dd3
+ 8001874:	e000ed00 	.word	0xe000ed00
+ 8001878:	08001ed8 	.word	0x08001ed8
+ 800187c:	08001f04 	.word	0x08001f04
+ 8001880:	08001f34 	.word	0x08001f34
+ 8001884:	08001f60 	.word	0x08001f60
+ 8001888:	08001f74 	.word	0x08001f74
+ 800188c:	20000004 	.word	0x20000004
+ 8001890:	08001f8c 	.word	0x08001f8c
+ 8001894:	08001fa8 	.word	0x08001fa8
+ 8001898:	080019c0 	.word	0x080019c0
+ 800189c:	08001fc4 	.word	0x08001fc4
+ 80018a0:	08001fe4 	.word	0x08001fe4
+ 80018a4:	08002004 	.word	0x08002004
+ 80018a8:	08002024 	.word	0x08002024
+ 80018ac:	08002068 	.word	0x08002068
+ 80018b0:	08002084 	.word	0x08002084
+ 80018b4:	080020a8 	.word	0x080020a8
+ 80018b8:	080020c0 	.word	0x080020c0
+ 80018bc:	080021c4 	.word	0x080021c4
+ 80018c0:	080020e4 	.word	0x080020e4
+ 80018c4:	080020f8 	.word	0x080020f8
+ 80018c8:	080021b8 	.word	0x080021b8
+ 80018cc:	08002128 	.word	0x08002128
+ 80018d0:	08002144 	.word	0x08002144
+ 80018d4:	08002104 	.word	0x08002104
+ 80018d8:	08002164 	.word	0x08002164
+ 80018dc:	0800218c 	.word	0x0800218c
+
+080018e0 <BusFault_Handler>:
+    }
+}
+
+static void Default_Handler(void)
+{
+    while (1) {
+ 80018e0:	e7fe      	b.n	80018e0 <BusFault_Handler>
+	...
+
+080018e4 <Reset_Handler>:
+{
+ 80018e4:	b508      	push	{r3, lr}
+    SystemInit();
+ 80018e6:	f000 f81f 	bl	8001928 <SystemInit>
+    uint32_t *dst = &_sdata;
+ 80018ea:	4b0a      	ldr	r3, [pc, #40]	@ (8001914 <Reset_Handler+0x30>)
+    uint32_t *src = &_sidata;
+ 80018ec:	4a0a      	ldr	r2, [pc, #40]	@ (8001918 <Reset_Handler+0x34>)
+    while (dst < &_edata) {
+ 80018ee:	e003      	b.n	80018f8 <Reset_Handler+0x14>
+        *dst++ = *src++;
+ 80018f0:	f852 1b04 	ldr.w	r1, [r2], #4
+ 80018f4:	f843 1b04 	str.w	r1, [r3], #4
+    while (dst < &_edata) {
+ 80018f8:	4908      	ldr	r1, [pc, #32]	@ (800191c <Reset_Handler+0x38>)
+ 80018fa:	428b      	cmp	r3, r1
+ 80018fc:	d3f8      	bcc.n	80018f0 <Reset_Handler+0xc>
+    for (dst = &_sbss; dst < &_ebss; ++dst) {
+ 80018fe:	4b08      	ldr	r3, [pc, #32]	@ (8001920 <Reset_Handler+0x3c>)
+ 8001900:	e002      	b.n	8001908 <Reset_Handler+0x24>
+        *dst = 0u;
+ 8001902:	2200      	movs	r2, #0
+ 8001904:	f843 2b04 	str.w	r2, [r3], #4
+    for (dst = &_sbss; dst < &_ebss; ++dst) {
+ 8001908:	4a06      	ldr	r2, [pc, #24]	@ (8001924 <Reset_Handler+0x40>)
+ 800190a:	4293      	cmp	r3, r2
+ 800190c:	d3f9      	bcc.n	8001902 <Reset_Handler+0x1e>
+    (void)main();
+ 800190e:	f7ff fe8d 	bl	800162c <main>
+    while (1) {
+ 8001912:	e7fe      	b.n	8001912 <Reset_Handler+0x2e>
+ 8001914:	20000000 	.word	0x20000000
+ 8001918:	080021e0 	.word	0x080021e0
+ 800191c:	20000004 	.word	0x20000004
+ 8001920:	20000004 	.word	0x20000004
+ 8001924:	2000020c 	.word	0x2000020c
+
+08001928 <SystemInit>:
+
+  /* Configure the Vector Table location -------------------------------------*/
+#if defined(USER_VECT_TAB_ADDRESS)
+  SCB->VTOR = VECT_TAB_BASE_ADDRESS | VECT_TAB_OFFSET; /* Vector Table Relocation in Internal SRAM. */
+#endif /* USER_VECT_TAB_ADDRESS */
+}
+ 8001928:	4770      	bx	lr
+	...
+
+0800192c <SystemCoreClockUpdate>:
+#if defined(STM32F100xB) || defined(STM32F100xE)
+  uint32_t prediv1factor = 0U;
+#endif /* STM32F100xB or STM32F100xE */
+    
+  /* Get SYSCLK source -------------------------------------------------------*/
+  tmp = RCC->CFGR & RCC_CFGR_SWS;
+ 800192c:	4b1f      	ldr	r3, [pc, #124]	@ (80019ac <SystemCoreClockUpdate+0x80>)
+ 800192e:	685b      	ldr	r3, [r3, #4]
+ 8001930:	f003 030c 	and.w	r3, r3, #12
+  
+  switch (tmp)
+ 8001934:	2b04      	cmp	r3, #4
+ 8001936:	d011      	beq.n	800195c <SystemCoreClockUpdate+0x30>
+ 8001938:	2b08      	cmp	r3, #8
+ 800193a:	d013      	beq.n	8001964 <SystemCoreClockUpdate+0x38>
+ 800193c:	2b00      	cmp	r3, #0
+ 800193e:	d131      	bne.n	80019a4 <SystemCoreClockUpdate+0x78>
+  {
+    case 0x00U:  /* HSI used as system clock */
+      SystemCoreClock = HSI_VALUE;
+ 8001940:	4b1b      	ldr	r3, [pc, #108]	@ (80019b0 <SystemCoreClockUpdate+0x84>)
+ 8001942:	4a1c      	ldr	r2, [pc, #112]	@ (80019b4 <SystemCoreClockUpdate+0x88>)
+ 8001944:	601a      	str	r2, [r3, #0]
+      break;
+  }
+  
+  /* Compute HCLK clock frequency ----------------*/
+  /* Get HCLK prescaler */
+  tmp = AHBPrescTable[((RCC->CFGR & RCC_CFGR_HPRE) >> 4U)];
+ 8001946:	4b19      	ldr	r3, [pc, #100]	@ (80019ac <SystemCoreClockUpdate+0x80>)
+ 8001948:	685b      	ldr	r3, [r3, #4]
+ 800194a:	f3c3 1303 	ubfx	r3, r3, #4, #4
+ 800194e:	4a1a      	ldr	r2, [pc, #104]	@ (80019b8 <SystemCoreClockUpdate+0x8c>)
+ 8001950:	5cd1      	ldrb	r1, [r2, r3]
+  /* HCLK clock frequency */
+  SystemCoreClock >>= tmp;  
+ 8001952:	4a17      	ldr	r2, [pc, #92]	@ (80019b0 <SystemCoreClockUpdate+0x84>)
+ 8001954:	6813      	ldr	r3, [r2, #0]
+ 8001956:	40cb      	lsrs	r3, r1
+ 8001958:	6013      	str	r3, [r2, #0]
+}
+ 800195a:	4770      	bx	lr
+      SystemCoreClock = HSE_VALUE;
+ 800195c:	4b14      	ldr	r3, [pc, #80]	@ (80019b0 <SystemCoreClockUpdate+0x84>)
+ 800195e:	4a15      	ldr	r2, [pc, #84]	@ (80019b4 <SystemCoreClockUpdate+0x88>)
+ 8001960:	601a      	str	r2, [r3, #0]
+      break;
+ 8001962:	e7f0      	b.n	8001946 <SystemCoreClockUpdate+0x1a>
+      pllmull = RCC->CFGR & RCC_CFGR_PLLMULL;
+ 8001964:	4a11      	ldr	r2, [pc, #68]	@ (80019ac <SystemCoreClockUpdate+0x80>)
+ 8001966:	6853      	ldr	r3, [r2, #4]
+      pllsource = RCC->CFGR & RCC_CFGR_PLLSRC;
+ 8001968:	6852      	ldr	r2, [r2, #4]
+      pllmull = ( pllmull >> 18U) + 2U;
+ 800196a:	f3c3 4383 	ubfx	r3, r3, #18, #4
+ 800196e:	3302      	adds	r3, #2
+      if (pllsource == 0x00U)
+ 8001970:	f412 3f80 	tst.w	r2, #65536	@ 0x10000
+ 8001974:	d105      	bne.n	8001982 <SystemCoreClockUpdate+0x56>
+        SystemCoreClock = (HSI_VALUE >> 1U) * pllmull;
+ 8001976:	4a11      	ldr	r2, [pc, #68]	@ (80019bc <SystemCoreClockUpdate+0x90>)
+ 8001978:	fb02 f303 	mul.w	r3, r2, r3
+ 800197c:	4a0c      	ldr	r2, [pc, #48]	@ (80019b0 <SystemCoreClockUpdate+0x84>)
+ 800197e:	6013      	str	r3, [r2, #0]
+ 8001980:	e7e1      	b.n	8001946 <SystemCoreClockUpdate+0x1a>
+        if ((RCC->CFGR & RCC_CFGR_PLLXTPRE) != (uint32_t)RESET)
+ 8001982:	4a0a      	ldr	r2, [pc, #40]	@ (80019ac <SystemCoreClockUpdate+0x80>)
+ 8001984:	6852      	ldr	r2, [r2, #4]
+ 8001986:	f412 3f00 	tst.w	r2, #131072	@ 0x20000
+ 800198a:	d005      	beq.n	8001998 <SystemCoreClockUpdate+0x6c>
+          SystemCoreClock = (HSE_VALUE >> 1U) * pllmull;
+ 800198c:	4a0b      	ldr	r2, [pc, #44]	@ (80019bc <SystemCoreClockUpdate+0x90>)
+ 800198e:	fb02 f303 	mul.w	r3, r2, r3
+ 8001992:	4a07      	ldr	r2, [pc, #28]	@ (80019b0 <SystemCoreClockUpdate+0x84>)
+ 8001994:	6013      	str	r3, [r2, #0]
+ 8001996:	e7d6      	b.n	8001946 <SystemCoreClockUpdate+0x1a>
+          SystemCoreClock = HSE_VALUE * pllmull;
+ 8001998:	4a06      	ldr	r2, [pc, #24]	@ (80019b4 <SystemCoreClockUpdate+0x88>)
+ 800199a:	fb02 f303 	mul.w	r3, r2, r3
+ 800199e:	4a04      	ldr	r2, [pc, #16]	@ (80019b0 <SystemCoreClockUpdate+0x84>)
+ 80019a0:	6013      	str	r3, [r2, #0]
+ 80019a2:	e7d0      	b.n	8001946 <SystemCoreClockUpdate+0x1a>
+      SystemCoreClock = HSI_VALUE;
+ 80019a4:	4b02      	ldr	r3, [pc, #8]	@ (80019b0 <SystemCoreClockUpdate+0x84>)
+ 80019a6:	4a03      	ldr	r2, [pc, #12]	@ (80019b4 <SystemCoreClockUpdate+0x88>)
+ 80019a8:	601a      	str	r2, [r3, #0]
+      break;
+ 80019aa:	e7cc      	b.n	8001946 <SystemCoreClockUpdate+0x1a>
+ 80019ac:	40021000 	.word	0x40021000
+ 80019b0:	20000000 	.word	0x20000000
+ 80019b4:	007a1200 	.word	0x007a1200
+ 80019b8:	080021d0 	.word	0x080021d0
+ 80019bc:	003d0900 	.word	0x003d0900
+ 80019c0:	00000a0d 	.word	0x00000a0d
+ 80019c4:	41465845 	.word	0x41465845
+ 80019c8:	20202054 	.word	0x20202054
+ 80019cc:	00000000 	.word	0x00000000
+ 80019d0:	33544146 	.word	0x33544146
+ 80019d4:	20202032 	.word	0x20202032
+ 80019d8:	00000000 	.word	0x00000000
+ 80019dc:	31544146 	.word	0x31544146
+ 80019e0:	20202032 	.word	0x20202032
+ 80019e4:	00000000 	.word	0x00000000
+ 80019e8:	31544146 	.word	0x31544146
+ 80019ec:	20202036 	.word	0x20202036
+ 80019f0:	00000000 	.word	0x00000000
+ 80019f4:	00006e5c 	.word	0x00006e5c
+ 80019f8:	0000725c 	.word	0x0000725c
+ 80019fc:	0000785c 	.word	0x0000785c
+ 8001a00:	203a6473 	.word	0x203a6473
+ 8001a04:	74636573 	.word	0x74636573
+ 8001a08:	2030726f 	.word	0x2030726f
+ 8001a0c:	00000000 	.word	0x00000000
+ 8001a10:	0000203a 	.word	0x0000203a
+ 8001a14:	203a6473 	.word	0x203a6473
+ 8001a18:	74726170 	.word	0x74726170
+ 8001a1c:	00000000 	.word	0x00000000
+ 8001a20:	6f6f6220 	.word	0x6f6f6220
+ 8001a24:	78303d74 	.word	0x78303d74
+ 8001a28:	00000000 	.word	0x00000000
+ 8001a2c:	70797420 	.word	0x70797420
+ 8001a30:	78303d65 	.word	0x78303d65
+ 8001a34:	00000000 	.word	0x00000000
+ 8001a38:	61747320 	.word	0x61747320
+ 8001a3c:	6c5f7472 	.word	0x6c5f7472
+ 8001a40:	003d6162 	.word	0x003d6162
+ 8001a44:	63657320 	.word	0x63657320
+ 8001a48:	73726f74 	.word	0x73726f74
+ 8001a4c:	0000003d 	.word	0x0000003d
+ 8001a50:	203a6473 	.word	0x203a6473
+ 8001a54:	20425042 	.word	0x20425042
+ 8001a58:	65747962 	.word	0x65747962
+ 8001a5c:	65705f73 	.word	0x65705f73
+ 8001a60:	65735f72 	.word	0x65735f72
+ 8001a64:	726f7463 	.word	0x726f7463
+ 8001a68:	0000003d 	.word	0x0000003d
+ 8001a6c:	63657320 	.word	0x63657320
+ 8001a70:	73726f74 	.word	0x73726f74
+ 8001a74:	7265705f 	.word	0x7265705f
+ 8001a78:	756c635f 	.word	0x756c635f
+ 8001a7c:	72657473 	.word	0x72657473
+ 8001a80:	0000003d 	.word	0x0000003d
+ 8001a84:	73657220 	.word	0x73657220
+ 8001a88:	65767265 	.word	0x65767265
+ 8001a8c:	00003d64 	.word	0x00003d64
+ 8001a90:	74616620 	.word	0x74616620
+ 8001a94:	00003d73 	.word	0x00003d73
+ 8001a98:	203a6473 	.word	0x203a6473
+ 8001a9c:	20425042 	.word	0x20425042
+ 8001aa0:	746f6f72 	.word	0x746f6f72
+ 8001aa4:	746e655f 	.word	0x746e655f
+ 8001aa8:	73656972 	.word	0x73656972
+ 8001aac:	0000003d 	.word	0x0000003d
+ 8001ab0:	64696820 	.word	0x64696820
+ 8001ab4:	5f6e6564 	.word	0x5f6e6564
+ 8001ab8:	74636573 	.word	0x74636573
+ 8001abc:	3d73726f 	.word	0x3d73726f
+ 8001ac0:	00000000 	.word	0x00000000
+ 8001ac4:	746f7420 	.word	0x746f7420
+ 8001ac8:	735f6c61 	.word	0x735f6c61
+ 8001acc:	6f746365 	.word	0x6f746365
+ 8001ad0:	003d7372 	.word	0x003d7372
+ 8001ad4:	74616620 	.word	0x74616620
+ 8001ad8:	6365735f 	.word	0x6365735f
+ 8001adc:	73726f74 	.word	0x73726f74
+ 8001ae0:	0000003d 	.word	0x0000003d
+ 8001ae4:	203a6473 	.word	0x203a6473
+ 8001ae8:	746f6f62 	.word	0x746f6f62
+ 8001aec:	63657320 	.word	0x63657320
+ 8001af0:	20726f74 	.word	0x20726f74
+ 8001af4:	3d61626c 	.word	0x3d61626c
+ 8001af8:	00000000 	.word	0x00000000
+ 8001afc:	67697320 	.word	0x67697320
+ 8001b00:	7574616e 	.word	0x7574616e
+ 8001b04:	303d6572 	.word	0x303d6572
+ 8001b08:	00000078 	.word	0x00000078
+ 8001b0c:	203a6473 	.word	0x203a6473
+ 8001b10:	656c6966 	.word	0x656c6966
+ 8001b14:	74737973 	.word	0x74737973
+ 8001b18:	653d6d65 	.word	0x653d6d65
+ 8001b1c:	54414678 	.word	0x54414678
+ 8001b20:	00000a0d 	.word	0x00000a0d
+ 8001b24:	203a6473 	.word	0x203a6473
+ 8001b28:	41467865 	.word	0x41467865
+ 8001b2c:	79622054 	.word	0x79622054
+ 8001b30:	5f736574 	.word	0x5f736574
+ 8001b34:	5f726570 	.word	0x5f726570
+ 8001b38:	74636573 	.word	0x74636573
+ 8001b3c:	003d726f 	.word	0x003d726f
+ 8001b40:	6f6f7220 	.word	0x6f6f7220
+ 8001b44:	6c635f74 	.word	0x6c635f74
+ 8001b48:	65747375 	.word	0x65747375
+ 8001b4c:	00003d72 	.word	0x00003d72
+ 8001b50:	203a6473 	.word	0x203a6473
+ 8001b54:	41467865 	.word	0x41467865
+ 8001b58:	61702054 	.word	0x61702054
+ 8001b5c:	74697472 	.word	0x74697472
+ 8001b60:	5f6e6f69 	.word	0x5f6e6f69
+ 8001b64:	7366666f 	.word	0x7366666f
+ 8001b68:	003d7465 	.word	0x003d7465
+ 8001b6c:	6c6f7620 	.word	0x6c6f7620
+ 8001b70:	5f656d75 	.word	0x5f656d75
+ 8001b74:	676e656c 	.word	0x676e656c
+ 8001b78:	003d6874 	.word	0x003d6874
+ 8001b7c:	203a6473 	.word	0x203a6473
+ 8001b80:	41467865 	.word	0x41467865
+ 8001b84:	61662054 	.word	0x61662054
+ 8001b88:	666f5f74 	.word	0x666f5f74
+ 8001b8c:	74657366 	.word	0x74657366
+ 8001b90:	0000003d 	.word	0x0000003d
+ 8001b94:	74616620 	.word	0x74616620
+ 8001b98:	6e656c5f 	.word	0x6e656c5f
+ 8001b9c:	3d687467 	.word	0x3d687467
+ 8001ba0:	00000000 	.word	0x00000000
+ 8001ba4:	61656820 	.word	0x61656820
+ 8001ba8:	666f5f70 	.word	0x666f5f70
+ 8001bac:	74657366 	.word	0x74657366
+ 8001bb0:	0000003d 	.word	0x0000003d
+ 8001bb4:	756c6320 	.word	0x756c6320
+ 8001bb8:	72657473 	.word	0x72657473
+ 8001bbc:	756f635f 	.word	0x756f635f
+ 8001bc0:	003d746e 	.word	0x003d746e
+ 8001bc4:	203a6473 	.word	0x203a6473
+ 8001bc8:	656c6966 	.word	0x656c6966
+ 8001bcc:	74737973 	.word	0x74737973
+ 8001bd0:	463d6d65 	.word	0x463d6d65
+ 8001bd4:	32335441 	.word	0x32335441
+ 8001bd8:	00000a0d 	.word	0x00000a0d
+ 8001bdc:	203a6473 	.word	0x203a6473
+ 8001be0:	33544146 	.word	0x33544146
+ 8001be4:	6f722032 	.word	0x6f722032
+ 8001be8:	635f746f 	.word	0x635f746f
+ 8001bec:	7473756c 	.word	0x7473756c
+ 8001bf0:	003d7265 	.word	0x003d7265
+ 8001bf4:	69736620 	.word	0x69736620
+ 8001bf8:	3d6f666e 	.word	0x3d6f666e
+ 8001bfc:	00000000 	.word	0x00000000
+ 8001c00:	63616220 	.word	0x63616220
+ 8001c04:	5f70756b 	.word	0x5f70756b
+ 8001c08:	746f6f62 	.word	0x746f6f62
+ 8001c0c:	0000003d 	.word	0x0000003d
+ 8001c10:	203a6473 	.word	0x203a6473
+ 8001c14:	656c6966 	.word	0x656c6966
+ 8001c18:	74737973 	.word	0x74737973
+ 8001c1c:	003d6d65 	.word	0x003d6d65
+ 8001c20:	31544146 	.word	0x31544146
+ 8001c24:	000a0d32 	.word	0x000a0d32
+ 8001c28:	31544146 	.word	0x31544146
+ 8001c2c:	000a0d36 	.word	0x000a0d36
+ 8001c30:	203a6473 	.word	0x203a6473
+ 8001c34:	656c6966 	.word	0x656c6966
+ 8001c38:	74737973 	.word	0x74737973
+ 8001c3c:	74206d65 	.word	0x74206d65
+ 8001c40:	20657079 	.word	0x20657079
+ 8001c44:	20746f6e 	.word	0x20746f6e
+ 8001c48:	6f636572 	.word	0x6f636572
+ 8001c4c:	7a696e67 	.word	0x7a696e67
+ 8001c50:	66206465 	.word	0x66206465
+ 8001c54:	206d6f72 	.word	0x206d6f72
+ 8001c58:	746f6f62 	.word	0x746f6f62
+ 8001c5c:	63657320 	.word	0x63657320
+ 8001c60:	0d726f74 	.word	0x0d726f74
+ 8001c64:	0000000a 	.word	0x0000000a
+ 8001c68:	203a6473 	.word	0x203a6473
+ 8001c6c:	64616572 	.word	0x64616572
+ 8001c70:	20676e69 	.word	0x20676e69
+ 8001c74:	6e495346 	.word	0x6e495346
+ 8001c78:	73206f66 	.word	0x73206f66
+ 8001c7c:	6f746365 	.word	0x6f746365
+ 8001c80:	74612072 	.word	0x74612072
+ 8001c84:	61626c20 	.word	0x61626c20
+ 8001c88:	00000020 	.word	0x00000020
+ 8001c8c:	203a6473 	.word	0x203a6473
+ 8001c90:	6e495346 	.word	0x6e495346
+ 8001c94:	6c206f66 	.word	0x6c206f66
+ 8001c98:	3d646165 	.word	0x3d646165
+ 8001c9c:	00007830 	.word	0x00007830
+ 8001ca0:	72747320 	.word	0x72747320
+ 8001ca4:	3d746375 	.word	0x3d746375
+ 8001ca8:	00007830 	.word	0x00007830
+ 8001cac:	61727420 	.word	0x61727420
+ 8001cb0:	303d6c69 	.word	0x303d6c69
+ 8001cb4:	00000078 	.word	0x00000078
+ 8001cb8:	203a6473 	.word	0x203a6473
+ 8001cbc:	6e495346 	.word	0x6e495346
+ 8001cc0:	66206f66 	.word	0x66206f66
+ 8001cc4:	5f656572 	.word	0x5f656572
+ 8001cc8:	73756c63 	.word	0x73756c63
+ 8001ccc:	73726574 	.word	0x73726574
+ 8001cd0:	0000003d 	.word	0x0000003d
+ 8001cd4:	6e6b6e75 	.word	0x6e6b6e75
+ 8001cd8:	006e776f 	.word	0x006e776f
+ 8001cdc:	78656e20 	.word	0x78656e20
+ 8001ce0:	72665f74 	.word	0x72665f74
+ 8001ce4:	003d6565 	.word	0x003d6565
+ 8001ce8:	203a6473 	.word	0x203a6473
+ 8001cec:	64616572 	.word	0x64616572
+ 8001cf0:	20676e69 	.word	0x20676e69
+ 8001cf4:	20544146 	.word	0x20544146
+ 8001cf8:	74636573 	.word	0x74636573
+ 8001cfc:	6120726f 	.word	0x6120726f
+ 8001d00:	626c2074 	.word	0x626c2074
+ 8001d04:	00002061 	.word	0x00002061
+ 8001d08:	203a6473 	.word	0x203a6473
+ 8001d0c:	5b544146 	.word	0x5b544146
+ 8001d10:	66205d30 	.word	0x66205d30
+ 8001d14:	74737269 	.word	0x74737269
+ 8001d18:	003d3631 	.word	0x003d3631
+ 8001d1c:	33746166 	.word	0x33746166
+ 8001d20:	00203a32 	.word	0x00203a32
+ 8001d24:	20524944 	.word	0x20524944
+ 8001d28:	00000020 	.word	0x00000020
+ 8001d2c:	454c4946 	.word	0x454c4946
+ 8001d30:	00000020 	.word	0x00000020
+ 8001d34:	756c6320 	.word	0x756c6320
+ 8001d38:	72657473 	.word	0x72657473
+ 8001d3c:	0000003d 	.word	0x0000003d
+ 8001d40:	7a697320 	.word	0x7a697320
+ 8001d44:	00003d65 	.word	0x00003d65
+ 8001d48:	33746166 	.word	0x33746166
+ 8001d4c:	64203a32 	.word	0x64203a32
+ 8001d50:	63657269 	.word	0x63657269
+ 8001d54:	79726f74 	.word	0x79726f74
+ 8001d58:	73696c20 	.word	0x73696c20
+ 8001d5c:	676e6974 	.word	0x676e6974
+ 8001d60:	75727420 	.word	0x75727420
+ 8001d64:	7461636e 	.word	0x7461636e
+ 8001d68:	0a0d6465 	.word	0x0a0d6465
+ 8001d6c:	00000000 	.word	0x00000000
+ 8001d70:	002e2e2e 	.word	0x002e2e2e
+ 8001d74:	203a6473 	.word	0x203a6473
+ 8001d78:	20444943 	.word	0x20444943
+ 8001d7c:	3a776172 	.word	0x3a776172
+ 8001d80:	00000020 	.word	0x00000020
+ 8001d84:	203a6473 	.word	0x203a6473
+ 8001d88:	20444943 	.word	0x20444943
+ 8001d8c:	3d44494d 	.word	0x3d44494d
+ 8001d90:	00007830 	.word	0x00007830
+ 8001d94:	44494f20 	.word	0x44494f20
+ 8001d98:	0000003d 	.word	0x0000003d
+ 8001d9c:	4d4e5020 	.word	0x4d4e5020
+ 8001da0:	0000003d 	.word	0x0000003d
+ 8001da4:	56525020 	.word	0x56525020
+ 8001da8:	0000003d 	.word	0x0000003d
+ 8001dac:	4e535020 	.word	0x4e535020
+ 8001db0:	0078303d 	.word	0x0078303d
+ 8001db4:	54444d20 	.word	0x54444d20
+ 8001db8:	0000003d 	.word	0x0000003d
+ 8001dbc:	203a6473 	.word	0x203a6473
+ 8001dc0:	20445343 	.word	0x20445343
+ 8001dc4:	3a776172 	.word	0x3a776172
+ 8001dc8:	00000020 	.word	0x00000020
+ 8001dcc:	203a6473 	.word	0x203a6473
+ 8001dd0:	20445343 	.word	0x20445343
+ 8001dd4:	75727473 	.word	0x75727473
+ 8001dd8:	72757463 	.word	0x72757463
+ 8001ddc:	00002065 	.word	0x00002065
+ 8001de0:	203a6473 	.word	0x203a6473
+ 8001de4:	74636573 	.word	0x74636573
+ 8001de8:	3d73726f 	.word	0x3d73726f
+ 8001dec:	00000000 	.word	0x00000000
+ 8001df0:	70616320 	.word	0x70616320
+ 8001df4:	74696361 	.word	0x74696361
+ 8001df8:	696d5f79 	.word	0x696d5f79
+ 8001dfc:	00003d62 	.word	0x00003d62
+ 8001e00:	203a6473 	.word	0x203a6473
+ 8001e04:	61706163 	.word	0x61706163
+ 8001e08:	79746963 	.word	0x79746963
+ 8001e0c:	72617020 	.word	0x72617020
+ 8001e10:	75206573 	.word	0x75206573
+ 8001e14:	7075736e 	.word	0x7075736e
+ 8001e18:	74726f70 	.word	0x74726f70
+ 8001e1c:	66206465 	.word	0x66206465
+ 8001e20:	7420726f 	.word	0x7420726f
+ 8001e24:	20736968 	.word	0x20736968
+ 8001e28:	20445343 	.word	0x20445343
+ 8001e2c:	6f79616c 	.word	0x6f79616c
+ 8001e30:	0a0d7475 	.word	0x0a0d7475
+ 8001e34:	00000000 	.word	0x00000000
+ 8001e38:	43484453 	.word	0x43484453
+ 8001e3c:	5844532f 	.word	0x5844532f
+ 8001e40:	00000043 	.word	0x00000043
+ 8001e44:	43534453 	.word	0x43534453
+ 8001e48:	00000000 	.word	0x00000000
+ 8001e4c:	203a6473 	.word	0x203a6473
+ 8001e50:	30444d43 	.word	0x30444d43
+ 8001e54:	0d2e2e2e 	.word	0x0d2e2e2e
+ 8001e58:	0000000a 	.word	0x0000000a
+ 8001e5c:	203a6473 	.word	0x203a6473
+ 8001e60:	30444d43 	.word	0x30444d43
+ 8001e64:	3d315220 	.word	0x3d315220
+ 8001e68:	00007830 	.word	0x00007830
+ 8001e6c:	203a6473 	.word	0x203a6473
+ 8001e70:	38444d43 	.word	0x38444d43
+ 8001e74:	3d315220 	.word	0x3d315220
+ 8001e78:	00007830 	.word	0x00007830
+ 8001e7c:	3d375220 	.word	0x3d375220
+ 8001e80:	00000000 	.word	0x00000000
+ 8001e84:	203a6473 	.word	0x203a6473
+ 8001e88:	444d4341 	.word	0x444d4341
+ 8001e8c:	76283134 	.word	0x76283134
+ 8001e90:	70202932 	.word	0x70202932
+ 8001e94:	736c6c6f 	.word	0x736c6c6f
+ 8001e98:	0000003d 	.word	0x0000003d
+ 8001e9c:	203a6473 	.word	0x203a6473
+ 8001ea0:	444d4341 	.word	0x444d4341
+ 8001ea4:	76283134 	.word	0x76283134
+ 8001ea8:	70202931 	.word	0x70202931
+ 8001eac:	736c6c6f 	.word	0x736c6c6f
+ 8001eb0:	0000003d 	.word	0x0000003d
+ 8001eb4:	203a6473 	.word	0x203a6473
+ 8001eb8:	3d52434f 	.word	0x3d52434f
+ 8001ebc:	00007830 	.word	0x00007830
+ 8001ec0:	70797420 	.word	0x70797420
+ 8001ec4:	00003d65 	.word	0x00003d65
+ 8001ec8:	203a6473 	.word	0x203a6473
+ 8001ecc:	31444d43 	.word	0x31444d43
+ 8001ed0:	31522036 	.word	0x31522036
+ 8001ed4:	0078303d 	.word	0x0078303d
+ 8001ed8:	64730a0d 	.word	0x64730a0d
+ 8001edc:	7461665f 	.word	0x7461665f
+ 8001ee0:	725f3233 	.word	0x725f3233
+ 8001ee4:	53203a6f 	.word	0x53203a6f
+ 8001ee8:	32334d54 	.word	0x32334d54
+ 8001eec:	33303146 	.word	0x33303146
+ 8001ef0:	53203843 	.word	0x53203843
+ 8001ef4:	20314950 	.word	0x20314950
+ 8001ef8:	5355202f 	.word	0x5355202f
+ 8001efc:	31545241 	.word	0x31545241
+ 8001f00:	00000a0d 	.word	0x00000a0d
+ 8001f04:	665f6473 	.word	0x665f6473
+ 8001f08:	32337461 	.word	0x32337461
+ 8001f0c:	3a6f725f 	.word	0x3a6f725f
+ 8001f10:	34415020 	.word	0x34415020
+ 8001f14:	2053433d 	.word	0x2053433d
+ 8001f18:	3d354150 	.word	0x3d354150
+ 8001f1c:	204b4353 	.word	0x204b4353
+ 8001f20:	3d364150 	.word	0x3d364150
+ 8001f24:	4f53494d 	.word	0x4f53494d
+ 8001f28:	37415020 	.word	0x37415020
+ 8001f2c:	534f4d3d 	.word	0x534f4d3d
+ 8001f30:	000a0d49 	.word	0x000a0d49
+ 8001f34:	665f6473 	.word	0x665f6473
+ 8001f38:	32337461 	.word	0x32337461
+ 8001f3c:	3a6f725f 	.word	0x3a6f725f
+ 8001f40:	61747320 	.word	0x61747320
+ 8001f44:	6e697472 	.word	0x6e697472
+ 8001f48:	72702067 	.word	0x72702067
+ 8001f4c:	2065626f 	.word	0x2065626f
+ 8001f50:	31206e69 	.word	0x31206e69
+ 8001f54:	20303030 	.word	0x20303030
+ 8001f58:	0a0d736d 	.word	0x0a0d736d
+ 8001f5c:	00000000 	.word	0x00000000
+ 8001f60:	203a6473 	.word	0x203a6473
+ 8001f64:	74696e69 	.word	0x74696e69
+ 8001f68:	69616620 	.word	0x69616620
+ 8001f6c:	0d64656c 	.word	0x0d64656c
+ 8001f70:	0000000a 	.word	0x0000000a
+ 8001f74:	203a6473 	.word	0x203a6473
+ 8001f78:	64616572 	.word	0x64616572
+ 8001f7c:	20676e69 	.word	0x20676e69
+ 8001f80:	74636573 	.word	0x74636573
+ 8001f84:	3020726f 	.word	0x3020726f
+ 8001f88:	00000a0d 	.word	0x00000a0d
+ 8001f8c:	203a6473 	.word	0x203a6473
+ 8001f90:	31444d43 	.word	0x31444d43
+ 8001f94:	6c622037 	.word	0x6c622037
+ 8001f98:	206b636f 	.word	0x206b636f
+ 8001f9c:	61662030 	.word	0x61662030
+ 8001fa0:	64656c69 	.word	0x64656c69
+ 8001fa4:	00000a0d 	.word	0x00000a0d
+ 8001fa8:	203a6473 	.word	0x203a6473
+ 8001fac:	74636573 	.word	0x74636573
+ 8001fb0:	2030726f 	.word	0x2030726f
+ 8001fb4:	6e676973 	.word	0x6e676973
+ 8001fb8:	72757461 	.word	0x72757461
+ 8001fbc:	78303d65 	.word	0x78303d65
+ 8001fc0:	00000000 	.word	0x00000000
+ 8001fc4:	203a6473 	.word	0x203a6473
+ 8001fc8:	656c6573 	.word	0x656c6573
+ 8001fcc:	64657463 	.word	0x64657463
+ 8001fd0:	72617020 	.word	0x72617020
+ 8001fd4:	69746974 	.word	0x69746974
+ 8001fd8:	74206e6f 	.word	0x74206e6f
+ 8001fdc:	20657079 	.word	0x20657079
+ 8001fe0:	00007830 	.word	0x00007830
+ 8001fe4:	203a6473 	.word	0x203a6473
+ 8001fe8:	64616572 	.word	0x64616572
+ 8001fec:	20676e69 	.word	0x20676e69
+ 8001ff0:	746f6f62 	.word	0x746f6f62
+ 8001ff4:	63657320 	.word	0x63657320
+ 8001ff8:	20726f74 	.word	0x20726f74
+ 8001ffc:	6c207461 	.word	0x6c207461
+ 8002000:	00206162 	.word	0x00206162
+ 8002004:	203a6473 	.word	0x203a6473
+ 8002008:	746f6f62 	.word	0x746f6f62
+ 800200c:	63657320 	.word	0x63657320
+ 8002010:	20726f74 	.word	0x20726f74
+ 8002014:	64616572 	.word	0x64616572
+ 8002018:	69616620 	.word	0x69616620
+ 800201c:	0d64656c 	.word	0x0d64656c
+ 8002020:	0000000a 	.word	0x0000000a
+ 8002024:	203a6473 	.word	0x203a6473
+ 8002028:	70206f6e 	.word	0x70206f6e
+ 800202c:	69747261 	.word	0x69747261
+ 8002030:	6e6f6974 	.word	0x6e6f6974
+ 8002034:	746e6520 	.word	0x746e6520
+ 8002038:	66207972 	.word	0x66207972
+ 800203c:	646e756f 	.word	0x646e756f
+ 8002040:	7274203b 	.word	0x7274203b
+ 8002044:	69746165 	.word	0x69746165
+ 8002048:	7320676e 	.word	0x7320676e
+ 800204c:	6f746365 	.word	0x6f746365
+ 8002050:	20302072 	.word	0x20302072
+ 8002054:	62207361 	.word	0x62207361
+ 8002058:	20746f6f 	.word	0x20746f6f
+ 800205c:	74636573 	.word	0x74636573
+ 8002060:	0a0d726f 	.word	0x0a0d726f
+ 8002064:	00000000 	.word	0x00000000
+ 8002068:	33746166 	.word	0x33746166
+ 800206c:	75203a32 	.word	0x75203a32
+ 8002070:	7075736e 	.word	0x7075736e
+ 8002074:	74726f70 	.word	0x74726f70
+ 8002078:	42206465 	.word	0x42206465
+ 800207c:	0a0d4250 	.word	0x0a0d4250
+ 8002080:	00000000 	.word	0x00000000
+ 8002084:	203a6473 	.word	0x203a6473
+ 8002088:	33544146 	.word	0x33544146
+ 800208c:	75612032 	.word	0x75612032
+ 8002090:	696c6978 	.word	0x696c6978
+ 8002094:	20797261 	.word	0x20797261
+ 8002098:	626f7270 	.word	0x626f7270
+ 800209c:	61662065 	.word	0x61662065
+ 80020a0:	64656c69 	.word	0x64656c69
+ 80020a4:	00000a0d 	.word	0x00000a0d
+ 80020a8:	33746166 	.word	0x33746166
+ 80020ac:	72203a32 	.word	0x72203a32
+ 80020b0:	20746f6f 	.word	0x20746f6f
+ 80020b4:	65726964 	.word	0x65726964
+ 80020b8:	726f7463 	.word	0x726f7463
+ 80020bc:	000a0d79 	.word	0x000a0d79
+ 80020c0:	33746166 	.word	0x33746166
+ 80020c4:	72203a32 	.word	0x72203a32
+ 80020c8:	20746f6f 	.word	0x20746f6f
+ 80020cc:	65726964 	.word	0x65726964
+ 80020d0:	726f7463 	.word	0x726f7463
+ 80020d4:	65722079 	.word	0x65722079
+ 80020d8:	66206461 	.word	0x66206461
+ 80020dc:	656c6961 	.word	0x656c6961
+ 80020e0:	000a0d64 	.word	0x000a0d64
+ 80020e4:	33746166 	.word	0x33746166
+ 80020e8:	43203a32 	.word	0x43203a32
+ 80020ec:	494c444d 	.word	0x494c444d
+ 80020f0:	542e454e 	.word	0x542e454e
+ 80020f4:	00205458 	.word	0x00205458
+ 80020f8:	74796220 	.word	0x74796220
+ 80020fc:	203a7365 	.word	0x203a7365
+ 8002100:	00000000 	.word	0x00000000
+ 8002104:	33746166 	.word	0x33746166
+ 8002108:	43203a32 	.word	0x43203a32
+ 800210c:	494c444d 	.word	0x494c444d
+ 8002110:	542e454e 	.word	0x542e454e
+ 8002114:	72205458 	.word	0x72205458
+ 8002118:	20646165 	.word	0x20646165
+ 800211c:	6c696166 	.word	0x6c696166
+ 8002120:	0a0d6465 	.word	0x0a0d6465
+ 8002124:	00000000 	.word	0x00000000
+ 8002128:	33746166 	.word	0x33746166
+ 800212c:	43203a32 	.word	0x43203a32
+ 8002130:	49464e4f 	.word	0x49464e4f
+ 8002134:	58542e47 	.word	0x58542e47
+ 8002138:	72702054 	.word	0x72702054
+ 800213c:	78696665 	.word	0x78696665
+ 8002140:	0000203a 	.word	0x0000203a
+ 8002144:	33746166 	.word	0x33746166
+ 8002148:	43203a32 	.word	0x43203a32
+ 800214c:	49464e4f 	.word	0x49464e4f
+ 8002150:	58542e47 	.word	0x58542e47
+ 8002154:	65722054 	.word	0x65722054
+ 8002158:	66206461 	.word	0x66206461
+ 800215c:	656c6961 	.word	0x656c6961
+ 8002160:	000a0d64 	.word	0x000a0d64
+ 8002164:	33746166 	.word	0x33746166
+ 8002168:	73203a32 	.word	0x73203a32
+ 800216c:	63656c65 	.word	0x63656c65
+ 8002170:	20646574 	.word	0x20646574
+ 8002174:	756c6f76 	.word	0x756c6f76
+ 8002178:	6920656d 	.word	0x6920656d
+ 800217c:	6f6e2073 	.word	0x6f6e2073
+ 8002180:	41462074 	.word	0x41462074
+ 8002184:	0d323354 	.word	0x0d323354
+ 8002188:	0000000a 	.word	0x0000000a
+ 800218c:	665f6473 	.word	0x665f6473
+ 8002190:	32337461 	.word	0x32337461
+ 8002194:	3a6f725f 	.word	0x3a6f725f
+ 8002198:	6d6f6320 	.word	0x6d6f6320
+ 800219c:	74656c70 	.word	0x74656c70
+ 80021a0:	000a0d65 	.word	0x000a0d65
+
+080021a4 <hex.0>:
+ 80021a4:	33323130 37363534 42413938 46454443     0123456789ABCDEF
+ 80021b4:	00000000                                ....
+
+080021b8 <config_name.1>:
+ 80021b8:	464e4f43 20204749 00545854              CONFIG  TXT.
+
+080021c4 <cmdline_name.2>:
+ 80021c4:	4c444d43 20454e49 00545854              CMDLINE TXT.
+
+080021d0 <AHBPrescTable>:
+	...
+ 80021d8:	04030201 09080706                       ........

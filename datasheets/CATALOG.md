@@ -11,6 +11,12 @@ Guideline: when adding material for a new hardware family, prefer a dedicated su
 | `datasheets/23LC1023.pdf` | Memory IC | Microchip `23LC1024`/`23LC1023` serial SRAM datasheet. |
 | `datasheets/raspberrypi-3pin-debug-spec.pdf` | Debug probe | Raspberry Pi 3-pin debug connector specification. |
 
+## SD Cards
+
+| Path | Category | Description |
+| --- | --- | --- |
+| `datasheets/SD_Cards/README.md` | Protocol note | Local notes covering full-size SD card SPI pin mapping and external reference links. |
+
 ## CH32V003
 
 | Path | Category | Description |

@@ -26,7 +26,6 @@ SECTIONS
         *(.glue_7t)
         *(.eh_frame*)
         . = ALIGN(4);
-        _etext = .;
     } > FLASH
 
     .ARM.exidx :
@@ -35,6 +34,8 @@ SECTIONS
         *(.ARM.exidx*)
         . = ALIGN(4);
     } > FLASH
+
+    _etext = .;
 
     _sidata = LOADADDR(.data);
 
