@@ -1,0 +1,483 @@
+Archive member included to satisfy reference by file (symbol)
+
+/usr/lib/gcc/arm-none-eabi/14.2.1/../../../arm-none-eabi/lib/thumb/v7-m/nofp/libg.a(libc_a-memset.o)
+                              build/ff.o (memset)
+/usr/lib/gcc/arm-none-eabi/14.2.1/../../../arm-none-eabi/lib/thumb/v7-m/nofp/libg.a(libc_a-strchr.o)
+                              build/ff.o (strchr)
+/usr/lib/gcc/arm-none-eabi/14.2.1/../../../arm-none-eabi/lib/thumb/v7-m/nofp/libg.a(libc_a-memcmp.o)
+                              build/ff.o (memcmp)
+/usr/lib/gcc/arm-none-eabi/14.2.1/../../../arm-none-eabi/lib/thumb/v7-m/nofp/libg.a(libc_a-memcpy.o)
+                              build/ff.o (memcpy)
+
+Discarded input sections
+
+ .text          0x00000000        0x0 build/main.o
+ .data          0x00000000        0x0 build/main.o
+ .bss           0x00000000        0x0 build/main.o
+ .text          0x00000000        0x0 build/ff.o
+ .data          0x00000000        0x0 build/ff.o
+ .bss           0x00000000        0x0 build/ff.o
+ .text.get_fileinfo
+                0x00000000       0x74 build/ff.o
+ .text.dir_remove
+                0x00000000       0x1c build/ff.o
+ .text.dir_read
+                0x00000000       0x5e build/ff.o
+ .text.f_read   0x00000000      0x16a build/ff.o
+ .text.f_lseek  0x00000000      0x13c build/ff.o
+ .text.f_opendir
+                0x00000000       0x74 build/ff.o
+ .text.f_closedir
+                0x00000000       0x14 build/ff.o
+ .text.f_readdir
+                0x00000000       0x58 build/ff.o
+ .text.f_stat   0x00000000       0x4c build/ff.o
+ .text.f_getfree
+                0x00000000       0xdc build/ff.o
+ .text.f_truncate
+                0x00000000       0x86 build/ff.o
+ .text.f_unlink
+                0x00000000       0xb0 build/ff.o
+ .text.f_mkdir  0x00000000      0x12c build/ff.o
+ .text.f_rename
+                0x00000000      0x15a build/ff.o
+ .text          0x00000000        0x0 build/startup.o
+ .data          0x00000000        0x0 build/startup.o
+ .bss           0x00000000        0x0 build/startup.o
+ .text          0x00000000        0x0 build/system_stm32f1xx.o
+ .data          0x00000000        0x0 build/system_stm32f1xx.o
+ .bss           0x00000000        0x0 build/system_stm32f1xx.o
+ .rodata.APBPrescTable
+                0x00000000        0x8 build/system_stm32f1xx.o
+ .data          0x00000000        0x0 /usr/lib/gcc/arm-none-eabi/14.2.1/../../../arm-none-eabi/lib/thumb/v7-m/nofp/libg.a(libc_a-memset.o)
+ .bss           0x00000000        0x0 /usr/lib/gcc/arm-none-eabi/14.2.1/../../../arm-none-eabi/lib/thumb/v7-m/nofp/libg.a(libc_a-memset.o)
+ .data          0x00000000        0x0 /usr/lib/gcc/arm-none-eabi/14.2.1/../../../arm-none-eabi/lib/thumb/v7-m/nofp/libg.a(libc_a-strchr.o)
+ .bss           0x00000000        0x0 /usr/lib/gcc/arm-none-eabi/14.2.1/../../../arm-none-eabi/lib/thumb/v7-m/nofp/libg.a(libc_a-strchr.o)
+ .data          0x00000000        0x0 /usr/lib/gcc/arm-none-eabi/14.2.1/../../../arm-none-eabi/lib/thumb/v7-m/nofp/libg.a(libc_a-memcmp.o)
+ .bss           0x00000000        0x0 /usr/lib/gcc/arm-none-eabi/14.2.1/../../../arm-none-eabi/lib/thumb/v7-m/nofp/libg.a(libc_a-memcmp.o)
+ .data          0x00000000        0x0 /usr/lib/gcc/arm-none-eabi/14.2.1/../../../arm-none-eabi/lib/thumb/v7-m/nofp/libg.a(libc_a-memcpy.o)
+ .bss           0x00000000        0x0 /usr/lib/gcc/arm-none-eabi/14.2.1/../../../arm-none-eabi/lib/thumb/v7-m/nofp/libg.a(libc_a-memcpy.o)
+ .ARM.extab     0x00000000        0x0 /usr/lib/gcc/arm-none-eabi/14.2.1/../../../arm-none-eabi/lib/thumb/v7-m/nofp/libg.a(libc_a-memcpy.o)
+
+Memory Configuration
+
+Name             Origin             Length             Attributes
+FLASH            0x08000000         0x00010000         xr
+SRAM             0x20000000         0x00005000         xrw
+*default*        0x00000000         0xffffffff
+
+Linker script and memory map
+
+LOAD build/main.o
+LOAD build/ff.o
+LOAD build/startup.o
+LOAD build/system_stm32f1xx.o
+START GROUP
+LOAD /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v7-m/nofp/libgcc.a
+LOAD /usr/lib/gcc/arm-none-eabi/14.2.1/../../../arm-none-eabi/lib/thumb/v7-m/nofp/libg.a
+LOAD /usr/lib/gcc/arm-none-eabi/14.2.1/../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a
+END GROUP
+                0x20005000                        PROVIDE (_stack_top = (ORIGIN (SRAM) + LENGTH (SRAM)))
+
+.isr_vector     0x08000000       0xec
+                0x08000000                        . = ALIGN (0x4)
+ *(.isr_vector)
+ .isr_vector    0x08000000       0xec build/startup.o
+                0x08000000                interrupt_vector
+                0x080000ec                        . = ALIGN (0x4)
+
+.text           0x080000ec     0x2878
+                0x080000ec                        . = ALIGN (0x4)
+ *(.text*)
+ .text.delay_ms
+                0x080000ec       0x14 build/main.o
+ .text.usart1_putc
+                0x08000100       0x14 build/main.o
+ .text.usart1_puts
+                0x08000114       0x14 build/main.o
+ .text.usart1_put_hex8
+                0x08000128       0x20 build/main.o
+ .text.usart1_put_hex16
+                0x08000148       0x12 build/main.o
+ .text.usart1_put_hex32
+                0x0800015a       0x12 build/main.o
+ .text.usart1_put_dec_u32
+                0x0800016c       0x58 build/main.o
+ .text.usart1_put_dec_tenths_u32
+                0x080001c4       0x30 build/main.o
+ .text.usart1_init
+                0x080001f4       0x60 build/main.o
+ .text.led_init
+                0x08000254       0x2c build/main.o
+ .text.led_set  0x08000280       0x1c build/main.o
+ .text.sd_spi_set_prescaler
+                0x0800029c       0x24 build/main.o
+ .text.sd_spi_init
+                0x080002c0       0x54 build/main.o
+ .text.sd_spi_xfer
+                0x08000314       0x24 build/main.o
+ .text.sd_deselect
+                0x08000338       0x14 build/main.o
+ .text.sd_wait_ready
+                0x0800034c       0x20 build/main.o
+ .text.sd_select
+                0x0800036c       0x18 build/main.o
+ .text.sd_send_initial_clocks
+                0x08000384       0x18 build/main.o
+ .text.sd_send_command_selected
+                0x0800039c       0x4a build/main.o
+ .text.sd_send_command
+                0x080003e6       0x2e build/main.o
+ .text.sd_send_app_command
+                0x08000414       0x22 build/main.o
+ *fill*         0x08000436        0x2 
+ .text.sd_read_data_selected
+                0x08000438       0x4c build/main.o
+ .text.sd_read_register
+                0x08000484       0x48 build/main.o
+ .text.sd_read_ocr
+                0x080004cc       0x7a build/main.o
+ *fill*         0x08000546        0x2 
+ .text.sd_read_block
+                0x08000548       0x54 build/main.o
+ .text.sd_write_data_selected
+                0x0800059c       0x50 build/main.o
+ .text.sd_write_block
+                0x080005ec       0x54 build/main.o
+ .text.sd_extract_bits
+                0x08000640       0x34 build/main.o
+ .text.sd_csd_sector_count
+                0x08000674       0x56 build/main.o
+ *fill*         0x080006ca        0x2 
+ .text.sd_card_init
+                0x080006cc      0x278 build/main.o
+ .text.fill_bench_buffer
+                0x08000944       0x18 build/main.o
+ .text.system_clock_config
+                0x0800095c       0x7c build/main.o
+ .text.fatfs_write_benchmark
+                0x080009d8      0x254 build/main.o
+ .text.SysTick_Handler
+                0x08000c2c       0x10 build/main.o
+                0x08000c2c                SysTick_Handler
+ .text.disk_initialize
+                0x08000c3c       0x34 build/main.o
+                0x08000c3c                disk_initialize
+ .text.disk_status
+                0x08000c70       0x10 build/main.o
+                0x08000c70                disk_status
+ .text.disk_read
+                0x08000c80       0x50 build/main.o
+                0x08000c80                disk_read
+ .text.disk_write
+                0x08000cd0       0x60 build/main.o
+                0x08000cd0                disk_write
+ .text.disk_ioctl
+                0x08000d30       0x74 build/main.o
+                0x08000d30                disk_ioctl
+ .text.main     0x08000da4      0x150 build/main.o
+                0x08000da4                main
+ .text.ld_16    0x08000ef4        0xa build/ff.o
+ .text.ld_32    0x08000efe       0x16 build/ff.o
+ .text.st_16    0x08000f14        0x8 build/ff.o
+ .text.st_32    0x08000f1c       0x14 build/ff.o
+ .text.dbc_1st  0x08000f30        0x4 build/ff.o
+ .text.dbc_2nd  0x08000f34        0x4 build/ff.o
+ .text.clst2sect
+                0x08000f38       0x18 build/ff.o
+ .text.ld_clust
+                0x08000f50       0x26 build/ff.o
+ .text.st_clust
+                0x08000f76       0x26 build/ff.o
+ .text.get_ldnumber
+                0x08000f9c       0x52 build/ff.o
+ .text.validate
+                0x08000fee       0x46 build/ff.o
+ .text.sync_window
+                0x08001034       0x48 build/ff.o
+ .text.move_window
+                0x0800107c       0x36 build/ff.o
+ *fill*         0x080010b2        0x2 
+ .text.check_fs
+                0x080010b4       0xd4 build/ff.o
+ .text.find_volume
+                0x08001188       0x70 build/ff.o
+ .text.mount_volume
+                0x080011f8      0x2b0 build/ff.o
+ .text.put_fat  0x080014a8      0x104 build/ff.o
+ .text.get_fat  0x080015ac       0xd0 build/ff.o
+ .text.dir_sdi  0x0800167c       0xac build/ff.o
+ .text.create_chain
+                0x08001728      0x12c build/ff.o
+ .text.remove_chain
+                0x08001854       0x7e build/ff.o
+ .text.dir_clear
+                0x080018d2       0x52 build/ff.o
+ .text.dir_next
+                0x08001924       0xc8 build/ff.o
+ .text.dir_find
+                0x080019ec       0x5a build/ff.o
+ .text.dir_alloc
+                0x08001a46       0x50 build/ff.o
+ *fill*         0x08001a96        0x2 
+ .text.create_name
+                0x08001a98      0x11c build/ff.o
+ .text.follow_path
+                0x08001bb4       0x8c build/ff.o
+ .text.dir_register
+                0x08001c40       0x46 build/ff.o
+ *fill*         0x08001c86        0x2 
+ .text.sync_fs  0x08001c88       0x8c build/ff.o
+ .text.f_mount  0x08001d14       0x58 build/ff.o
+                0x08001d14                f_mount
+ .text.f_open   0x08001d6c      0x1cc build/ff.o
+                0x08001d6c                f_open
+ .text.f_write  0x08001f38      0x1dc build/ff.o
+                0x08001f38                f_write
+ .text.f_sync   0x08002114       0x70 build/ff.o
+                0x08002114                f_sync
+ .text.f_close  0x08002184       0x20 build/ff.o
+                0x08002184                f_close
+ .text.Default_Handler
+                0x080021a4        0x2 build/startup.o
+                0x080021a4                DebugMon_Handler
+                0x080021a4                HardFault_Handler
+                0x080021a4                PendSV_Handler
+                0x080021a4                NMI_Handler
+                0x080021a4                UsageFault_Handler
+                0x080021a4                MemManage_Handler
+                0x080021a4                SVC_Handler
+                0x080021a4                BusFault_Handler
+ *fill*         0x080021a6        0x2 
+ .text.Reset_Handler
+                0x080021a8       0x44 build/startup.o
+                0x080021a8                Reset_Handler
+ .text.SystemInit
+                0x080021ec        0x2 build/system_stm32f1xx.o
+                0x080021ec                SystemInit
+ *fill*         0x080021ee        0x2 
+ .text.SystemCoreClockUpdate
+                0x080021f0       0x94 build/system_stm32f1xx.o
+                0x080021f0                SystemCoreClockUpdate
+ .text          0x08002284       0xa0 /usr/lib/gcc/arm-none-eabi/14.2.1/../../../arm-none-eabi/lib/thumb/v7-m/nofp/libg.a(libc_a-memset.o)
+                0x08002284                memset
+ .text          0x08002324       0xd0 /usr/lib/gcc/arm-none-eabi/14.2.1/../../../arm-none-eabi/lib/thumb/v7-m/nofp/libg.a(libc_a-strchr.o)
+                0x08002324                strchr
+ .text          0x080023f4       0x5c /usr/lib/gcc/arm-none-eabi/14.2.1/../../../arm-none-eabi/lib/thumb/v7-m/nofp/libg.a(libc_a-memcmp.o)
+                0x080023f4                memcmp
+ .text          0x08002450       0xec /usr/lib/gcc/arm-none-eabi/14.2.1/../../../arm-none-eabi/lib/thumb/v7-m/nofp/libg.a(libc_a-memcpy.o)
+                0x08002450                memcpy
+ *(.rodata*)
+ .rodata.sd_card_init.str1.4
+                0x0800253c      0x383 build/main.o
+                                 0xcb (size before relaxing)
+ .rodata.fatfs_write_benchmark.str1.4
+                0x080028bf      0x156 build/main.o
+ .rodata.main.str1.4
+                0x080028bf      0x14b build/main.o
+ *fill*         0x080028bf        0x1 
+ .rodata.hex.0  0x080028c0       0x11 build/main.o
+ .rodata.check_fs.str1.4
+                0x080028d1        0x9 build/ff.o
+ .rodata.create_name.str1.4
+                0x080028d1        0xf build/ff.o
+ *fill*         0x080028d1        0x3 
+ .rodata.ExCvt  0x080028d4       0x80 build/ff.o
+ .rodata.AHBPrescTable
+                0x08002954       0x10 build/system_stm32f1xx.o
+                0x08002954                AHBPrescTable
+ *(.glue_7)
+ .glue_7        0x08002964        0x0 linker stubs
+ *(.glue_7t)
+ .glue_7t       0x08002964        0x0 linker stubs
+ *(.eh_frame*)
+                0x08002964                        . = ALIGN (0x4)
+
+.vfp11_veneer   0x08002964        0x0
+ .vfp11_veneer  0x08002964        0x0 linker stubs
+
+.v4_bx          0x08002964        0x0
+ .v4_bx         0x08002964        0x0 linker stubs
+
+.iplt           0x08002964        0x0
+ .iplt          0x08002964        0x0 build/main.o
+
+.ARM.exidx      0x08002964        0x8
+                0x08002964                        . = ALIGN (0x4)
+ *(.ARM.exidx*)
+ .ARM.exidx     0x08002964        0x8 /usr/lib/gcc/arm-none-eabi/14.2.1/../../../arm-none-eabi/lib/thumb/v7-m/nofp/libg.a(libc_a-memcpy.o)
+                0x0800296c                        . = ALIGN (0x4)
+                0x0800296c                        _etext = .
+                0x0800296c                        _sidata = LOADADDR (.data)
+
+.rel.dyn        0x0800296c        0x0
+ .rel.iplt      0x0800296c        0x0 build/main.o
+
+.data           0x20000000        0x8 load address 0x0800296c
+                0x20000000                        . = ALIGN (0x4)
+                0x20000000                        _sdata = .
+ *(.data*)
+ .data.g_disk_status
+                0x20000000        0x1 build/main.o
+ *fill*         0x20000001        0x3 
+ .data.SystemCoreClock
+                0x20000004        0x4 build/system_stm32f1xx.o
+                0x20000004                SystemCoreClock
+                0x20000008                        . = ALIGN (0x4)
+                0x20000008                        _edata = .
+
+.igot.plt       0x20000008        0x0 load address 0x08002974
+ .igot.plt      0x20000008        0x0 build/main.o
+
+.bss            0x20000008     0x1014 load address 0x08002974
+                0x20000008                        . = ALIGN (0x4)
+                0x20000008                        _sbss = .
+ *(.bss*)
+ .bss.g_bench_buffer
+                0x20000008     0x1000 build/main.o
+ .bss.g_sd_sector_count
+                0x20001008        0x4 build/main.o
+ .bss.g_sd_is_sdhc
+                0x2000100c        0x1 build/main.o
+ *fill*         0x2000100d        0x3 
+ .bss.g_ms_ticks
+                0x20001010        0x4 build/main.o
+ .bss.Fsid      0x20001014        0x2 build/ff.o
+ *fill*         0x20001016        0x2 
+ .bss.FatFs     0x20001018        0x4 build/ff.o
+ *(COMMON)
+                0x2000101c                        . = ALIGN (0x4)
+                0x2000101c                        _ebss = .
+OUTPUT(sd_write_bench.elf elf32-littlearm)
+LOAD linker stubs
+
+.debug_info     0x00000000     0x619a
+ .debug_info    0x00000000     0x2ab7 build/main.o
+ .debug_info    0x00002ab7     0x2fb0 build/ff.o
+ .debug_info    0x00005a67      0x164 build/startup.o
+ .debug_info    0x00005bcb      0x20c build/system_stm32f1xx.o
+ .debug_info    0x00005dd7      0x135 /usr/lib/gcc/arm-none-eabi/14.2.1/../../../arm-none-eabi/lib/thumb/v7-m/nofp/libg.a(libc_a-memset.o)
+ .debug_info    0x00005f0c      0x130 /usr/lib/gcc/arm-none-eabi/14.2.1/../../../arm-none-eabi/lib/thumb/v7-m/nofp/libg.a(libc_a-strchr.o)
+ .debug_info    0x0000603c      0x12b /usr/lib/gcc/arm-none-eabi/14.2.1/../../../arm-none-eabi/lib/thumb/v7-m/nofp/libg.a(libc_a-memcmp.o)
+ .debug_info    0x00006167       0x33 /usr/lib/gcc/arm-none-eabi/14.2.1/../../../arm-none-eabi/lib/thumb/v7-m/nofp/libg.a(libc_a-memcpy.o)
+
+.debug_abbrev   0x00000000      0xb26
+ .debug_abbrev  0x00000000      0x456 build/main.o
+ .debug_abbrev  0x00000456      0x289 build/ff.o
+ .debug_abbrev  0x000006df       0xfd build/startup.o
+ .debug_abbrev  0x000007dc      0x144 build/system_stm32f1xx.o
+ .debug_abbrev  0x00000920       0xb7 /usr/lib/gcc/arm-none-eabi/14.2.1/../../../arm-none-eabi/lib/thumb/v7-m/nofp/libg.a(libc_a-memset.o)
+ .debug_abbrev  0x000009d7       0x97 /usr/lib/gcc/arm-none-eabi/14.2.1/../../../arm-none-eabi/lib/thumb/v7-m/nofp/libg.a(libc_a-strchr.o)
+ .debug_abbrev  0x00000a6e       0x90 /usr/lib/gcc/arm-none-eabi/14.2.1/../../../arm-none-eabi/lib/thumb/v7-m/nofp/libg.a(libc_a-memcmp.o)
+ .debug_abbrev  0x00000afe       0x28 /usr/lib/gcc/arm-none-eabi/14.2.1/../../../arm-none-eabi/lib/thumb/v7-m/nofp/libg.a(libc_a-memcpy.o)
+
+.debug_loclists
+                0x00000000     0x3427
+ .debug_loclists
+                0x00000000      0xaf4 build/main.o
+ .debug_loclists
+                0x00000af4     0x23e3 build/ff.o
+ .debug_loclists
+                0x00002ed7       0x5d build/startup.o
+ .debug_loclists
+                0x00002f34       0xb7 build/system_stm32f1xx.o
+ .debug_loclists
+                0x00002feb      0x1d7 /usr/lib/gcc/arm-none-eabi/14.2.1/../../../arm-none-eabi/lib/thumb/v7-m/nofp/libg.a(libc_a-memset.o)
+ .debug_loclists
+                0x000031c2      0x18f /usr/lib/gcc/arm-none-eabi/14.2.1/../../../arm-none-eabi/lib/thumb/v7-m/nofp/libg.a(libc_a-strchr.o)
+ .debug_loclists
+                0x00003351       0xd6 /usr/lib/gcc/arm-none-eabi/14.2.1/../../../arm-none-eabi/lib/thumb/v7-m/nofp/libg.a(libc_a-memcmp.o)
+
+.debug_aranges  0x00000000      0x3c0
+ .debug_aranges
+                0x00000000      0x158 build/main.o
+ .debug_aranges
+                0x00000158      0x198 build/ff.o
+ .debug_aranges
+                0x000002f0       0x28 build/startup.o
+ .debug_aranges
+                0x00000318       0x28 build/system_stm32f1xx.o
+ .debug_aranges
+                0x00000340       0x20 /usr/lib/gcc/arm-none-eabi/14.2.1/../../../arm-none-eabi/lib/thumb/v7-m/nofp/libg.a(libc_a-memset.o)
+ .debug_aranges
+                0x00000360       0x20 /usr/lib/gcc/arm-none-eabi/14.2.1/../../../arm-none-eabi/lib/thumb/v7-m/nofp/libg.a(libc_a-strchr.o)
+ .debug_aranges
+                0x00000380       0x20 /usr/lib/gcc/arm-none-eabi/14.2.1/../../../arm-none-eabi/lib/thumb/v7-m/nofp/libg.a(libc_a-memcmp.o)
+ .debug_aranges
+                0x000003a0       0x20 /usr/lib/gcc/arm-none-eabi/14.2.1/../../../arm-none-eabi/lib/thumb/v7-m/nofp/libg.a(libc_a-memcpy.o)
+
+.debug_rnglists
+                0x00000000      0x2ad
+ .debug_rnglists
+                0x00000000      0x100 build/main.o
+ .debug_rnglists
+                0x00000100      0x17a build/ff.o
+ .debug_rnglists
+                0x0000027a       0x19 build/startup.o
+ .debug_rnglists
+                0x00000293       0x1a build/system_stm32f1xx.o
+
+.debug_line     0x00000000     0x47a0
+ .debug_line    0x00000000     0x10ab build/main.o
+ .debug_line    0x000010ab     0x2e7d build/ff.o
+ .debug_line    0x00003f28       0xf3 build/startup.o
+ .debug_line    0x0000401b      0x1bb build/system_stm32f1xx.o
+ .debug_line    0x000041d6      0x1b5 /usr/lib/gcc/arm-none-eabi/14.2.1/../../../arm-none-eabi/lib/thumb/v7-m/nofp/libg.a(libc_a-memset.o)
+ .debug_line    0x0000438b      0x1da /usr/lib/gcc/arm-none-eabi/14.2.1/../../../arm-none-eabi/lib/thumb/v7-m/nofp/libg.a(libc_a-strchr.o)
+ .debug_line    0x00004565      0x17e /usr/lib/gcc/arm-none-eabi/14.2.1/../../../arm-none-eabi/lib/thumb/v7-m/nofp/libg.a(libc_a-memcmp.o)
+ .debug_line    0x000046e3       0xbd /usr/lib/gcc/arm-none-eabi/14.2.1/../../../arm-none-eabi/lib/thumb/v7-m/nofp/libg.a(libc_a-memcpy.o)
+
+.debug_str      0x00000000     0x11fa
+ .debug_str     0x00000000     0x11fa build/main.o
+                                0xd1a (size before relaxing)
+ .debug_str     0x000011fa      0x749 build/ff.o
+ .debug_str     0x000011fa      0x22f build/startup.o
+ .debug_str     0x000011fa      0x26e build/system_stm32f1xx.o
+ .debug_str     0x000011fa      0x1a4 /usr/lib/gcc/arm-none-eabi/14.2.1/../../../arm-none-eabi/lib/thumb/v7-m/nofp/libg.a(libc_a-memset.o)
+ .debug_str     0x000011fa      0x19b /usr/lib/gcc/arm-none-eabi/14.2.1/../../../arm-none-eabi/lib/thumb/v7-m/nofp/libg.a(libc_a-strchr.o)
+ .debug_str     0x000011fa      0x190 /usr/lib/gcc/arm-none-eabi/14.2.1/../../../arm-none-eabi/lib/thumb/v7-m/nofp/libg.a(libc_a-memcmp.o)
+ .debug_str     0x000011fa       0xaa /usr/lib/gcc/arm-none-eabi/14.2.1/../../../arm-none-eabi/lib/thumb/v7-m/nofp/libg.a(libc_a-memcpy.o)
+
+.comment        0x00000000       0x4c
+ .comment       0x00000000       0x4c build/main.o
+                                 0x27 (size before relaxing)
+ .comment       0x0000004c       0x27 build/ff.o
+ .comment       0x0000004c       0x27 build/startup.o
+ .comment       0x0000004c       0x27 build/system_stm32f1xx.o
+ .comment       0x0000004c       0x27 /usr/lib/gcc/arm-none-eabi/14.2.1/../../../arm-none-eabi/lib/thumb/v7-m/nofp/libg.a(libc_a-memset.o)
+ .comment       0x0000004c       0x27 /usr/lib/gcc/arm-none-eabi/14.2.1/../../../arm-none-eabi/lib/thumb/v7-m/nofp/libg.a(libc_a-strchr.o)
+ .comment       0x0000004c       0x27 /usr/lib/gcc/arm-none-eabi/14.2.1/../../../arm-none-eabi/lib/thumb/v7-m/nofp/libg.a(libc_a-memcmp.o)
+
+.ARM.attributes
+                0x00000000       0x2b
+ .ARM.attributes
+                0x00000000       0x2d build/main.o
+ .ARM.attributes
+                0x0000002d       0x2d build/ff.o
+ .ARM.attributes
+                0x0000005a       0x2d build/startup.o
+ .ARM.attributes
+                0x00000087       0x2d build/system_stm32f1xx.o
+ .ARM.attributes
+                0x000000b4       0x2d /usr/lib/gcc/arm-none-eabi/14.2.1/../../../arm-none-eabi/lib/thumb/v7-m/nofp/libg.a(libc_a-memset.o)
+ .ARM.attributes
+                0x000000e1       0x2d /usr/lib/gcc/arm-none-eabi/14.2.1/../../../arm-none-eabi/lib/thumb/v7-m/nofp/libg.a(libc_a-strchr.o)
+ .ARM.attributes
+                0x0000010e       0x2d /usr/lib/gcc/arm-none-eabi/14.2.1/../../../arm-none-eabi/lib/thumb/v7-m/nofp/libg.a(libc_a-memcmp.o)
+ .ARM.attributes
+                0x0000013b       0x1b /usr/lib/gcc/arm-none-eabi/14.2.1/../../../arm-none-eabi/lib/thumb/v7-m/nofp/libg.a(libc_a-memcpy.o)
+
+.debug_frame    0x00000000      0xb2c
+ .debug_frame   0x00000000      0x414 build/main.o
+ .debug_frame   0x00000414      0x5f4 build/ff.o
+ .debug_frame   0x00000a08       0x38 build/startup.o
+ .debug_frame   0x00000a40       0x30 build/system_stm32f1xx.o
+ .debug_frame   0x00000a70       0x2c /usr/lib/gcc/arm-none-eabi/14.2.1/../../../arm-none-eabi/lib/thumb/v7-m/nofp/libg.a(libc_a-memset.o)
+ .debug_frame   0x00000a9c       0x34 /usr/lib/gcc/arm-none-eabi/14.2.1/../../../arm-none-eabi/lib/thumb/v7-m/nofp/libg.a(libc_a-strchr.o)
+ .debug_frame   0x00000ad0       0x34 /usr/lib/gcc/arm-none-eabi/14.2.1/../../../arm-none-eabi/lib/thumb/v7-m/nofp/libg.a(libc_a-memcmp.o)
+ .debug_frame   0x00000b04       0x28 /usr/lib/gcc/arm-none-eabi/14.2.1/../../../arm-none-eabi/lib/thumb/v7-m/nofp/libg.a(libc_a-memcpy.o)
+
+.debug_line_str
+                0x00000000       0x94
+ .debug_line_str
+                0x00000000       0x94 /usr/lib/gcc/arm-none-eabi/14.2.1/../../../arm-none-eabi/lib/thumb/v7-m/nofp/libg.a(libc_a-memcpy.o)

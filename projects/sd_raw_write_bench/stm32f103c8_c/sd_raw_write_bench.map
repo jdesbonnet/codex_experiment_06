@@ -1,0 +1,282 @@
+
+Discarded input sections
+
+ .text          0x00000000        0x0 build/main.o
+ .data          0x00000000        0x0 build/main.o
+ .bss           0x00000000        0x0 build/main.o
+ .text          0x00000000        0x0 build/startup.o
+ .data          0x00000000        0x0 build/startup.o
+ .bss           0x00000000        0x0 build/startup.o
+ .text          0x00000000        0x0 build/system_stm32f1xx.o
+ .data          0x00000000        0x0 build/system_stm32f1xx.o
+ .bss           0x00000000        0x0 build/system_stm32f1xx.o
+ .rodata.APBPrescTable
+                0x00000000        0x8 build/system_stm32f1xx.o
+
+Memory Configuration
+
+Name             Origin             Length             Attributes
+FLASH            0x08000000         0x00010000         xr
+SRAM             0x20000000         0x00005000         xrw
+*default*        0x00000000         0xffffffff
+
+Linker script and memory map
+
+LOAD build/main.o
+LOAD build/startup.o
+LOAD build/system_stm32f1xx.o
+START GROUP
+LOAD /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v7-m/nofp/libgcc.a
+LOAD /usr/lib/gcc/arm-none-eabi/14.2.1/../../../arm-none-eabi/lib/thumb/v7-m/nofp/libg.a
+LOAD /usr/lib/gcc/arm-none-eabi/14.2.1/../../../arm-none-eabi/lib/thumb/v7-m/nofp/libc.a
+END GROUP
+                0x20005000                        PROVIDE (_stack_top = (ORIGIN (SRAM) + LENGTH (SRAM)))
+
+.isr_vector     0x08000000       0xec
+                0x08000000                        . = ALIGN (0x4)
+ *(.isr_vector)
+ .isr_vector    0x08000000       0xec build/startup.o
+                0x08000000                interrupt_vector
+                0x080000ec                        . = ALIGN (0x4)
+
+.text           0x080000ec     0x1230
+                0x080000ec                        . = ALIGN (0x4)
+ *(.text*)
+ .text.delay_ms
+                0x080000ec       0x14 build/main.o
+ .text.usart1_putc
+                0x08000100       0x14 build/main.o
+ .text.usart1_puts
+                0x08000114       0x14 build/main.o
+ .text.usart1_put_hex8
+                0x08000128       0x20 build/main.o
+ .text.usart1_put_hex16
+                0x08000148       0x12 build/main.o
+ .text.usart1_put_hex32
+                0x0800015a       0x12 build/main.o
+ .text.usart1_put_dec_u32
+                0x0800016c       0x58 build/main.o
+ .text.usart1_put_dec_tenths_u32
+                0x080001c4       0x30 build/main.o
+ .text.usart1_init
+                0x080001f4       0x60 build/main.o
+ .text.led_init
+                0x08000254       0x2c build/main.o
+ .text.led_set  0x08000280       0x1c build/main.o
+ .text.sd_spi_set_prescaler
+                0x0800029c       0x24 build/main.o
+ .text.sd_spi_init
+                0x080002c0       0x54 build/main.o
+ .text.sd_spi_xfer
+                0x08000314       0x24 build/main.o
+ .text.sd_deselect
+                0x08000338       0x14 build/main.o
+ .text.sd_wait_ready
+                0x0800034c       0x20 build/main.o
+ .text.sd_select
+                0x0800036c       0x18 build/main.o
+ .text.sd_send_initial_clocks
+                0x08000384       0x18 build/main.o
+ .text.sd_send_command_selected
+                0x0800039c       0x4a build/main.o
+ .text.sd_send_command
+                0x080003e6       0x2e build/main.o
+ .text.sd_send_app_command
+                0x08000414       0x22 build/main.o
+ *fill*         0x08000436        0x2 
+ .text.sd_read_data_selected
+                0x08000438       0x4c build/main.o
+ .text.sd_read_ocr
+                0x08000484       0x7a build/main.o
+ *fill*         0x080004fe        0x2 
+ .text.sd_read_block
+                0x08000500       0x54 build/main.o
+ .text.sd_write_data_selected
+                0x08000554       0x50 build/main.o
+ .text.sd_write_block
+                0x080005a4       0x54 build/main.o
+ .text.sd_write_blocks_multi
+                0x080005f8       0x88 build/main.o
+ .text.sd_extract_bits
+                0x08000680       0x34 build/main.o
+ .text.sd_csd_sector_count
+                0x080006b4       0x56 build/main.o
+ *fill*         0x0800070a        0x2 
+ .text.sd_card_init
+                0x0800070c      0x2e8 build/main.o
+ .text.fill_pattern_sector
+                0x080009f4       0x3c build/main.o
+ .text.fill_bench_buffer
+                0x08000a30       0x24 build/main.o
+ .text.verify_sector_pattern
+                0x08000a54       0x40 build/main.o
+ .text.run_raw_benchmark
+                0x08000a94      0x2d8 build/main.o
+ .text.system_clock_config
+                0x08000d6c       0x7c build/main.o
+ .text.SysTick_Handler
+                0x08000de8       0x10 build/main.o
+                0x08000de8                SysTick_Handler
+ .text.main     0x08000df8       0xe0 build/main.o
+                0x08000df8                main
+ .text.Default_Handler
+                0x08000ed8        0x2 build/startup.o
+                0x08000ed8                DebugMon_Handler
+                0x08000ed8                HardFault_Handler
+                0x08000ed8                PendSV_Handler
+                0x08000ed8                NMI_Handler
+                0x08000ed8                UsageFault_Handler
+                0x08000ed8                MemManage_Handler
+                0x08000ed8                SVC_Handler
+                0x08000ed8                BusFault_Handler
+ *fill*         0x08000eda        0x2 
+ .text.Reset_Handler
+                0x08000edc       0x44 build/startup.o
+                0x08000edc                Reset_Handler
+ .text.SystemInit
+                0x08000f20        0x2 build/system_stm32f1xx.o
+                0x08000f20                SystemInit
+ *fill*         0x08000f22        0x2 
+ .text.SystemCoreClockUpdate
+                0x08000f24       0x94 build/system_stm32f1xx.o
+                0x08000f24                SystemCoreClockUpdate
+ *(.rodata*)
+ .rodata.sd_card_init.str1.4
+                0x08000fb8      0x33f build/main.o
+                                 0xcb (size before relaxing)
+ .rodata.run_raw_benchmark.str1.4
+                0x080012f7      0x136 build/main.o
+ .rodata.main.str1.4
+                0x080012f7      0x143 build/main.o
+ *fill*         0x080012f7        0x1 
+ .rodata.hex.0  0x080012f8       0x11 build/main.o
+ *fill*         0x08001309        0x3 
+ .rodata.AHBPrescTable
+                0x0800130c       0x10 build/system_stm32f1xx.o
+                0x0800130c                AHBPrescTable
+ *(.glue_7)
+ .glue_7        0x0800131c        0x0 linker stubs
+ *(.glue_7t)
+ .glue_7t       0x0800131c        0x0 linker stubs
+ *(.eh_frame*)
+                0x0800131c                        . = ALIGN (0x4)
+
+.vfp11_veneer   0x0800131c        0x0
+ .vfp11_veneer  0x0800131c        0x0 linker stubs
+
+.v4_bx          0x0800131c        0x0
+ .v4_bx         0x0800131c        0x0 linker stubs
+
+.iplt           0x0800131c        0x0
+ .iplt          0x0800131c        0x0 build/main.o
+
+.rel.dyn        0x0800131c        0x0
+ .rel.iplt      0x0800131c        0x0 build/main.o
+
+.ARM.exidx      0x0800131c        0x0
+                0x0800131c                        . = ALIGN (0x4)
+ *(.ARM.exidx*)
+                0x0800131c                        . = ALIGN (0x4)
+                0x0800131c                        _etext = .
+                0x0800131c                        _sidata = LOADADDR (.data)
+
+.data           0x20000000        0x4 load address 0x0800131c
+                0x20000000                        . = ALIGN (0x4)
+                0x20000000                        _sdata = .
+ *(.data*)
+ .data.SystemCoreClock
+                0x20000000        0x4 build/system_stm32f1xx.o
+                0x20000000                SystemCoreClock
+                0x20000004                        . = ALIGN (0x4)
+                0x20000004                        _edata = .
+
+.igot.plt       0x20000004        0x0 load address 0x08001320
+ .igot.plt      0x20000004        0x0 build/main.o
+
+.bss            0x20000004     0x120c load address 0x08001320
+                0x20000004                        . = ALIGN (0x4)
+                0x20000004                        _sbss = .
+ *(.bss*)
+ .bss.g_verify_buffer
+                0x20000004      0x200 build/main.o
+ .bss.g_bench_buffer
+                0x20000204     0x1000 build/main.o
+ .bss.g_sd_sector_count
+                0x20001204        0x4 build/main.o
+ .bss.g_sd_is_sdhc
+                0x20001208        0x1 build/main.o
+ *fill*         0x20001209        0x3 
+ .bss.g_ms_ticks
+                0x2000120c        0x4 build/main.o
+ *(COMMON)
+                0x20001210                        . = ALIGN (0x4)
+                0x20001210                        _ebss = .
+OUTPUT(sd_raw_write_bench.elf elf32-littlearm)
+LOAD linker stubs
+
+.debug_info     0x00000000     0x2a87
+ .debug_info    0x00000000     0x2717 build/main.o
+ .debug_info    0x00002717      0x164 build/startup.o
+ .debug_info    0x0000287b      0x20c build/system_stm32f1xx.o
+
+.debug_abbrev   0x00000000      0x61b
+ .debug_abbrev  0x00000000      0x3da build/main.o
+ .debug_abbrev  0x000003da       0xfd build/startup.o
+ .debug_abbrev  0x000004d7      0x144 build/system_stm32f1xx.o
+
+.debug_loclists
+                0x00000000      0xa53
+ .debug_loclists
+                0x00000000      0x93f build/main.o
+ .debug_loclists
+                0x0000093f       0x5d build/startup.o
+ .debug_loclists
+                0x0000099c       0xb7 build/system_stm32f1xx.o
+
+.debug_aranges  0x00000000      0x190
+ .debug_aranges
+                0x00000000      0x140 build/main.o
+ .debug_aranges
+                0x00000140       0x28 build/startup.o
+ .debug_aranges
+                0x00000168       0x28 build/system_stm32f1xx.o
+
+.debug_rnglists
+                0x00000000      0x122
+ .debug_rnglists
+                0x00000000       0xef build/main.o
+ .debug_rnglists
+                0x000000ef       0x19 build/startup.o
+ .debug_rnglists
+                0x00000108       0x1a build/system_stm32f1xx.o
+
+.debug_line     0x00000000     0x134a
+ .debug_line    0x00000000     0x109c build/main.o
+ .debug_line    0x0000109c       0xf3 build/startup.o
+ .debug_line    0x0000118f      0x1bb build/system_stm32f1xx.o
+
+.debug_str      0x00000000      0xb1e
+ .debug_str     0x00000000      0xb1e build/main.o
+                                0xa85 (size before relaxing)
+ .debug_str     0x00000b1e      0x233 build/startup.o
+ .debug_str     0x00000b1e      0x272 build/system_stm32f1xx.o
+
+.comment        0x00000000       0x26
+ .comment       0x00000000       0x26 build/main.o
+                                 0x27 (size before relaxing)
+ .comment       0x00000026       0x27 build/startup.o
+ .comment       0x00000026       0x27 build/system_stm32f1xx.o
+
+.ARM.attributes
+                0x00000000       0x2d
+ .ARM.attributes
+                0x00000000       0x2d build/main.o
+ .ARM.attributes
+                0x0000002d       0x2d build/startup.o
+ .ARM.attributes
+                0x0000005a       0x2d build/system_stm32f1xx.o
+
+.debug_frame    0x00000000      0x424
+ .debug_frame   0x00000000      0x3bc build/main.o
+ .debug_frame   0x000003bc       0x38 build/startup.o
+ .debug_frame   0x000003f4       0x30 build/system_stm32f1xx.o
