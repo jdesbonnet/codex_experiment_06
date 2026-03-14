@@ -12,6 +12,8 @@ This repository supports multiple small projects in both C and Rust, sharing com
 - `projects/` per-project `main.c` and Rust `main.rs`
 - `targets/` target-specific packages
   - `targets/lpc1114` (active target metadata + scaffold)
+  - `targets/lpc824` (NXP LPC824 target scaffold)
+  - `targets/lpc8xx` (family-common LPC8xx CMSIS core support)
   - `targets/ch32v003` (target scaffold)
   - `targets/tm4c123gxl` (TI Tiva C LaunchPad target scaffold)
   - `targets/stm32f103c8` (STM32F103C8 target scaffold)
@@ -192,6 +194,28 @@ sudo udevadm control --reload-rules
 sudo udevadm trigger
 ```
 
+Per-instrument documentation:
+- `docs/instruments/siglent_sdm3065x.md`
+
+## Instrument Notes
+
+Per-instrument setup, Linux access notes, and local-documentation links:
+
+- `docs/instruments/README.md`
+- `docs/instruments/siglent_sdm3065x.md`
+- `docs/instruments/rigol_dp832.md`
+- `docs/instruments/keysight_dsox3014a.md`
+- `docs/instruments/hamamatsu_c12880ma_uart.md`
+- `docs/instruments/fnirsi_dps150.md`
+- `docs/instruments/webcam_microscope.md`
+
+The Keysight scope now has a helper script:
+
+- `tools/keysight_scope.py`
+
+For this DSO-X 3014A with old firmware, LAN control on port `5025` proved more
+reliable than USBTMC for waveform downloads.
+
 ## Pico 2 Debugprobe Reset Line (nRESET)
 
 By default, the 3-pin debug cable does not carry target reset. To control LPC1114 `nRESET` from OpenOCD, use a custom `debugprobe_on_pico2` firmware build and one extra wire.
@@ -316,6 +340,7 @@ Target-aware build wrapper:
 ```sh
 ./tools/build.sh --target lpc1114 --lang c --project blink
 ./tools/build.sh --target lpc1114 --lang rust --project blink --profile release
+./tools/build.sh --target lpc824 --lang c --project blink
 ./tools/build.sh --target ch32v003 --lang c --project blink
 ./tools/build.sh --target ch32v003 --lang rust --project blink
 ./tools/build.sh --target tm4c123gxl --lang c --project blink
@@ -350,6 +375,7 @@ Target-aware flash wrapper:
 ```sh
 ./tools/flash.sh --target lpc1114 --lang c --project sleep_wake
 ./tools/flash.sh --target lpc1114 --lang rust --project blink --profile release
+./tools/flash.sh --target lpc824 --lang c --project blink
 ./tools/flash.sh --target ch32v003 --lang c --project blink
 ./tools/flash.sh --target ch32v003 --lang rust --project blink
 ./tools/flash.sh --target ch32v003 --lang c --project blink --image ./build/ch32v003/blink/blink.elf

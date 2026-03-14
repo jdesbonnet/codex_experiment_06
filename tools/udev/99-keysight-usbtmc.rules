@@ -1,0 +1,1 @@
+KERNEL=="usbtmc[0-9]*", SUBSYSTEM=="usbmisc", ATTRS{idVendor}=="0957", ATTRS{idProduct}=="17a8", MODE:="0660", GROUP:="plugdev", TAG+="uaccess"

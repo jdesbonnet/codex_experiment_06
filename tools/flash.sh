@@ -20,12 +20,13 @@ have_riscv_toolchain() {
 
 usage() {
   cat <<'EOF'
-Usage: flash.sh --target <lpc1114|ch32v003|tm4c123gxl|stm32f103c8> --lang <c|rust> --project <name>
+Usage: flash.sh --target <lpc1114|lpc824|ch32v003|tm4c123gxl|stm32f103c8> --lang <c|rust> --project <name>
                 [--profile <release|debug>] [--image <path/to/image.{elf|bin|hex}>]
 
 Examples:
   ./tools/flash.sh --target lpc1114 --lang c --project sleep_wake
   ./tools/flash.sh --target lpc1114 --lang rust --project blink --profile release
+  ./tools/flash.sh --target lpc824 --lang c --project blink
   ./tools/flash.sh --target ch32v003 --lang c --project blink
   ./tools/flash.sh --target ch32v003 --lang rust --project blink
   ./tools/flash.sh --target ch32v003 --lang c --project blink --image ./build/ch32/blink.elf
@@ -59,6 +60,49 @@ fi
 case "$TARGET" in
   lpc1114)
     RUST_PROFILE="$RUST_PROFILE" ./flash_project.sh "$PROJECT" "$LANG"
+    ;;
+  lpc824)
+    if [[ "$LANG" != "c" ]]; then
+      echo "LPC824 Rust support is not implemented yet." >&2
+      exit 2
+    fi
+
+    LPC824_ADAPTER_KHZ="${LPC824_ADAPTER_KHZ:-1000}"
+    LPC824_DIR="projects/${PROJECT}/lpc824_c"
+    if [[ ! -f "${LPC824_DIR}/Makefile" ]]; then
+      echo "LPC824 C project not found: ${LPC824_DIR}/Makefile" >&2
+      exit 2
+    fi
+
+    if [[ -z "$IMAGE" ]]; then
+      make -C "${LPC824_DIR}" all
+      IMAGE="${LPC824_DIR}/${PROJECT}.elf"
+    fi
+
+    if [[ ! -f "$IMAGE" ]]; then
+      echo "Image not found: $IMAGE" >&2
+      exit 2
+    fi
+
+    CFG="targets/lpc824/openocd/base.cfg"
+    if [[ ! -f "$CFG" ]]; then
+      echo "Missing OpenOCD config: $CFG" >&2
+      exit 2
+    fi
+
+    echo "Flashing LPC824 image: $IMAGE"
+    echo "OpenOCD: $OPENOCD_BIN"
+    echo "Scripts: $OPENOCD_SCRIPTS"
+    echo "Adapter speed: ${LPC824_ADAPTER_KHZ} kHz"
+    "$OPENOCD_BIN" \
+      -s "$OPENOCD_SCRIPTS" \
+      -f "$CFG" \
+      -c "adapter speed ${LPC824_ADAPTER_KHZ}" \
+      -c "init" \
+      -c "reset halt" \
+      -c "program {$IMAGE} verify" \
+      -c "reset run" \
+      -c "shutdown"
     ;;
   ch32v003)
     CH32FUN_DIR="projects/${PROJECT}/ch32v003_c"

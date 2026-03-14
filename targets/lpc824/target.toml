@@ -1,0 +1,18 @@
+[target]
+id = "lpc824"
+arch = "armv6m"
+cpu = "cortex-m0plus"
+
+[toolchain.c]
+cc = "arm-none-eabi-gcc"
+objcopy = "arm-none-eabi-objcopy"
+size = "arm-none-eabi-size"
+
+[flash]
+method = "openocd"
+interface = "cmsis-dap"
+openocd_cfg = "targets/lpc824/openocd/base.cfg"
+default_adapter_khz = 1000
+
+[notes]
+summary = "LPC824 target scaffold using the official NXP LPC824 device pack and the Raspberry Pi CMSIS-DAP debugprobe."

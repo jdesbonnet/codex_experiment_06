@@ -8,6 +8,7 @@ You are running on a Raspberry Pi 5 running 64bit Raspberry Pi OS based on Debia
 Connected to the Raspberry Pi 5 via USB is a Raspberry Pi Pico 2 board running Raspberry Pi debugprobe firmware. The firmware currently in use is a custom `debugprobe_on_pico2` build with reset-line support enabled (`PROBE_PIN_RESET` on Pico 2 `GPIO1`). You will find documentation on the 3-pin interface in the datasheets directory file `raspberrypi-3pin-debug-spec.pdf` and general information at https://www.raspberrypi.com/documentation/microcontrollers/debug-probe.html. Keep in mind this is not the official Raspberry Pi Debug Probe hardware, but debugprobe firmware running on a Pico 2 board.
 
 Before searching the internet for board or component documentation, check `datasheets/CATALOG.md` for locally cached PDFs and manuals.
+For bench instrument setup, Linux access notes, and per-instrument entry points, also check `docs/instruments/README.md`.
 
 This debugger probe is connected to the target device: an LPC1114FN28/102 ARM Cortex-M0 chip (part of the LPC111X family) via the ARM Serial Wire Debug (SWD) port. The pinout of this chip is documented in fig 13 of `datasheets/LPC1114/LPC111X.pdf`. You will find information about programming it in `datasheets/LPC1114/UM10398.pdf`. There is no external crystal for timing, so you will be using the internal oscillator.
 
@@ -33,6 +34,8 @@ There is also an `STM32F103C8` target board used in this repository. When workin
   - `PA7` to SD socket pin `2`
   - `3.3V` and `GND` also connected to the SD socket
 - for SD card protocol notes and external reference links, check `datasheets/SD_Cards/README.md`
+
+There are also multiple NXP `LPC8xx` family devices in scope for this repository, including `LPC810`, `LPC812`, and `LPC824`. When adding support for this family, prefer a shared `lpc8xx` layer for common startup/CMSIS/BSP/OpenOCD code, with per-device overlays only for items that actually vary such as linker scripts, flash/RAM sizes, package pin maps, and board wiring.
 
 ## UART setup
 
@@ -61,6 +64,8 @@ For per-project implementation directories under `projects/<project>/`, use:
 - `hardware_language_variant` (variant optional)
 - examples: `lpc1114_c`, `lpc1114_rust`, `ch32v003_c`, `ch32v003_rust`, `ch32v003_rust_shim`
 
+For target support, the same principle applies: if several MCUs share a vendor family, prefer a family-common target layer plus thin per-device overlays rather than copy/pasted full target directories.
+
 
 ## My code standards:
 
@@ -72,7 +77,11 @@ For per-project implementation directories under `projects/<project>/`, use:
 ## Permission to perform actions without seeking confirmation
 
 - Agent has permission to run openocd on target device.
+- Agest has permission to run scripts in ./tools directory.
 - Agent has permission to open UART on /dev/ttyACM0 (or any /dev/ttyACMx device).
+- Agent has permission to access test and measurement equipment on USB bus.
+- Agent has permission to write datasheets into the ./datasheets directory structure.
+
 
 ## Git operations
 
@@ -81,3 +90,22 @@ There is a repeating issue with commiting messages with backtick symbols. Keep t
 ## Tool scripts
 
 This project has many tooling scripts. Some common rules: always have a --verbose switch that will output debugging information. When expecting a file as an argument and the file does not exist a single line human friendly message should be displayed instead of a stack trace. If a resource (eg UART) is locked by another process: also a human friendly message is preferred.
+
+
+## Test and measurement instruments
+
+You have access to these instruments:
+
+- Siglent SDM3065X-SC digital multimeter via USB
+- Rigol DPS832 lab power supply (with mA resolution software upgrade) via USB
+- Agilent/Keysight DSO-X 3014A digital oscilloscope and signal generator via USB
+- Hamamatsu C12880MA spectrometer (GroupGets) plugged into Arduino which outputs a spectrum via UART
+- Fnirsi DPS-150 lab power supply via USB
+- Webcam microscope
+
+Not all the instruments are plugged in all the time, so if you don't detect it 
+ask me to plug it in.
+
+Per-instrument notes:
+
+- `docs/instruments/README.md`

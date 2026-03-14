@@ -14,13 +14,14 @@ have_riscv_toolchain() {
 
 usage() {
   cat <<'EOF'
-Usage: build.sh --target <lpc1114|ch32v003|tm4c123gxl|stm32f103c8> --lang <c|rust> --project <name> [--profile <release|debug>]
+Usage: build.sh --target <lpc1114|lpc824|ch32v003|tm4c123gxl|stm32f103c8> --lang <c|rust> --project <name> [--profile <release|debug>]
 
 Examples:
   ./tools/build.sh --target lpc1114 --lang c --project blink
   ./tools/build.sh --target lpc1114 --lang rust --project blink --profile debug
   ./tools/build.sh --target ch32v003 --lang c --project blink
   ./tools/build.sh --target ch32v003 --lang rust --project blink
+  ./tools/build.sh --target lpc824 --lang c --project blink
   ./tools/build.sh --target tm4c123gxl --lang c --project blink
   ./tools/build.sh --target stm32f103c8 --lang c --project blink
 EOF
@@ -106,6 +107,20 @@ case "$TARGET" in
       echo "Invalid --lang '$LANG' (expected c or rust)" >&2
       exit 2
     fi
+    ;;
+  lpc824)
+    if [[ "$LANG" != "c" ]]; then
+      echo "LPC824 Rust support is not implemented yet." >&2
+      exit 2
+    fi
+
+    LPC824_DIR="projects/${PROJECT}/lpc824_c"
+    if [[ ! -f "${LPC824_DIR}/Makefile" ]]; then
+      echo "LPC824 C project not found: ${LPC824_DIR}/Makefile" >&2
+      exit 2
+    fi
+
+    make -C "${LPC824_DIR}" all
     ;;
   tm4c123gxl)
     if [[ "$LANG" == "c" ]]; then

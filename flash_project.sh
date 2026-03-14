@@ -2,7 +2,7 @@
 set -euo pipefail
 
 RUST_PROFILE=${RUST_PROFILE:-release}
-targets=("lpc1114" "ch32v003" "tm4c123gxl" "stm32f103c8")
+targets=("lpc1114" "lpc824" "ch32v003" "tm4c123gxl" "stm32f103c8")
 
 target_projects() {
   local target=$1

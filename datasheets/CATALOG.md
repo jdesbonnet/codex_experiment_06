@@ -54,6 +54,15 @@ Guideline: when adding material for a new hardware family, prefer a dedicated su
 | `datasheets/TI_TivaC_LaunchPad/TM4C123x_Silicon_Errata_SPMZ849F.pdf` | Silicon errata | TI `TM4C123x` silicon errata. |
 | `datasheets/TI_TivaC_LaunchPad/TM4C123x_TM4C129x_Data_Sheet_Manual_Update_SPMZ863.pdf` | Datasheet update | TI manual update covering `TM4C123x` / `TM4C129x` datasheet corrections. |
 
+
+## Keysight DSO-X 3014A
+
+| Path | Category | Description |
+| --- | --- | --- |
+| `datasheets/Keysight_DSOX3014A/README.md` | Documentation index | Local index and Linux access notes for the `Agilent/Keysight DSO-X 3014A` scope. |
+| `datasheets/Keysight_DSOX3014A/9018-03427_InfiniiVision_3000_X-Series_User_Guide.pdf` | Instrument user manual | Keysight `InfiniiVision 3000 X-Series` user guide. |
+| `datasheets/Keysight_DSOX3014A/9018-06894_InfiniiVision_3000_X-Series_Programmers_Guide.pdf` | Instrument programming manual | Keysight `InfiniiVision 3000 X-Series` programmer's guide. |
+
 ## STM32F103C8
 
 | Path | Category | Description |

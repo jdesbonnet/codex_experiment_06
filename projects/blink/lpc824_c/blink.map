@@ -1,0 +1,381 @@
+Archive member included to satisfy reference by file (symbol)
+
+/usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_udivsi3.o)
+                              build/main.o (__aeabi_uidiv)
+/usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_dvmd_tls.o)
+                              /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_udivsi3.o) (__aeabi_idiv0)
+
+Discarded input sections
+
+ .text          0x00000000        0x0 build/main.o
+ .data          0x00000000        0x0 build/main.o
+ .bss           0x00000000        0x0 build/main.o
+ .data          0x00000000        0x0 build/startup_LPC824.o
+ .bss           0x00000000        0x0 build/startup_LPC824.o
+ .text          0x00000000        0x0 build/system_LPC824.o
+ .data          0x00000000        0x0 build/system_LPC824.o
+ .bss           0x00000000        0x0 build/system_LPC824.o
+ .data          0x00000000        0x0 /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_udivsi3.o)
+ .bss           0x00000000        0x0 /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_udivsi3.o)
+ .data          0x00000000        0x0 /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_dvmd_tls.o)
+ .bss           0x00000000        0x0 /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_dvmd_tls.o)
+
+Memory Configuration
+
+Name             Origin             Length             Attributes
+m_interrupts     0x00000000         0x00000200         xr
+m_crp            0x000002fc         0x00000004         xr
+m_text           0x00000300         0x00007d00         xr
+m_data           0x10000000         0x00001fe0         rw
+*default*        0x00000000         0xffffffff
+
+Linker script and memory map
+
+LOAD build/main.o
+LOAD build/startup_LPC824.o
+LOAD build/system_LPC824.o
+START GROUP
+LOAD /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a
+LOAD /usr/lib/gcc/arm-none-eabi/14.2.1/../../../arm-none-eabi/lib/thumb/v6-m/nofp/libg.a
+LOAD /usr/lib/gcc/arm-none-eabi/14.2.1/../../../arm-none-eabi/lib/thumb/v6-m/nofp/libc.a
+END GROUP
+                0x00000400                        HEAP_SIZE = DEFINED (__heap_size__)?__heap_size__:0x400
+                0x00000800                        STACK_SIZE = DEFINED (__stack_size__)?__stack_size__:0x800
+                0xefffd679                        __valid_user_code_checksum = (0x0 - ((((__StackTop + Reset_Handler) + NMI_Handler) + HardFault_Handler) + 0x3))
+
+.interrupts     0x00000000       0xc0
+                0x00000000                        . = ALIGN (0x4)
+ *(.isr_vector)
+ .isr_vector    0x00000000       0xc0 build/startup_LPC824.o
+                0x00000000                __Vectors
+                0x000000c0                        . = ALIGN (0x4)
+
+.crp            0x000002fc        0x4
+                0x000002fc                        . = ALIGN (0x4)
+ *(.crp)
+ .crp           0x000002fc        0x4 build/startup_LPC824.o
+                0x00000300                        . = ALIGN (0x4)
+
+.text           0x00000300      0x550
+                0x00000300                        . = ALIGN (0x4)
+ *(.text)
+ .text          0x00000300      0x17c build/startup_LPC824.o
+                0x00000300                Reset_Handler
+                0x0000034c                Reserved39_DriverIRQHandler
+                0x0000034c                ADC0_OVR_DriverIRQHandler
+                0x0000034c                DMA0_DriverIRQHandler
+                0x0000034c                SPI1_DriverIRQHandler
+                0x0000034c                USART2_DriverIRQHandler
+                0x0000034c                I2C3_DriverIRQHandler
+                0x0000034c                USART0_DriverIRQHandler
+                0x0000034c                PIN_INT3_DriverIRQHandler
+                0x0000034c                PIN_INT2_DriverIRQHandler
+                0x0000034c                I2C2_DriverIRQHandler
+                0x0000034c                PIN_INT0_DriverIRQHandler
+                0x0000034c                DefaultISR
+                0x0000034c                WKT_DriverIRQHandler
+                0x0000034c                MRT0_DriverIRQHandler
+                0x0000034c                PIN_INT4_DriverIRQHandler
+                0x0000034c                PIN_INT5_DriverIRQHandler
+                0x0000034c                ADC0_THCMP_DriverIRQHandler
+                0x0000034c                PIN_INT7_DriverIRQHandler
+                0x0000034c                Reserved22_DriverIRQHandler
+                0x0000034c                FLASH_DriverIRQHandler
+                0x0000034c                ADC0_SEQB_DriverIRQHandler
+                0x0000034c                PIN_INT6_DriverIRQHandler
+                0x0000034c                Reserved18_DriverIRQHandler
+                0x0000034c                WDT_DriverIRQHandler
+                0x0000034c                PIN_INT1_DriverIRQHandler
+                0x0000034c                USART1_DriverIRQHandler
+                0x0000034c                BOD_DriverIRQHandler
+                0x0000034c                I2C1_DriverIRQHandler
+                0x0000034c                CMP_DriverIRQHandler
+                0x0000034c                ADC0_SEQA_DriverIRQHandler
+                0x0000034c                SPI0_DriverIRQHandler
+                0x0000034c                I2C0_DriverIRQHandler
+                0x0000034c                SCT0_DriverIRQHandler
+                0x00000350                NMI_Handler
+                0x00000354                HardFault_Handler
+                0x00000358                SVC_Handler
+                0x0000035c                PendSV_Handler
+                0x00000364                SPI0_IRQHandler
+                0x00000368                SPI1_IRQHandler
+                0x0000036c                Reserved18_IRQHandler
+                0x00000370                USART0_IRQHandler
+                0x00000374                USART1_IRQHandler
+                0x00000378                USART2_IRQHandler
+                0x0000037c                Reserved22_IRQHandler
+                0x00000380                I2C1_IRQHandler
+                0x00000384                I2C0_IRQHandler
+                0x00000388                SCT0_IRQHandler
+                0x0000038c                MRT0_IRQHandler
+                0x00000390                CMP_IRQHandler
+                0x00000394                WDT_IRQHandler
+                0x00000398                BOD_IRQHandler
+                0x0000039c                FLASH_IRQHandler
+                0x000003a0                WKT_IRQHandler
+                0x000003a4                ADC0_SEQA_IRQHandler
+                0x000003a8                ADC0_SEQB_IRQHandler
+                0x000003ac                ADC0_THCMP_IRQHandler
+                0x000003b0                ADC0_OVR_IRQHandler
+                0x000003b4                DMA0_IRQHandler
+                0x000003b8                I2C2_IRQHandler
+                0x000003bc                I2C3_IRQHandler
+                0x000003c0                Reserved39_IRQHandler
+                0x000003c4                PIN_INT0_IRQHandler
+                0x000003c8                PIN_INT1_IRQHandler
+                0x000003cc                PIN_INT2_IRQHandler
+                0x000003d0                PIN_INT3_IRQHandler
+                0x000003d4                PIN_INT4_IRQHandler
+                0x000003d8                PIN_INT5_IRQHandler
+                0x000003dc                PIN_INT6_IRQHandler
+                0x000003e0                PIN_INT7_IRQHandler
+ .text          0x0000047c      0x114 /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_udivsi3.o)
+                0x0000047c                __udivsi3
+                0x0000047c                __aeabi_uidiv
+                0x00000588                __aeabi_uidivmod
+ .text          0x00000590        0x4 /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_dvmd_tls.o)
+                0x00000590                __aeabi_ldiv0
+                0x00000590                __aeabi_idiv0
+ *(.text*)
+ .text.SysTick_Config
+                0x00000594       0x34 build/main.o
+ .text.delay_ms
+                0x000005c8       0x14 build/main.o
+ .text.led_write
+                0x000005dc       0x24 build/main.o
+ .text.SysTick_Handler
+                0x00000600       0x10 build/main.o
+                0x00000600                SysTick_Handler
+ .text.main     0x00000610       0x74 build/main.o
+                0x00000610                main
+ .text.CLOCK_GetSystemPLLInClkRate
+                0x00000684       0x1c build/system_LPC824.o
+ .text.Clock_GetPLLFreq
+                0x000006a0        0xc build/system_LPC824.o
+ .text.SystemCoreClockUpdate
+                0x000006ac      0x13c build/system_LPC824.o
+                0x000006ac                SystemCoreClockUpdate
+ .text.SystemInitHook
+                0x000007e8        0x2 build/system_LPC824.o
+                0x000007e8                SystemInitHook
+ *fill*         0x000007ea        0x2 
+ .text.SystemInit
+                0x000007ec       0x24 build/system_LPC824.o
+                0x000007ec                SystemInit
+ *(.rodata)
+ *(.rodata*)
+ .rodata.SystemCoreClockUpdate
+                0x00000810       0x40 build/system_LPC824.o
+ *(.glue_7)
+ .glue_7        0x00000850        0x0 linker stubs
+ *(.glue_7t)
+ .glue_7t       0x00000850        0x0 linker stubs
+ *(.eh_frame)
+ *(.init)
+ *(.fini)
+                0x00000850                        . = ALIGN (0x4)
+
+.vfp11_veneer   0x00000850        0x0
+ .vfp11_veneer  0x00000850        0x0 linker stubs
+
+.v4_bx          0x00000850        0x0
+ .v4_bx         0x00000850        0x0 linker stubs
+
+.iplt           0x00000850        0x0
+ .iplt          0x00000850        0x0 build/main.o
+
+.rel.dyn        0x00000850        0x0
+ .rel.iplt      0x00000850        0x0 build/main.o
+
+.ARM.extab
+ *(.ARM.extab* .gnu.linkonce.armextab.*)
+
+.ARM            0x00000850        0x0
+                0x00000850                        __exidx_start = .
+ *(.ARM.exidx*)
+                0x00000850                        __exidx_end = .
+
+.ctors          0x00000850        0x0
+                0x00000850                        __CTOR_LIST__ = .
+ *crtbegin.o(.ctors)
+ *crtbegin?.o(.ctors)
+ *(EXCLUDE_FILE(*crtend.o *crtend?.o) .ctors)
+ *(SORT_BY_NAME(.ctors.*))
+ *(.ctors)
+                0x00000850                        __CTOR_END__ = .
+
+.dtors          0x00000850        0x0
+                0x00000850                        __DTOR_LIST__ = .
+ *crtbegin.o(.dtors)
+ *crtbegin?.o(.dtors)
+ *(EXCLUDE_FILE(*crtend.o *crtend?.o) .dtors)
+ *(SORT_BY_NAME(.dtors.*))
+ *(.dtors)
+                0x00000850                        __DTOR_END__ = .
+
+.preinit_array  0x00000850        0x0
+                [!provide]                        PROVIDE (__preinit_array_start = .)
+ *(.preinit_array*)
+                [!provide]                        PROVIDE (__preinit_array_end = .)
+
+.init_array     0x00000850        0x0
+                [!provide]                        PROVIDE (__init_array_start = .)
+ *(SORT_BY_NAME(.init_array.*))
+ *(.init_array*)
+                [!provide]                        PROVIDE (__init_array_end = .)
+
+.fini_array     0x00000850        0x0
+                [!provide]                        PROVIDE (__fini_array_start = .)
+ *(SORT_BY_NAME(.fini_array.*))
+ *(.fini_array*)
+                [!provide]                        PROVIDE (__fini_array_end = .)
+                0x00000850                        __etext = .
+                0x00000850                        __DATA_ROM = .
+
+.data           0x10000000        0x4 load address 0x00000850
+                0x10000000                        . = ALIGN (0x4)
+                0x10000000                        __DATA_RAM = .
+                0x10000000                        __data_start__ = .
+ *(.ramfunc*)
+ *(.data)
+ *(.data*)
+ .data.SystemCoreClock
+                0x10000000        0x4 build/system_LPC824.o
+                0x10000000                SystemCoreClock
+ *(.jcr*)
+                0x10000004                        . = ALIGN (0x4)
+                0x10000004                        __data_end__ = .
+                0x00000854                        __DATA_END = (__DATA_ROM + (__data_end__ - __data_start__))
+                0x00008000                        text_end = (ORIGIN (m_text) + LENGTH (m_text))
+                0x00000001                        ASSERT ((__DATA_END <= text_end), region m_text overflowed with text and data)
+
+.igot.plt       0x10000004        0x0 load address 0x00000854
+ .igot.plt      0x10000004        0x0 build/main.o
+
+.bss            0x10000004        0x8 load address 0x00000854
+                0x10000004                        . = ALIGN (0x4)
+                0x10000004                        __START_BSS = .
+                0x10000004                        __bss_start__ = .
+ *(.bss)
+ *(.bss*)
+ .bss.g_ms_ticks
+                0x10000004        0x4 build/main.o
+ .bss.g_blink_toggle_count
+                0x10000008        0x4 build/main.o
+                0x10000008                g_blink_toggle_count
+ *(COMMON)
+                0x1000000c                        . = ALIGN (0x4)
+                0x1000000c                        __bss_end__ = .
+                0x1000000c                        __END_BSS = .
+
+.heap           0x1000000c      0x404 load address 0x0000085c
+                0x10000010                        . = ALIGN (0x8)
+ *fill*         0x1000000c        0x4 
+                0x10000010                        __end__ = .
+                [!provide]                        PROVIDE (end = .)
+                0x10000010                        __HeapBase = .
+                0x10000410                        . = (. + HEAP_SIZE)
+ *fill*         0x10000010      0x400 
+                0x10000410                        __HeapLimit = .
+                0x10000410                        __heap_limit = .
+
+.stack          0x10000410      0x800 load address 0x00000c60
+                0x10000410                        . = ALIGN (0x8)
+                0x10000c10                        . = (. + STACK_SIZE)
+ *fill*         0x10000410      0x800 
+                0x10001fe0                        __StackTop = (ORIGIN (m_data) + LENGTH (m_data))
+                0x100017e0                        __StackLimit = (__StackTop - STACK_SIZE)
+                [!provide]                        PROVIDE (__stack = __StackTop)
+
+.ARM.attributes
+                0x00000000       0x2a
+ *(.ARM.attributes)
+ .ARM.attributes
+                0x00000000       0x2c build/main.o
+ .ARM.attributes
+                0x0000002c       0x1b build/startup_LPC824.o
+ .ARM.attributes
+                0x00000047       0x2c build/system_LPC824.o
+ .ARM.attributes
+                0x00000073       0x1e /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_udivsi3.o)
+ .ARM.attributes
+                0x00000091       0x1e /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_dvmd_tls.o)
+                0x00000001                        ASSERT ((__StackLimit >= __HeapLimit), region m_data overflowed with stack and heap)
+OUTPUT(blink.elf elf32-littlearm)
+LOAD linker stubs
+
+.debug_info     0x00000000     0x1445
+ .debug_info    0x00000000      0xa7c build/main.o
+ .debug_info    0x00000a7c      0x37b build/startup_LPC824.o
+ .debug_info    0x00000df7      0x5d4 build/system_LPC824.o
+ .debug_info    0x000013cb       0x3e /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_udivsi3.o)
+ .debug_info    0x00001409       0x3c /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_dvmd_tls.o)
+
+.debug_abbrev   0x00000000      0x528
+ .debug_abbrev  0x00000000      0x2e9 build/main.o
+ .debug_abbrev  0x000002e9       0x26 build/startup_LPC824.o
+ .debug_abbrev  0x0000030f      0x1cb build/system_LPC824.o
+ .debug_abbrev  0x000004da       0x28 /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_udivsi3.o)
+ .debug_abbrev  0x00000502       0x26 /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_dvmd_tls.o)
+
+.debug_loclists
+                0x00000000      0x232
+ .debug_loclists
+                0x00000000       0x7f build/main.o
+ .debug_loclists
+                0x0000007f      0x1b3 build/system_LPC824.o
+
+.debug_aranges  0x00000000       0xe0
+ .debug_aranges
+                0x00000000       0x40 build/main.o
+ .debug_aranges
+                0x00000040       0x20 build/startup_LPC824.o
+ .debug_aranges
+                0x00000060       0x40 build/system_LPC824.o
+ .debug_aranges
+                0x000000a0       0x20 /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_udivsi3.o)
+ .debug_aranges
+                0x000000c0       0x20 /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_dvmd_tls.o)
+
+.debug_rnglists
+                0x00000000       0x57
+ .debug_rnglists
+                0x00000000       0x2b build/main.o
+ .debug_rnglists
+                0x0000002b       0x2c build/system_LPC824.o
+
+.debug_line     0x00000000      0x762
+ .debug_line    0x00000000      0x24e build/main.o
+ .debug_line    0x0000024e      0x136 build/startup_LPC824.o
+ .debug_line    0x00000384      0x33e build/system_LPC824.o
+ .debug_line    0x000006c2       0x56 /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_udivsi3.o)
+ .debug_line    0x00000718       0x4a /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_dvmd_tls.o)
+
+.debug_str      0x00000000      0xe35
+ .debug_str     0x00000000      0xe35 build/main.o
+                                0x74f (size before relaxing)
+ .debug_str     0x00000e35      0x629 build/startup_LPC824.o
+ .debug_str     0x00000e35      0x4d8 build/system_LPC824.o
+ .debug_str     0x00000e35       0xb9 /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_udivsi3.o)
+ .debug_str     0x00000e35       0xba /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_dvmd_tls.o)
+
+.comment        0x00000000       0x26
+ .comment       0x00000000       0x26 build/main.o
+                                 0x27 (size before relaxing)
+ .comment       0x00000026       0x27 build/system_LPC824.o
+
+.debug_frame    0x00000000       0xf8
+ .debug_frame   0x00000000       0x68 build/main.o
+ .debug_frame   0x00000068       0x70 build/system_LPC824.o
+ .debug_frame   0x000000d8       0x20 /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_udivsi3.o)
+
+.debug_line_str
+                0x00000000       0xf9
+ .debug_line_str
+                0x00000000       0xf9 build/startup_LPC824.o
+                                 0x69 (size before relaxing)
+ .debug_line_str
+                0x000000f9       0x90 /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_udivsi3.o)
+ .debug_line_str
+                0x000000f9       0x90 /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_dvmd_tls.o)

@@ -1,0 +1,1220 @@
+
+blink.elf:     file format elf32-littlearm
+
+
+Disassembly of section .text:
+
+00000300 <Reset_Handler>:
+    .align 2
+    .globl   Reset_Handler
+    .weak    Reset_Handler
+    .type    Reset_Handler, %function
+Reset_Handler:
+    cpsid   i               /* Mask interrupts */
+ 300:	b672      	cpsid	i
+#ifndef __NO_SYSTEM_INIT
+    ldr   r0,=SystemInit
+ 302:	480b      	ldr	r0, [pc, #44]	@ (330 <Reset_Handler+0x30>)
+    blx   r0
+ 304:	4780      	blx	r0
+ *      linker script.
+ *      __etext: End of code section, i.e., begin of data sections to copy from.
+ *      __data_start__/__data_end__: RAM address range that data should be
+ *      copied to. Both must be aligned to 4 bytes boundary.  */
+
+    ldr    r1, =__etext
+ 306:	490b      	ldr	r1, [pc, #44]	@ (334 <Reset_Handler+0x34>)
+    ldr    r2, =__data_start__
+ 308:	4a0b      	ldr	r2, [pc, #44]	@ (338 <Reset_Handler+0x38>)
+    ldr    r3, =__data_end__
+ 30a:	4b0c      	ldr	r3, [pc, #48]	@ (33c <Reset_Handler+0x3c>)
+
+    subs    r3, r2
+ 30c:	1a9b      	subs	r3, r3, r2
+    ble     .LC0
+ 30e:	dd03      	ble.n	318 <Reset_Handler+0x18>
+
+.LC1:
+    subs    r3, 4
+ 310:	3b04      	subs	r3, #4
+    ldr    r0, [r1,r3]
+ 312:	58c8      	ldr	r0, [r1, r3]
+    str    r0, [r2,r3]
+ 314:	50d0      	str	r0, [r2, r3]
+    bgt    .LC1
+ 316:	dcfb      	bgt.n	310 <Reset_Handler+0x10>
+ *     Loop to zero out BSS section, which uses following symbols
+ *     in linker script:
+ *      __bss_start__: start of BSS section. Must align to 4
+ *      __bss_end__: end of BSS section. Must align to 4
+ */
+    ldr r1, =__bss_start__
+ 318:	4909      	ldr	r1, [pc, #36]	@ (340 <Reset_Handler+0x40>)
+    ldr r2, =__bss_end__
+ 31a:	4a0a      	ldr	r2, [pc, #40]	@ (344 <Reset_Handler+0x44>)
+
+    subs    r2, r1
+ 31c:	1a52      	subs	r2, r2, r1
+    ble .LC3
+ 31e:	dd03      	ble.n	328 <Reset_Handler+0x28>
+
+    movs    r0, 0
+ 320:	2000      	movs	r0, #0
+.LC2:
+    subs    r2, 4
+ 322:	3a04      	subs	r2, #4
+    str r0, [r1, r2]
+ 324:	5088      	str	r0, [r1, r2]
+    bgt .LC2
+ 326:	dcfc      	bgt.n	322 <Reset_Handler+0x22>
+.LC3:
+#endif
+    cpsie   i               /* Unmask interrupts */
+ 328:	b662      	cpsie	i
+#else
+#define __START _start
+#endif
+#endif
+#ifndef __ATOLLIC__
+    ldr   r0,=__START
+ 32a:	4807      	ldr	r0, [pc, #28]	@ (348 <Reset_Handler+0x48>)
+    blx   r0
+ 32c:	4780      	blx	r0
+ 32e:	0000      	.short	0x0000
+    ldr   r0,=SystemInit
+ 330:	000007ed 	.word	0x000007ed
+    ldr    r1, =__etext
+ 334:	00000850 	.word	0x00000850
+    ldr    r2, =__data_start__
+ 338:	10000000 	.word	0x10000000
+    ldr    r3, =__data_end__
+ 33c:	10000004 	.word	0x10000004
+    ldr r1, =__bss_start__
+ 340:	10000004 	.word	0x10000004
+    ldr r2, =__bss_end__
+ 344:	1000000c 	.word	0x1000000c
+    ldr   r0,=__START
+ 348:	00000611 	.word	0x00000611
+
+0000034c <ADC0_OVR_DriverIRQHandler>:
+    .align  1
+    .thumb_func
+    .weak DefaultISR
+    .type DefaultISR, %function
+DefaultISR:
+    ldr r0, =DefaultISR
+ 34c:	4825      	ldr	r0, [pc, #148]	@ (3e4 <PIN_INT7_IRQHandler+0x4>)
+    bx r0
+ 34e:	4700      	bx	r0
+
+00000350 <NMI_Handler>:
+    .align 1
+    .thumb_func
+    .weak NMI_Handler
+    .type NMI_Handler, %function
+NMI_Handler:
+    ldr   r0,=NMI_Handler
+ 350:	4825      	ldr	r0, [pc, #148]	@ (3e8 <PIN_INT7_IRQHandler+0x8>)
+    bx    r0
+ 352:	4700      	bx	r0
+
+00000354 <HardFault_Handler>:
+    .align 1
+    .thumb_func
+    .weak HardFault_Handler
+    .type HardFault_Handler, %function
+HardFault_Handler:
+    ldr   r0,=HardFault_Handler
+ 354:	4825      	ldr	r0, [pc, #148]	@ (3ec <PIN_INT7_IRQHandler+0xc>)
+    bx    r0
+ 356:	4700      	bx	r0
+
+00000358 <SVC_Handler>:
+    .align 1
+    .thumb_func
+    .weak SVC_Handler
+    .type SVC_Handler, %function
+SVC_Handler:
+    ldr   r0,=SVC_Handler
+ 358:	4825      	ldr	r0, [pc, #148]	@ (3f0 <PIN_INT7_IRQHandler+0x10>)
+    bx    r0
+ 35a:	4700      	bx	r0
+
+0000035c <PendSV_Handler>:
+    .align 1
+    .thumb_func
+    .weak PendSV_Handler
+    .type PendSV_Handler, %function
+PendSV_Handler:
+    ldr   r0,=PendSV_Handler
+ 35c:	4825      	ldr	r0, [pc, #148]	@ (3f4 <PIN_INT7_IRQHandler+0x14>)
+    bx    r0
+ 35e:	4700      	bx	r0
+    .align 1
+    .thumb_func
+    .weak SysTick_Handler
+    .type SysTick_Handler, %function
+SysTick_Handler:
+    ldr   r0,=SysTick_Handler
+ 360:	4825      	ldr	r0, [pc, #148]	@ (3f8 <PIN_INT7_IRQHandler+0x18>)
+    bx    r0
+ 362:	4700      	bx	r0
+
+00000364 <SPI0_IRQHandler>:
+    .align 1
+    .thumb_func
+    .weak SPI0_IRQHandler
+    .type SPI0_IRQHandler, %function
+SPI0_IRQHandler:
+    ldr   r0,=SPI0_DriverIRQHandler
+ 364:	4825      	ldr	r0, [pc, #148]	@ (3fc <PIN_INT7_IRQHandler+0x1c>)
+    bx    r0
+ 366:	4700      	bx	r0
+
+00000368 <SPI1_IRQHandler>:
+    .align 1
+    .thumb_func
+    .weak SPI1_IRQHandler
+    .type SPI1_IRQHandler, %function
+SPI1_IRQHandler:
+    ldr   r0,=SPI1_DriverIRQHandler
+ 368:	4825      	ldr	r0, [pc, #148]	@ (400 <HEAP_SIZE>)
+    bx    r0
+ 36a:	4700      	bx	r0
+
+0000036c <Reserved18_IRQHandler>:
+    .align 1
+    .thumb_func
+    .weak Reserved18_IRQHandler
+    .type Reserved18_IRQHandler, %function
+Reserved18_IRQHandler:
+    ldr   r0,=Reserved18_DriverIRQHandler
+ 36c:	4825      	ldr	r0, [pc, #148]	@ (404 <HEAP_SIZE+0x4>)
+    bx    r0
+ 36e:	4700      	bx	r0
+
+00000370 <USART0_IRQHandler>:
+    .align 1
+    .thumb_func
+    .weak USART0_IRQHandler
+    .type USART0_IRQHandler, %function
+USART0_IRQHandler:
+    ldr   r0,=USART0_DriverIRQHandler
+ 370:	4825      	ldr	r0, [pc, #148]	@ (408 <HEAP_SIZE+0x8>)
+    bx    r0
+ 372:	4700      	bx	r0
+
+00000374 <USART1_IRQHandler>:
+    .align 1
+    .thumb_func
+    .weak USART1_IRQHandler
+    .type USART1_IRQHandler, %function
+USART1_IRQHandler:
+    ldr   r0,=USART1_DriverIRQHandler
+ 374:	4825      	ldr	r0, [pc, #148]	@ (40c <HEAP_SIZE+0xc>)
+    bx    r0
+ 376:	4700      	bx	r0
+
+00000378 <USART2_IRQHandler>:
+    .align 1
+    .thumb_func
+    .weak USART2_IRQHandler
+    .type USART2_IRQHandler, %function
+USART2_IRQHandler:
+    ldr   r0,=USART2_DriverIRQHandler
+ 378:	4825      	ldr	r0, [pc, #148]	@ (410 <HEAP_SIZE+0x10>)
+    bx    r0
+ 37a:	4700      	bx	r0
+
+0000037c <Reserved22_IRQHandler>:
+    .align 1
+    .thumb_func
+    .weak Reserved22_IRQHandler
+    .type Reserved22_IRQHandler, %function
+Reserved22_IRQHandler:
+    ldr   r0,=Reserved22_DriverIRQHandler
+ 37c:	4825      	ldr	r0, [pc, #148]	@ (414 <HEAP_SIZE+0x14>)
+    bx    r0
+ 37e:	4700      	bx	r0
+
+00000380 <I2C1_IRQHandler>:
+    .align 1
+    .thumb_func
+    .weak I2C1_IRQHandler
+    .type I2C1_IRQHandler, %function
+I2C1_IRQHandler:
+    ldr   r0,=I2C1_DriverIRQHandler
+ 380:	4825      	ldr	r0, [pc, #148]	@ (418 <HEAP_SIZE+0x18>)
+    bx    r0
+ 382:	4700      	bx	r0
+
+00000384 <I2C0_IRQHandler>:
+    .align 1
+    .thumb_func
+    .weak I2C0_IRQHandler
+    .type I2C0_IRQHandler, %function
+I2C0_IRQHandler:
+    ldr   r0,=I2C0_DriverIRQHandler
+ 384:	4825      	ldr	r0, [pc, #148]	@ (41c <HEAP_SIZE+0x1c>)
+    bx    r0
+ 386:	4700      	bx	r0
+
+00000388 <SCT0_IRQHandler>:
+    .align 1
+    .thumb_func
+    .weak SCT0_IRQHandler
+    .type SCT0_IRQHandler, %function
+SCT0_IRQHandler:
+    ldr   r0,=SCT0_DriverIRQHandler
+ 388:	4825      	ldr	r0, [pc, #148]	@ (420 <HEAP_SIZE+0x20>)
+    bx    r0
+ 38a:	4700      	bx	r0
+
+0000038c <MRT0_IRQHandler>:
+    .align 1
+    .thumb_func
+    .weak MRT0_IRQHandler
+    .type MRT0_IRQHandler, %function
+MRT0_IRQHandler:
+    ldr   r0,=MRT0_DriverIRQHandler
+ 38c:	4825      	ldr	r0, [pc, #148]	@ (424 <HEAP_SIZE+0x24>)
+    bx    r0
+ 38e:	4700      	bx	r0
+
+00000390 <CMP_IRQHandler>:
+    .align 1
+    .thumb_func
+    .weak CMP_IRQHandler
+    .type CMP_IRQHandler, %function
+CMP_IRQHandler:
+    ldr   r0,=CMP_DriverIRQHandler
+ 390:	4825      	ldr	r0, [pc, #148]	@ (428 <HEAP_SIZE+0x28>)
+    bx    r0
+ 392:	4700      	bx	r0
+
+00000394 <WDT_IRQHandler>:
+    .align 1
+    .thumb_func
+    .weak WDT_IRQHandler
+    .type WDT_IRQHandler, %function
+WDT_IRQHandler:
+    ldr   r0,=WDT_DriverIRQHandler
+ 394:	4825      	ldr	r0, [pc, #148]	@ (42c <HEAP_SIZE+0x2c>)
+    bx    r0
+ 396:	4700      	bx	r0
+
+00000398 <BOD_IRQHandler>:
+    .align 1
+    .thumb_func
+    .weak BOD_IRQHandler
+    .type BOD_IRQHandler, %function
+BOD_IRQHandler:
+    ldr   r0,=BOD_DriverIRQHandler
+ 398:	4825      	ldr	r0, [pc, #148]	@ (430 <HEAP_SIZE+0x30>)
+    bx    r0
+ 39a:	4700      	bx	r0
+
+0000039c <FLASH_IRQHandler>:
+    .align 1
+    .thumb_func
+    .weak FLASH_IRQHandler
+    .type FLASH_IRQHandler, %function
+FLASH_IRQHandler:
+    ldr   r0,=FLASH_DriverIRQHandler
+ 39c:	4825      	ldr	r0, [pc, #148]	@ (434 <HEAP_SIZE+0x34>)
+    bx    r0
+ 39e:	4700      	bx	r0
+
+000003a0 <WKT_IRQHandler>:
+    .align 1
+    .thumb_func
+    .weak WKT_IRQHandler
+    .type WKT_IRQHandler, %function
+WKT_IRQHandler:
+    ldr   r0,=WKT_DriverIRQHandler
+ 3a0:	4825      	ldr	r0, [pc, #148]	@ (438 <HEAP_SIZE+0x38>)
+    bx    r0
+ 3a2:	4700      	bx	r0
+
+000003a4 <ADC0_SEQA_IRQHandler>:
+    .align 1
+    .thumb_func
+    .weak ADC0_SEQA_IRQHandler
+    .type ADC0_SEQA_IRQHandler, %function
+ADC0_SEQA_IRQHandler:
+    ldr   r0,=ADC0_SEQA_DriverIRQHandler
+ 3a4:	4825      	ldr	r0, [pc, #148]	@ (43c <HEAP_SIZE+0x3c>)
+    bx    r0
+ 3a6:	4700      	bx	r0
+
+000003a8 <ADC0_SEQB_IRQHandler>:
+    .align 1
+    .thumb_func
+    .weak ADC0_SEQB_IRQHandler
+    .type ADC0_SEQB_IRQHandler, %function
+ADC0_SEQB_IRQHandler:
+    ldr   r0,=ADC0_SEQB_DriverIRQHandler
+ 3a8:	4825      	ldr	r0, [pc, #148]	@ (440 <HEAP_SIZE+0x40>)
+    bx    r0
+ 3aa:	4700      	bx	r0
+
+000003ac <ADC0_THCMP_IRQHandler>:
+    .align 1
+    .thumb_func
+    .weak ADC0_THCMP_IRQHandler
+    .type ADC0_THCMP_IRQHandler, %function
+ADC0_THCMP_IRQHandler:
+    ldr   r0,=ADC0_THCMP_DriverIRQHandler
+ 3ac:	4825      	ldr	r0, [pc, #148]	@ (444 <HEAP_SIZE+0x44>)
+    bx    r0
+ 3ae:	4700      	bx	r0
+
+000003b0 <ADC0_OVR_IRQHandler>:
+    .align 1
+    .thumb_func
+    .weak ADC0_OVR_IRQHandler
+    .type ADC0_OVR_IRQHandler, %function
+ADC0_OVR_IRQHandler:
+    ldr   r0,=ADC0_OVR_DriverIRQHandler
+ 3b0:	4825      	ldr	r0, [pc, #148]	@ (448 <HEAP_SIZE+0x48>)
+    bx    r0
+ 3b2:	4700      	bx	r0
+
+000003b4 <DMA0_IRQHandler>:
+    .align 1
+    .thumb_func
+    .weak DMA0_IRQHandler
+    .type DMA0_IRQHandler, %function
+DMA0_IRQHandler:
+    ldr   r0,=DMA0_DriverIRQHandler
+ 3b4:	4825      	ldr	r0, [pc, #148]	@ (44c <HEAP_SIZE+0x4c>)
+    bx    r0
+ 3b6:	4700      	bx	r0
+
+000003b8 <I2C2_IRQHandler>:
+    .align 1
+    .thumb_func
+    .weak I2C2_IRQHandler
+    .type I2C2_IRQHandler, %function
+I2C2_IRQHandler:
+    ldr   r0,=I2C2_DriverIRQHandler
+ 3b8:	4825      	ldr	r0, [pc, #148]	@ (450 <HEAP_SIZE+0x50>)
+    bx    r0
+ 3ba:	4700      	bx	r0
+
+000003bc <I2C3_IRQHandler>:
+    .align 1
+    .thumb_func
+    .weak I2C3_IRQHandler
+    .type I2C3_IRQHandler, %function
+I2C3_IRQHandler:
+    ldr   r0,=I2C3_DriverIRQHandler
+ 3bc:	4825      	ldr	r0, [pc, #148]	@ (454 <HEAP_SIZE+0x54>)
+    bx    r0
+ 3be:	4700      	bx	r0
+
+000003c0 <Reserved39_IRQHandler>:
+    .align 1
+    .thumb_func
+    .weak Reserved39_IRQHandler
+    .type Reserved39_IRQHandler, %function
+Reserved39_IRQHandler:
+    ldr   r0,=Reserved39_DriverIRQHandler
+ 3c0:	4825      	ldr	r0, [pc, #148]	@ (458 <HEAP_SIZE+0x58>)
+    bx    r0
+ 3c2:	4700      	bx	r0
+
+000003c4 <PIN_INT0_IRQHandler>:
+    .align 1
+    .thumb_func
+    .weak PIN_INT0_IRQHandler
+    .type PIN_INT0_IRQHandler, %function
+PIN_INT0_IRQHandler:
+    ldr   r0,=PIN_INT0_DriverIRQHandler
+ 3c4:	4825      	ldr	r0, [pc, #148]	@ (45c <HEAP_SIZE+0x5c>)
+    bx    r0
+ 3c6:	4700      	bx	r0
+
+000003c8 <PIN_INT1_IRQHandler>:
+    .align 1
+    .thumb_func
+    .weak PIN_INT1_IRQHandler
+    .type PIN_INT1_IRQHandler, %function
+PIN_INT1_IRQHandler:
+    ldr   r0,=PIN_INT1_DriverIRQHandler
+ 3c8:	4825      	ldr	r0, [pc, #148]	@ (460 <HEAP_SIZE+0x60>)
+    bx    r0
+ 3ca:	4700      	bx	r0
+
+000003cc <PIN_INT2_IRQHandler>:
+    .align 1
+    .thumb_func
+    .weak PIN_INT2_IRQHandler
+    .type PIN_INT2_IRQHandler, %function
+PIN_INT2_IRQHandler:
+    ldr   r0,=PIN_INT2_DriverIRQHandler
+ 3cc:	4825      	ldr	r0, [pc, #148]	@ (464 <HEAP_SIZE+0x64>)
+    bx    r0
+ 3ce:	4700      	bx	r0
+
+000003d0 <PIN_INT3_IRQHandler>:
+    .align 1
+    .thumb_func
+    .weak PIN_INT3_IRQHandler
+    .type PIN_INT3_IRQHandler, %function
+PIN_INT3_IRQHandler:
+    ldr   r0,=PIN_INT3_DriverIRQHandler
+ 3d0:	4825      	ldr	r0, [pc, #148]	@ (468 <HEAP_SIZE+0x68>)
+    bx    r0
+ 3d2:	4700      	bx	r0
+
+000003d4 <PIN_INT4_IRQHandler>:
+    .align 1
+    .thumb_func
+    .weak PIN_INT4_IRQHandler
+    .type PIN_INT4_IRQHandler, %function
+PIN_INT4_IRQHandler:
+    ldr   r0,=PIN_INT4_DriverIRQHandler
+ 3d4:	4825      	ldr	r0, [pc, #148]	@ (46c <HEAP_SIZE+0x6c>)
+    bx    r0
+ 3d6:	4700      	bx	r0
+
+000003d8 <PIN_INT5_IRQHandler>:
+    .align 1
+    .thumb_func
+    .weak PIN_INT5_IRQHandler
+    .type PIN_INT5_IRQHandler, %function
+PIN_INT5_IRQHandler:
+    ldr   r0,=PIN_INT5_DriverIRQHandler
+ 3d8:	4825      	ldr	r0, [pc, #148]	@ (470 <HEAP_SIZE+0x70>)
+    bx    r0
+ 3da:	4700      	bx	r0
+
+000003dc <PIN_INT6_IRQHandler>:
+    .align 1
+    .thumb_func
+    .weak PIN_INT6_IRQHandler
+    .type PIN_INT6_IRQHandler, %function
+PIN_INT6_IRQHandler:
+    ldr   r0,=PIN_INT6_DriverIRQHandler
+ 3dc:	4825      	ldr	r0, [pc, #148]	@ (474 <HEAP_SIZE+0x74>)
+    bx    r0
+ 3de:	4700      	bx	r0
+
+000003e0 <PIN_INT7_IRQHandler>:
+    .align 1
+    .thumb_func
+    .weak PIN_INT7_IRQHandler
+    .type PIN_INT7_IRQHandler, %function
+PIN_INT7_IRQHandler:
+    ldr   r0,=PIN_INT7_DriverIRQHandler
+ 3e0:	4825      	ldr	r0, [pc, #148]	@ (478 <HEAP_SIZE+0x78>)
+    bx    r0
+ 3e2:	4700      	bx	r0
+    ldr r0, =DefaultISR
+ 3e4:	0000034d 	.word	0x0000034d
+    ldr   r0,=NMI_Handler
+ 3e8:	00000351 	.word	0x00000351
+    ldr   r0,=HardFault_Handler
+ 3ec:	00000355 	.word	0x00000355
+    ldr   r0,=SVC_Handler
+ 3f0:	00000359 	.word	0x00000359
+    ldr   r0,=PendSV_Handler
+ 3f4:	0000035d 	.word	0x0000035d
+    ldr   r0,=SysTick_Handler
+ 3f8:	00000601 	.word	0x00000601
+    ldr   r0,=SPI0_DriverIRQHandler
+ 3fc:	0000034d 	.word	0x0000034d
+    ldr   r0,=SPI1_DriverIRQHandler
+ 400:	0000034d 	.word	0x0000034d
+    ldr   r0,=Reserved18_DriverIRQHandler
+ 404:	0000034d 	.word	0x0000034d
+    ldr   r0,=USART0_DriverIRQHandler
+ 408:	0000034d 	.word	0x0000034d
+    ldr   r0,=USART1_DriverIRQHandler
+ 40c:	0000034d 	.word	0x0000034d
+    ldr   r0,=USART2_DriverIRQHandler
+ 410:	0000034d 	.word	0x0000034d
+    ldr   r0,=Reserved22_DriverIRQHandler
+ 414:	0000034d 	.word	0x0000034d
+    ldr   r0,=I2C1_DriverIRQHandler
+ 418:	0000034d 	.word	0x0000034d
+    ldr   r0,=I2C0_DriverIRQHandler
+ 41c:	0000034d 	.word	0x0000034d
+    ldr   r0,=SCT0_DriverIRQHandler
+ 420:	0000034d 	.word	0x0000034d
+    ldr   r0,=MRT0_DriverIRQHandler
+ 424:	0000034d 	.word	0x0000034d
+    ldr   r0,=CMP_DriverIRQHandler
+ 428:	0000034d 	.word	0x0000034d
+    ldr   r0,=WDT_DriverIRQHandler
+ 42c:	0000034d 	.word	0x0000034d
+    ldr   r0,=BOD_DriverIRQHandler
+ 430:	0000034d 	.word	0x0000034d
+    ldr   r0,=FLASH_DriverIRQHandler
+ 434:	0000034d 	.word	0x0000034d
+    ldr   r0,=WKT_DriverIRQHandler
+ 438:	0000034d 	.word	0x0000034d
+    ldr   r0,=ADC0_SEQA_DriverIRQHandler
+ 43c:	0000034d 	.word	0x0000034d
+    ldr   r0,=ADC0_SEQB_DriverIRQHandler
+ 440:	0000034d 	.word	0x0000034d
+    ldr   r0,=ADC0_THCMP_DriverIRQHandler
+ 444:	0000034d 	.word	0x0000034d
+    ldr   r0,=ADC0_OVR_DriverIRQHandler
+ 448:	0000034d 	.word	0x0000034d
+    ldr   r0,=DMA0_DriverIRQHandler
+ 44c:	0000034d 	.word	0x0000034d
+    ldr   r0,=I2C2_DriverIRQHandler
+ 450:	0000034d 	.word	0x0000034d
+    ldr   r0,=I2C3_DriverIRQHandler
+ 454:	0000034d 	.word	0x0000034d
+    ldr   r0,=Reserved39_DriverIRQHandler
+ 458:	0000034d 	.word	0x0000034d
+    ldr   r0,=PIN_INT0_DriverIRQHandler
+ 45c:	0000034d 	.word	0x0000034d
+    ldr   r0,=PIN_INT1_DriverIRQHandler
+ 460:	0000034d 	.word	0x0000034d
+    ldr   r0,=PIN_INT2_DriverIRQHandler
+ 464:	0000034d 	.word	0x0000034d
+    ldr   r0,=PIN_INT3_DriverIRQHandler
+ 468:	0000034d 	.word	0x0000034d
+    ldr   r0,=PIN_INT4_DriverIRQHandler
+ 46c:	0000034d 	.word	0x0000034d
+    ldr   r0,=PIN_INT5_DriverIRQHandler
+ 470:	0000034d 	.word	0x0000034d
+    ldr   r0,=PIN_INT6_DriverIRQHandler
+ 474:	0000034d 	.word	0x0000034d
+    ldr   r0,=PIN_INT7_DriverIRQHandler
+ 478:	0000034d 	.word	0x0000034d
+
+0000047c <__udivsi3>:
+ 47c:	2200      	movs	r2, #0
+ 47e:	0843      	lsrs	r3, r0, #1
+ 480:	428b      	cmp	r3, r1
+ 482:	d374      	bcc.n	56e <__udivsi3+0xf2>
+ 484:	0903      	lsrs	r3, r0, #4
+ 486:	428b      	cmp	r3, r1
+ 488:	d35f      	bcc.n	54a <__udivsi3+0xce>
+ 48a:	0a03      	lsrs	r3, r0, #8
+ 48c:	428b      	cmp	r3, r1
+ 48e:	d344      	bcc.n	51a <__udivsi3+0x9e>
+ 490:	0b03      	lsrs	r3, r0, #12
+ 492:	428b      	cmp	r3, r1
+ 494:	d328      	bcc.n	4e8 <__udivsi3+0x6c>
+ 496:	0c03      	lsrs	r3, r0, #16
+ 498:	428b      	cmp	r3, r1
+ 49a:	d30d      	bcc.n	4b8 <__udivsi3+0x3c>
+ 49c:	22ff      	movs	r2, #255	@ 0xff
+ 49e:	0209      	lsls	r1, r1, #8
+ 4a0:	ba12      	rev	r2, r2
+ 4a2:	0c03      	lsrs	r3, r0, #16
+ 4a4:	428b      	cmp	r3, r1
+ 4a6:	d302      	bcc.n	4ae <__udivsi3+0x32>
+ 4a8:	1212      	asrs	r2, r2, #8
+ 4aa:	0209      	lsls	r1, r1, #8
+ 4ac:	d065      	beq.n	57a <__udivsi3+0xfe>
+ 4ae:	0b03      	lsrs	r3, r0, #12
+ 4b0:	428b      	cmp	r3, r1
+ 4b2:	d319      	bcc.n	4e8 <__udivsi3+0x6c>
+ 4b4:	e000      	b.n	4b8 <__udivsi3+0x3c>
+ 4b6:	0a09      	lsrs	r1, r1, #8
+ 4b8:	0bc3      	lsrs	r3, r0, #15
+ 4ba:	428b      	cmp	r3, r1
+ 4bc:	d301      	bcc.n	4c2 <__udivsi3+0x46>
+ 4be:	03cb      	lsls	r3, r1, #15
+ 4c0:	1ac0      	subs	r0, r0, r3
+ 4c2:	4152      	adcs	r2, r2
+ 4c4:	0b83      	lsrs	r3, r0, #14
+ 4c6:	428b      	cmp	r3, r1
+ 4c8:	d301      	bcc.n	4ce <__udivsi3+0x52>
+ 4ca:	038b      	lsls	r3, r1, #14
+ 4cc:	1ac0      	subs	r0, r0, r3
+ 4ce:	4152      	adcs	r2, r2
+ 4d0:	0b43      	lsrs	r3, r0, #13
+ 4d2:	428b      	cmp	r3, r1
+ 4d4:	d301      	bcc.n	4da <__udivsi3+0x5e>
+ 4d6:	034b      	lsls	r3, r1, #13
+ 4d8:	1ac0      	subs	r0, r0, r3
+ 4da:	4152      	adcs	r2, r2
+ 4dc:	0b03      	lsrs	r3, r0, #12
+ 4de:	428b      	cmp	r3, r1
+ 4e0:	d301      	bcc.n	4e6 <__udivsi3+0x6a>
+ 4e2:	030b      	lsls	r3, r1, #12
+ 4e4:	1ac0      	subs	r0, r0, r3
+ 4e6:	4152      	adcs	r2, r2
+ 4e8:	0ac3      	lsrs	r3, r0, #11
+ 4ea:	428b      	cmp	r3, r1
+ 4ec:	d301      	bcc.n	4f2 <__udivsi3+0x76>
+ 4ee:	02cb      	lsls	r3, r1, #11
+ 4f0:	1ac0      	subs	r0, r0, r3
+ 4f2:	4152      	adcs	r2, r2
+ 4f4:	0a83      	lsrs	r3, r0, #10
+ 4f6:	428b      	cmp	r3, r1
+ 4f8:	d301      	bcc.n	4fe <__udivsi3+0x82>
+ 4fa:	028b      	lsls	r3, r1, #10
+ 4fc:	1ac0      	subs	r0, r0, r3
+ 4fe:	4152      	adcs	r2, r2
+ 500:	0a43      	lsrs	r3, r0, #9
+ 502:	428b      	cmp	r3, r1
+ 504:	d301      	bcc.n	50a <__udivsi3+0x8e>
+ 506:	024b      	lsls	r3, r1, #9
+ 508:	1ac0      	subs	r0, r0, r3
+ 50a:	4152      	adcs	r2, r2
+ 50c:	0a03      	lsrs	r3, r0, #8
+ 50e:	428b      	cmp	r3, r1
+ 510:	d301      	bcc.n	516 <__udivsi3+0x9a>
+ 512:	020b      	lsls	r3, r1, #8
+ 514:	1ac0      	subs	r0, r0, r3
+ 516:	4152      	adcs	r2, r2
+ 518:	d2cd      	bcs.n	4b6 <__udivsi3+0x3a>
+ 51a:	09c3      	lsrs	r3, r0, #7
+ 51c:	428b      	cmp	r3, r1
+ 51e:	d301      	bcc.n	524 <__udivsi3+0xa8>
+ 520:	01cb      	lsls	r3, r1, #7
+ 522:	1ac0      	subs	r0, r0, r3
+ 524:	4152      	adcs	r2, r2
+ 526:	0983      	lsrs	r3, r0, #6
+ 528:	428b      	cmp	r3, r1
+ 52a:	d301      	bcc.n	530 <__udivsi3+0xb4>
+ 52c:	018b      	lsls	r3, r1, #6
+ 52e:	1ac0      	subs	r0, r0, r3
+ 530:	4152      	adcs	r2, r2
+ 532:	0943      	lsrs	r3, r0, #5
+ 534:	428b      	cmp	r3, r1
+ 536:	d301      	bcc.n	53c <__udivsi3+0xc0>
+ 538:	014b      	lsls	r3, r1, #5
+ 53a:	1ac0      	subs	r0, r0, r3
+ 53c:	4152      	adcs	r2, r2
+ 53e:	0903      	lsrs	r3, r0, #4
+ 540:	428b      	cmp	r3, r1
+ 542:	d301      	bcc.n	548 <__udivsi3+0xcc>
+ 544:	010b      	lsls	r3, r1, #4
+ 546:	1ac0      	subs	r0, r0, r3
+ 548:	4152      	adcs	r2, r2
+ 54a:	08c3      	lsrs	r3, r0, #3
+ 54c:	428b      	cmp	r3, r1
+ 54e:	d301      	bcc.n	554 <__udivsi3+0xd8>
+ 550:	00cb      	lsls	r3, r1, #3
+ 552:	1ac0      	subs	r0, r0, r3
+ 554:	4152      	adcs	r2, r2
+ 556:	0883      	lsrs	r3, r0, #2
+ 558:	428b      	cmp	r3, r1
+ 55a:	d301      	bcc.n	560 <__udivsi3+0xe4>
+ 55c:	008b      	lsls	r3, r1, #2
+ 55e:	1ac0      	subs	r0, r0, r3
+ 560:	4152      	adcs	r2, r2
+ 562:	0843      	lsrs	r3, r0, #1
+ 564:	428b      	cmp	r3, r1
+ 566:	d301      	bcc.n	56c <__udivsi3+0xf0>
+ 568:	004b      	lsls	r3, r1, #1
+ 56a:	1ac0      	subs	r0, r0, r3
+ 56c:	4152      	adcs	r2, r2
+ 56e:	1a41      	subs	r1, r0, r1
+ 570:	d200      	bcs.n	574 <__udivsi3+0xf8>
+ 572:	4601      	mov	r1, r0
+ 574:	4152      	adcs	r2, r2
+ 576:	4610      	mov	r0, r2
+ 578:	4770      	bx	lr
+ 57a:	e7ff      	b.n	57c <__udivsi3+0x100>
+ 57c:	b501      	push	{r0, lr}
+ 57e:	2000      	movs	r0, #0
+ 580:	f000 f806 	bl	590 <__aeabi_idiv0>
+ 584:	bd02      	pop	{r1, pc}
+ 586:	46c0      	nop			@ (mov r8, r8)
+
+00000588 <__aeabi_uidivmod>:
+ 588:	2900      	cmp	r1, #0
+ 58a:	d0f7      	beq.n	57c <__udivsi3+0x100>
+ 58c:	e776      	b.n	47c <__udivsi3>
+ 58e:	4770      	bx	lr
+
+00000590 <__aeabi_idiv0>:
+ 590:	4770      	bx	lr
+ 592:	46c0      	nop			@ (mov r8, r8)
+
+00000594 <SysTick_Config>:
+           function <b>SysTick_Config</b> is not included. In this case, the file <b><i>device</i>.h</b>
+           must contain a vendor-specific implementation of this function.
+ */
+__STATIC_INLINE uint32_t SysTick_Config(uint32_t ticks)
+{
+  if ((ticks - 1UL) > SysTick_LOAD_RELOAD_Msk)
+ 594:	3801      	subs	r0, #1
+ 596:	2380      	movs	r3, #128	@ 0x80
+ 598:	045b      	lsls	r3, r3, #17
+ 59a:	4298      	cmp	r0, r3
+ 59c:	d20e      	bcs.n	5bc <SysTick_Config+0x28>
+  {
+    return (1UL);                                                   /* Reload value impossible */
+  }
+
+  SysTick->LOAD  = (uint32_t)(ticks - 1UL);                         /* set reload register */
+ 59e:	4a08      	ldr	r2, [pc, #32]	@ (5c0 <SysTick_Config+0x2c>)
+ 5a0:	6050      	str	r0, [r2, #4]
+    SCB->SHP[_SHP_IDX(IRQn)] = ((uint32_t)(SCB->SHP[_SHP_IDX(IRQn)] & ~(0xFFUL << _BIT_SHIFT(IRQn))) |
+ 5a2:	4808      	ldr	r0, [pc, #32]	@ (5c4 <SysTick_Config+0x30>)
+ 5a4:	6a03      	ldr	r3, [r0, #32]
+ 5a6:	021b      	lsls	r3, r3, #8
+ 5a8:	0a1b      	lsrs	r3, r3, #8
+ 5aa:	21c0      	movs	r1, #192	@ 0xc0
+ 5ac:	0609      	lsls	r1, r1, #24
+ 5ae:	430b      	orrs	r3, r1
+ 5b0:	6203      	str	r3, [r0, #32]
+  NVIC_SetPriority (SysTick_IRQn, (1UL << __NVIC_PRIO_BITS) - 1UL); /* set Priority for Systick Interrupt */
+  SysTick->VAL   = 0UL;                                             /* Load the SysTick Counter Value */
+ 5b2:	2000      	movs	r0, #0
+ 5b4:	6090      	str	r0, [r2, #8]
+  SysTick->CTRL  = SysTick_CTRL_CLKSOURCE_Msk |
+ 5b6:	2307      	movs	r3, #7
+ 5b8:	6013      	str	r3, [r2, #0]
+                   SysTick_CTRL_TICKINT_Msk   |
+                   SysTick_CTRL_ENABLE_Msk;                         /* Enable SysTick IRQ and SysTick Timer */
+  return (0UL);                                                     /* Function successful */
+}
+ 5ba:	4770      	bx	lr
+    return (1UL);                                                   /* Reload value impossible */
+ 5bc:	2001      	movs	r0, #1
+ 5be:	e7fc      	b.n	5ba <SysTick_Config+0x26>
+ 5c0:	e000e010 	.word	0xe000e010
+ 5c4:	e000ed00 	.word	0xe000ed00
+
+000005c8 <delay_ms>:
+    ++g_ms_ticks;
+}
+
+static void delay_ms(uint32_t delay)
+{
+    const uint32_t deadline = g_ms_ticks + delay;
+ 5c8:	4b03      	ldr	r3, [pc, #12]	@ (5d8 <delay_ms+0x10>)
+ 5ca:	681b      	ldr	r3, [r3, #0]
+ 5cc:	1818      	adds	r0, r3, r0
+
+    while ((int32_t)(g_ms_ticks - deadline) < 0) {
+ 5ce:	4b02      	ldr	r3, [pc, #8]	@ (5d8 <delay_ms+0x10>)
+ 5d0:	681b      	ldr	r3, [r3, #0]
+ 5d2:	1a1b      	subs	r3, r3, r0
+ 5d4:	d4fb      	bmi.n	5ce <delay_ms+0x6>
+    }
+}
+ 5d6:	4770      	bx	lr
+ 5d8:	10000004 	.word	0x10000004
+
+000005dc <led_write>:
+}
+
+static void led_write(bool on)
+{
+#if LPC824_BLINK_ACTIVE_LOW
+    if (on) {
+ 5dc:	2800      	cmp	r0, #0
+ 5de:	d007      	beq.n	5f0 <led_write+0x14>
+        GPIO->CLR[0] = blink_mask();
+ 5e0:	22a0      	movs	r2, #160	@ 0xa0
+ 5e2:	0612      	lsls	r2, r2, #24
+ 5e4:	238a      	movs	r3, #138	@ 0x8a
+ 5e6:	019b      	lsls	r3, r3, #6
+ 5e8:	2180      	movs	r1, #128	@ 0x80
+ 5ea:	0149      	lsls	r1, r1, #5
+ 5ec:	50d1      	str	r1, [r2, r3]
+        GPIO->SET[0] = blink_mask();
+    } else {
+        GPIO->CLR[0] = blink_mask();
+    }
+#endif
+}
+ 5ee:	4770      	bx	lr
+        GPIO->SET[0] = blink_mask();
+ 5f0:	22a0      	movs	r2, #160	@ 0xa0
+ 5f2:	0612      	lsls	r2, r2, #24
+ 5f4:	2388      	movs	r3, #136	@ 0x88
+ 5f6:	019b      	lsls	r3, r3, #6
+ 5f8:	2180      	movs	r1, #128	@ 0x80
+ 5fa:	0149      	lsls	r1, r1, #5
+ 5fc:	50d1      	str	r1, [r2, r3]
+}
+ 5fe:	e7f6      	b.n	5ee <led_write+0x12>
+
+00000600 <SysTick_Handler>:
+    ++g_ms_ticks;
+ 600:	4a02      	ldr	r2, [pc, #8]	@ (60c <SysTick_Handler+0xc>)
+ 602:	6813      	ldr	r3, [r2, #0]
+ 604:	3301      	adds	r3, #1
+ 606:	6013      	str	r3, [r2, #0]
+}
+ 608:	4770      	bx	lr
+ 60a:	46c0      	nop			@ (mov r8, r8)
+ 60c:	10000004 	.word	0x10000004
+
+00000610 <main>:
+
+int main(void)
+{
+ 610:	b510      	push	{r4, lr}
+    SYSCON->SYSAHBCLKCTRL |= SYSCON_SYSAHBCLKCTRL_GPIO_MASK;
+ 612:	4919      	ldr	r1, [pc, #100]	@ (678 <main+0x68>)
+ 614:	2280      	movs	r2, #128	@ 0x80
+ 616:	588b      	ldr	r3, [r1, r2]
+ 618:	2040      	movs	r0, #64	@ 0x40
+ 61a:	4303      	orrs	r3, r0
+ 61c:	508b      	str	r3, [r1, r2]
+    GPIO->DIR[0] |= blink_mask();
+ 61e:	21a0      	movs	r1, #160	@ 0xa0
+ 620:	0609      	lsls	r1, r1, #24
+ 622:	2280      	movs	r2, #128	@ 0x80
+ 624:	0192      	lsls	r2, r2, #6
+ 626:	5888      	ldr	r0, [r1, r2]
+ 628:	2380      	movs	r3, #128	@ 0x80
+ 62a:	015b      	lsls	r3, r3, #5
+ 62c:	4303      	orrs	r3, r0
+ 62e:	508b      	str	r3, [r1, r2]
+
+    led_write(false);
+ 630:	2000      	movs	r0, #0
+ 632:	f7ff ffd3 	bl	5dc <led_write>
+
+    SystemCoreClockUpdate();
+ 636:	f000 f839 	bl	6ac <SystemCoreClockUpdate>
+    if (SysTick_Config(SystemCoreClock / 1000u) != 0u) {
+ 63a:	4b10      	ldr	r3, [pc, #64]	@ (67c <main+0x6c>)
+ 63c:	6818      	ldr	r0, [r3, #0]
+ 63e:	21fa      	movs	r1, #250	@ 0xfa
+ 640:	0089      	lsls	r1, r1, #2
+ 642:	f7ff ff1b 	bl	47c <__udivsi3>
+ 646:	f7ff ffa5 	bl	594 <SysTick_Config>
+ 64a:	2800      	cmp	r0, #0
+ 64c:	d000      	beq.n	650 <main+0x40>
+        while (1) {
+ 64e:	e7fe      	b.n	64e <main+0x3e>
+        }
+    }
+
+    while (1) {
+        led_write(true);
+ 650:	2001      	movs	r0, #1
+ 652:	f7ff ffc3 	bl	5dc <led_write>
+        delay_ms(50u);
+ 656:	2032      	movs	r0, #50	@ 0x32
+ 658:	f7ff ffb6 	bl	5c8 <delay_ms>
+        ++g_blink_toggle_count;
+ 65c:	4c08      	ldr	r4, [pc, #32]	@ (680 <main+0x70>)
+ 65e:	6823      	ldr	r3, [r4, #0]
+ 660:	3301      	adds	r3, #1
+ 662:	6023      	str	r3, [r4, #0]
+
+        led_write(false);
+ 664:	2000      	movs	r0, #0
+ 666:	f7ff ffb9 	bl	5dc <led_write>
+        delay_ms(50u);
+ 66a:	2032      	movs	r0, #50	@ 0x32
+ 66c:	f7ff ffac 	bl	5c8 <delay_ms>
+        ++g_blink_toggle_count;
+ 670:	6823      	ldr	r3, [r4, #0]
+ 672:	3301      	adds	r3, #1
+ 674:	6023      	str	r3, [r4, #0]
+    while (1) {
+ 676:	e7eb      	b.n	650 <main+0x40>
+ 678:	40048000 	.word	0x40048000
+ 67c:	10000000 	.word	0x10000000
+ 680:	10000008 	.word	0x10000008
+
+00000684 <CLOCK_GetSystemPLLInClkRate>:
+/* get system pll input freq */
+static uint32_t CLOCK_GetSystemPLLInClkRate(void)
+{
+    uint32_t freq = 0U;
+
+    switch ((SYSCON->SYSPLLCLKSEL & SYSCON_SYSPLLCLKSEL_SEL_MASK))
+ 684:	4b04      	ldr	r3, [pc, #16]	@ (698 <CLOCK_GetSystemPLLInClkRate+0x14>)
+ 686:	6c1a      	ldr	r2, [r3, #64]	@ 0x40
+ 688:	2303      	movs	r3, #3
+ 68a:	4013      	ands	r3, r2
+ 68c:	2b03      	cmp	r3, #3
+ 68e:	d001      	beq.n	694 <CLOCK_GetSystemPLLInClkRate+0x10>
+    {
+        /* source from external clock in */
+        case 0x00U:
+            freq = CLK_IRC_12MHZ;
+ 690:	4802      	ldr	r0, [pc, #8]	@ (69c <CLOCK_GetSystemPLLInClkRate+0x18>)
+            freq = CLK_IRC_12MHZ;
+            break;
+    }
+
+    return freq;
+}
+ 692:	4770      	bx	lr
+            freq = EXT_CLK_IN;
+ 694:	2000      	movs	r0, #0
+    return freq;
+ 696:	e7fc      	b.n	692 <CLOCK_GetSystemPLLInClkRate+0xe>
+ 698:	40048000 	.word	0x40048000
+ 69c:	00b71b00 	.word	0x00b71b00
+
+000006a0 <Clock_GetPLLFreq>:
+
+/* get system pll output freq*/
+static uint32_t Clock_GetPLLFreq(uint32_t PLLReg, uint32_t inputRate)
+{
+    uint32_t m_val = ((PLLReg & 0x1FU) + 1U);
+ 6a0:	231f      	movs	r3, #31
+ 6a2:	4003      	ands	r3, r0
+ 6a4:	3301      	adds	r3, #1
+
+    return (inputRate * m_val);
+ 6a6:	4359      	muls	r1, r3
+ 6a8:	0008      	movs	r0, r1
+}
+ 6aa:	4770      	bx	lr
+
+000006ac <SystemCoreClockUpdate>:
+
+/* ----------------------------------------------------------------------------
+   -- SystemCoreClockUpdate()
+   ---------------------------------------------------------------------------- */
+
+void SystemCoreClockUpdate (void) {
+ 6ac:	b510      	push	{r4, lr}
+  uint32_t wdt_osc = 0U;
+  uint32_t irc_clk = 12000000U;
+
+  switch ((SYSCON->WDTOSCCTRL >> SYSCON_WDTOSCCTRL_FREQSEL_SHIFT) & 0x0FU) {
+ 6ae:	4b3b      	ldr	r3, [pc, #236]	@ (79c <SystemCoreClockUpdate+0xf0>)
+ 6b0:	6a5a      	ldr	r2, [r3, #36]	@ 0x24
+ 6b2:	0952      	lsrs	r2, r2, #5
+ 6b4:	230f      	movs	r3, #15
+ 6b6:	4013      	ands	r3, r2
+ 6b8:	2b0f      	cmp	r3, #15
+ 6ba:	d803      	bhi.n	6c4 <SystemCoreClockUpdate+0x18>
+ 6bc:	009b      	lsls	r3, r3, #2
+ 6be:	4a38      	ldr	r2, [pc, #224]	@ (7a0 <SystemCoreClockUpdate+0xf4>)
+ 6c0:	58d3      	ldr	r3, [r2, r3]
+ 6c2:	469f      	mov	pc, r3
+ 6c4:	2000      	movs	r0, #0
+ 6c6:	e000      	b.n	6ca <SystemCoreClockUpdate+0x1e>
+    case 0U:  wdt_osc =       0U; break;
+    case 1U:  wdt_osc =  600000U; break;
+    case 2U:  wdt_osc = 1050000U; break;
+ 6c8:	4836      	ldr	r0, [pc, #216]	@ (7a4 <SystemCoreClockUpdate+0xf8>)
+    case 13U: wdt_osc = 4200000U; break;
+    case 14U: wdt_osc = 4400000U; break;
+    case 15U: wdt_osc = 4600000U; break;
+    default:  wdt_osc =       0U; break;
+  }
+  wdt_osc /= (((SYSCON->WDTOSCCTRL & SYSCON_WDTOSCCTRL_DIVSEL_MASK) + 1U) << 1U);
+ 6ca:	4c34      	ldr	r4, [pc, #208]	@ (79c <SystemCoreClockUpdate+0xf0>)
+ 6cc:	6a63      	ldr	r3, [r4, #36]	@ 0x24
+ 6ce:	211f      	movs	r1, #31
+ 6d0:	4019      	ands	r1, r3
+ 6d2:	3101      	adds	r1, #1
+ 6d4:	0049      	lsls	r1, r1, #1
+ 6d6:	f7ff fed1 	bl	47c <__udivsi3>
+
+  switch (SYSCON->MAINCLKSEL & SYSCON_MAINCLKSEL_SEL_MASK)
+ 6da:	6f22      	ldr	r2, [r4, #112]	@ 0x70
+ 6dc:	2303      	movs	r3, #3
+ 6de:	4013      	ands	r3, r2
+ 6e0:	2b02      	cmp	r3, #2
+ 6e2:	d04c      	beq.n	77e <SystemCoreClockUpdate+0xd2>
+ 6e4:	d82d      	bhi.n	742 <SystemCoreClockUpdate+0x96>
+ 6e6:	2b00      	cmp	r3, #0
+ 6e8:	d039      	beq.n	75e <SystemCoreClockUpdate+0xb2>
+ 6ea:	2b01      	cmp	r3, #1
+ 6ec:	d151      	bne.n	792 <SystemCoreClockUpdate+0xe6>
+  {
+    case 0U:                                              /* IRC  */
+      SystemCoreClock = irc_clk;
+      break;
+    case 1U:                                            /* System PLL input */
+      switch (SYSCON->SYSPLLCLKSEL & SYSCON_SYSPLLCLKSEL_SEL_MASK) {
+ 6ee:	4b2b      	ldr	r3, [pc, #172]	@ (79c <SystemCoreClockUpdate+0xf0>)
+ 6f0:	6c1a      	ldr	r2, [r3, #64]	@ 0x40
+ 6f2:	2303      	movs	r3, #3
+ 6f4:	4013      	ands	r3, r2
+ 6f6:	2b01      	cmp	r3, #1
+ 6f8:	d035      	beq.n	766 <SystemCoreClockUpdate+0xba>
+ 6fa:	2b03      	cmp	r3, #3
+ 6fc:	d037      	beq.n	76e <SystemCoreClockUpdate+0xc2>
+ 6fe:	2b00      	cmp	r3, #0
+ 700:	d139      	bne.n	776 <SystemCoreClockUpdate+0xca>
+        case 0U:                                         /* IRC */
+          SystemCoreClock = irc_clk;
+ 702:	4b29      	ldr	r3, [pc, #164]	@ (7a8 <SystemCoreClockUpdate+0xfc>)
+ 704:	4a29      	ldr	r2, [pc, #164]	@ (7ac <SystemCoreClockUpdate+0x100>)
+ 706:	601a      	str	r2, [r3, #0]
+          break;
+ 708:	e03b      	b.n	782 <SystemCoreClockUpdate+0xd6>
+    case 3U:  wdt_osc = 1400000U; break;
+ 70a:	4829      	ldr	r0, [pc, #164]	@ (7b0 <SystemCoreClockUpdate+0x104>)
+ 70c:	e7dd      	b.n	6ca <SystemCoreClockUpdate+0x1e>
+    case 4U:  wdt_osc = 1750000U; break;
+ 70e:	4829      	ldr	r0, [pc, #164]	@ (7b4 <SystemCoreClockUpdate+0x108>)
+ 710:	e7db      	b.n	6ca <SystemCoreClockUpdate+0x1e>
+    case 5U:  wdt_osc = 2100000U; break;
+ 712:	4829      	ldr	r0, [pc, #164]	@ (7b8 <SystemCoreClockUpdate+0x10c>)
+ 714:	e7d9      	b.n	6ca <SystemCoreClockUpdate+0x1e>
+    case 6U:  wdt_osc = 2400000U; break;
+ 716:	4829      	ldr	r0, [pc, #164]	@ (7bc <SystemCoreClockUpdate+0x110>)
+ 718:	e7d7      	b.n	6ca <SystemCoreClockUpdate+0x1e>
+    case 7U:  wdt_osc = 2700000U; break;
+ 71a:	4829      	ldr	r0, [pc, #164]	@ (7c0 <SystemCoreClockUpdate+0x114>)
+ 71c:	e7d5      	b.n	6ca <SystemCoreClockUpdate+0x1e>
+    case 8U:  wdt_osc = 3000000U; break;
+ 71e:	4829      	ldr	r0, [pc, #164]	@ (7c4 <SystemCoreClockUpdate+0x118>)
+ 720:	e7d3      	b.n	6ca <SystemCoreClockUpdate+0x1e>
+    case 9U:  wdt_osc = 3250000U; break;
+ 722:	4829      	ldr	r0, [pc, #164]	@ (7c8 <SystemCoreClockUpdate+0x11c>)
+ 724:	e7d1      	b.n	6ca <SystemCoreClockUpdate+0x1e>
+    case 10U: wdt_osc = 3500000U; break;
+ 726:	4829      	ldr	r0, [pc, #164]	@ (7cc <SystemCoreClockUpdate+0x120>)
+ 728:	e7cf      	b.n	6ca <SystemCoreClockUpdate+0x1e>
+    case 11U: wdt_osc = 3750000U; break;
+ 72a:	4829      	ldr	r0, [pc, #164]	@ (7d0 <SystemCoreClockUpdate+0x124>)
+ 72c:	e7cd      	b.n	6ca <SystemCoreClockUpdate+0x1e>
+    case 12U: wdt_osc = 4000000U; break;
+ 72e:	4829      	ldr	r0, [pc, #164]	@ (7d4 <SystemCoreClockUpdate+0x128>)
+ 730:	e7cb      	b.n	6ca <SystemCoreClockUpdate+0x1e>
+    case 13U: wdt_osc = 4200000U; break;
+ 732:	4829      	ldr	r0, [pc, #164]	@ (7d8 <SystemCoreClockUpdate+0x12c>)
+ 734:	e7c9      	b.n	6ca <SystemCoreClockUpdate+0x1e>
+    case 14U: wdt_osc = 4400000U; break;
+ 736:	4829      	ldr	r0, [pc, #164]	@ (7dc <SystemCoreClockUpdate+0x130>)
+ 738:	e7c7      	b.n	6ca <SystemCoreClockUpdate+0x1e>
+    case 15U: wdt_osc = 4600000U; break;
+ 73a:	4829      	ldr	r0, [pc, #164]	@ (7e0 <SystemCoreClockUpdate+0x134>)
+ 73c:	e7c5      	b.n	6ca <SystemCoreClockUpdate+0x1e>
+    case 1U:  wdt_osc =  600000U; break;
+ 73e:	4829      	ldr	r0, [pc, #164]	@ (7e4 <SystemCoreClockUpdate+0x138>)
+ 740:	e7c3      	b.n	6ca <SystemCoreClockUpdate+0x1e>
+  switch (SYSCON->MAINCLKSEL & SYSCON_MAINCLKSEL_SEL_MASK)
+ 742:	2b03      	cmp	r3, #3
+ 744:	d125      	bne.n	792 <SystemCoreClockUpdate+0xe6>
+      break;
+    case 2U:                                              /* watchdog oscillator */
+      SystemCoreClock = wdt_osc;
+      break;
+    case 3U:                                              /* System PLL  */
+      SystemCoreClock = Clock_GetPLLFreq((SYSCON->SYSPLLCTRL & SYSCON_SYSPLLCTRL_MSEL_MASK), CLOCK_GetSystemPLLInClkRate());
+ 746:	4b15      	ldr	r3, [pc, #84]	@ (79c <SystemCoreClockUpdate+0xf0>)
+ 748:	689c      	ldr	r4, [r3, #8]
+ 74a:	f7ff ff9b 	bl	684 <CLOCK_GetSystemPLLInClkRate>
+ 74e:	0001      	movs	r1, r0
+ 750:	201f      	movs	r0, #31
+ 752:	4020      	ands	r0, r4
+ 754:	f7ff ffa4 	bl	6a0 <Clock_GetPLLFreq>
+ 758:	4b13      	ldr	r3, [pc, #76]	@ (7a8 <SystemCoreClockUpdate+0xfc>)
+ 75a:	6018      	str	r0, [r3, #0]
+      break;
+ 75c:	e011      	b.n	782 <SystemCoreClockUpdate+0xd6>
+      SystemCoreClock = irc_clk;
+ 75e:	4b12      	ldr	r3, [pc, #72]	@ (7a8 <SystemCoreClockUpdate+0xfc>)
+ 760:	4a12      	ldr	r2, [pc, #72]	@ (7ac <SystemCoreClockUpdate+0x100>)
+ 762:	601a      	str	r2, [r3, #0]
+      break;
+ 764:	e00d      	b.n	782 <SystemCoreClockUpdate+0xd6>
+          SystemCoreClock = CLK_OSC_IN;
+ 766:	4b10      	ldr	r3, [pc, #64]	@ (7a8 <SystemCoreClockUpdate+0xfc>)
+ 768:	4a10      	ldr	r2, [pc, #64]	@ (7ac <SystemCoreClockUpdate+0x100>)
+ 76a:	601a      	str	r2, [r3, #0]
+          break;
+ 76c:	e009      	b.n	782 <SystemCoreClockUpdate+0xd6>
+          SystemCoreClock = EXT_CLK_IN;
+ 76e:	4b0e      	ldr	r3, [pc, #56]	@ (7a8 <SystemCoreClockUpdate+0xfc>)
+ 770:	2200      	movs	r2, #0
+ 772:	601a      	str	r2, [r3, #0]
+          break;
+ 774:	e005      	b.n	782 <SystemCoreClockUpdate+0xd6>
+          SystemCoreClock = irc_clk;                    /* default is IRC */
+ 776:	4b0c      	ldr	r3, [pc, #48]	@ (7a8 <SystemCoreClockUpdate+0xfc>)
+ 778:	4a0c      	ldr	r2, [pc, #48]	@ (7ac <SystemCoreClockUpdate+0x100>)
+ 77a:	601a      	str	r2, [r3, #0]
+          break;
+ 77c:	e001      	b.n	782 <SystemCoreClockUpdate+0xd6>
+      SystemCoreClock = wdt_osc;
+ 77e:	4b0a      	ldr	r3, [pc, #40]	@ (7a8 <SystemCoreClockUpdate+0xfc>)
+ 780:	6018      	str	r0, [r3, #0]
+    default:
+      SystemCoreClock = 0U;
+      break;
+  }
+
+  SystemCoreClock /= SYSCON->SYSAHBCLKDIV;
+ 782:	4b06      	ldr	r3, [pc, #24]	@ (79c <SystemCoreClockUpdate+0xf0>)
+ 784:	6f99      	ldr	r1, [r3, #120]	@ 0x78
+ 786:	4c08      	ldr	r4, [pc, #32]	@ (7a8 <SystemCoreClockUpdate+0xfc>)
+ 788:	6820      	ldr	r0, [r4, #0]
+ 78a:	f7ff fe77 	bl	47c <__udivsi3>
+ 78e:	6020      	str	r0, [r4, #0]
+}
+ 790:	bd10      	pop	{r4, pc}
+      SystemCoreClock = 0U;
+ 792:	4b05      	ldr	r3, [pc, #20]	@ (7a8 <SystemCoreClockUpdate+0xfc>)
+ 794:	2200      	movs	r2, #0
+ 796:	601a      	str	r2, [r3, #0]
+      break;
+ 798:	e7f3      	b.n	782 <SystemCoreClockUpdate+0xd6>
+ 79a:	46c0      	nop			@ (mov r8, r8)
+ 79c:	40048000 	.word	0x40048000
+ 7a0:	00000810 	.word	0x00000810
+ 7a4:	00100590 	.word	0x00100590
+ 7a8:	10000000 	.word	0x10000000
+ 7ac:	00b71b00 	.word	0x00b71b00
+ 7b0:	00155cc0 	.word	0x00155cc0
+ 7b4:	001ab3f0 	.word	0x001ab3f0
+ 7b8:	00200b20 	.word	0x00200b20
+ 7bc:	00249f00 	.word	0x00249f00
+ 7c0:	002932e0 	.word	0x002932e0
+ 7c4:	002dc6c0 	.word	0x002dc6c0
+ 7c8:	00319750 	.word	0x00319750
+ 7cc:	003567e0 	.word	0x003567e0
+ 7d0:	00393870 	.word	0x00393870
+ 7d4:	003d0900 	.word	0x003d0900
+ 7d8:	00401640 	.word	0x00401640
+ 7dc:	00432380 	.word	0x00432380
+ 7e0:	004630c0 	.word	0x004630c0
+ 7e4:	000927c0 	.word	0x000927c0
+
+000007e8 <SystemInitHook>:
+   -- SystemInitHook()
+   ---------------------------------------------------------------------------- */
+
+__attribute__ ((weak)) void SystemInitHook (void) {
+  /* Void implementation of the weak function. */
+}
+ 7e8:	4770      	bx	lr
+	...
+
+000007ec <SystemInit>:
+void SystemInit (void) {
+ 7ec:	b510      	push	{r4, lr}
+    SCB->VTOR = (uint32_t) &__Vectors;
+ 7ee:	4b04      	ldr	r3, [pc, #16]	@ (800 <STACK_SIZE>)
+ 7f0:	4a04      	ldr	r2, [pc, #16]	@ (804 <STACK_SIZE+0x4>)
+ 7f2:	6093      	str	r3, [r2, #8]
+    SystemCoreClock = DEFAULT_SYSTEM_CLOCK;
+ 7f4:	4b04      	ldr	r3, [pc, #16]	@ (808 <STACK_SIZE+0x8>)
+ 7f6:	4a05      	ldr	r2, [pc, #20]	@ (80c <STACK_SIZE+0xc>)
+ 7f8:	601a      	str	r2, [r3, #0]
+  SystemInitHook();
+ 7fa:	f7ff fff5 	bl	7e8 <SystemInitHook>
+}
+ 7fe:	bd10      	pop	{r4, pc}
+ 800:	00000000 	.word	0x00000000
+ 804:	e000ed00 	.word	0xe000ed00
+ 808:	10000000 	.word	0x10000000
+ 80c:	00b71b00 	.word	0x00b71b00
+ 810:	000006c4 	.word	0x000006c4
+ 814:	0000073e 	.word	0x0000073e
+ 818:	000006c8 	.word	0x000006c8
+ 81c:	0000070a 	.word	0x0000070a
+ 820:	0000070e 	.word	0x0000070e
+ 824:	00000712 	.word	0x00000712
+ 828:	00000716 	.word	0x00000716
+ 82c:	0000071a 	.word	0x0000071a
+ 830:	0000071e 	.word	0x0000071e
+ 834:	00000722 	.word	0x00000722
+ 838:	00000726 	.word	0x00000726
+ 83c:	0000072a 	.word	0x0000072a
+ 840:	0000072e 	.word	0x0000072e
+ 844:	00000732 	.word	0x00000732
+ 848:	00000736 	.word	0x00000736
+ 84c:	0000073a 	.word	0x0000073a
