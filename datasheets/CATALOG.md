@@ -22,6 +22,11 @@ Guideline: when adding material for a new hardware family, prefer a dedicated su
 | Path | Category | Description |
 | --- | --- | --- |
 | `datasheets/Papilio_One/README.md` | Documentation index | Local notes and external references for the `Papilio One` FPGA board. |
+| `datasheets/Papilio_One/DS312_Spartan-3E_FPGA_Family_Data_Sheet.pdf` | FPGA datasheet | Xilinx `Spartan-3E` FPGA family datasheet. |
+| `datasheets/Papilio_One/UG332_Spartan-3_Generation_Configuration_User_Guide.pdf` | FPGA configuration guide | Xilinx `Spartan-3` generation configuration user guide. |
+| `datasheets/Papilio_One/DS_FT2232C_Dual_USB_UART_FIFO_IC.pdf` | USB interface datasheet | FTDI `FT2232C` dual USB UART/FIFO datasheet. |
+| `datasheets/Papilio_One/DS_FT2232D_Dual_USB_UART_FIFO_IC.pdf` | USB interface datasheet | FTDI `FT2232D` dual USB UART/FIFO datasheet. |
+| `datasheets/Papilio_One/AN2232C-01_Command_Processor_for_MPSSE_and_MCU_Host_Bus_Emulation_Modes.pdf` | USB interface application note | FTDI `MPSSE` command processor application note for `FT2232C`. |
 
 ## CH32V003
 
