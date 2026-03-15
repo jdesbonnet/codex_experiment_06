@@ -17,6 +17,12 @@ Guideline: when adding material for a new hardware family, prefer a dedicated su
 | --- | --- | --- |
 | `datasheets/SD_Cards/README.md` | Protocol note | Local notes covering full-size SD card SPI pin mapping and external reference links. |
 
+## Papilio One
+
+| Path | Category | Description |
+| --- | --- | --- |
+| `datasheets/Papilio_One/README.md` | Documentation index | Local notes and external references for the `Papilio One` FPGA board. |
+
 ## CH32V003
 
 | Path | Category | Description |

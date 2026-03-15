@@ -35,6 +35,16 @@ There is also an `STM32F103C8` target board used in this repository. When workin
   - `3.3V` and `GND` also connected to the SD socket
 - for SD card protocol notes and external reference links, check `datasheets/SD_Cards/README.md`
 
+There is also a `Papilio One` FPGA board in scope for this repository. Current
+bring-up notes:
+- USB interface: `FT2232` (`0403:6010`)
+- working JTAG path uses `OpenOCD` with `FTDI channel 0`
+- observed FPGA JTAG IDCODE: `0x41c22093`
+- inferred FPGA: `Xilinx XC3S500E`
+- use `targets/papilio_one/openocd/base.cfg` for OpenOCD access
+- local notes: `targets/papilio_one/README.md`
+- external-reference index: `datasheets/Papilio_One/README.md`
+
 There are also multiple NXP `LPC8xx` family devices in scope for this repository, including `LPC810`, `LPC812`, and `LPC824`. When adding support for this family, prefer a shared `lpc8xx` layer for common startup/CMSIS/BSP/OpenOCD code, with per-device overlays only for items that actually vary such as linker scripts, flash/RAM sizes, package pin maps, and board wiring.
 
 ## UART setup
