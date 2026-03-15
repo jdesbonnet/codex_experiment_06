@@ -1,0 +1,15 @@
+##
+## Papilio One 500K blink constraints
+##
+## References:
+## - LinkSprite Papilio pinouts page: WA4 is the canonical blink example.
+## - Papilio One complete constraint file:
+##   - clk on P89 (32 MHz oscillator)
+##   - W1A<4> on P35
+##
+
+# On-board 32 MHz oscillator on Papilio One rev 2.03+
+NET "clk" LOC = "P89" | IOSTANDARD = LVCMOS25 | PERIOD = 31.25 ns HIGH 50%;
+
+# Wing A pin 4 (WA4 / W1A<4>)
+NET "blink_out" LOC = "P35" | IOSTANDARD = LVCMOS33 | DRIVE = 8 | SLEW = SLOW;

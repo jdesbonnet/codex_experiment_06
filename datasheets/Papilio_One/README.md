@@ -21,8 +21,27 @@ Local reference set for the `Papilio One` FPGA board.
   <https://papilio.cc/index.php?n=Papilio.PapilioOneHardwareGuide>
 - Papilio quick start guide:
   <https://learn.linksprite.com/papilio/papilio-quick-start-guide/>
+- AMD/Xilinx `ISE Archive`:
+  <https://www.xilinx.com/support/download/index.html/content/xilinx/en/downloadNav/vivado-design-tools/archive-ise.html>
+- AMD/Xilinx `ISE Design Suite 14` release notes / installation guide:
+  <https://www.amd.com/content/dam/xilinx/support/documents/sw_manuals/xilinx14_7/irn.pdf>
 - Installed OpenOCD Spartan-3 support:
   `/usr/share/openocd/scripts/fpga/xilinx-xc3s.cfg`
+
+## Toolchain Note
+
+For `Spartan-3E`, the practical bitstream-generation toolchain is
+`Xilinx ISE 14.7`.
+
+- it is an `x86/x86-64` toolchain
+- it is not a native supported toolchain for this repository's `ARM64`
+  Raspberry Pi host
+
+Practical workflow:
+
+1. build `.bit` files on an `x86-64` host or VM with `ISE 14.7`
+2. copy the bitstream into this repository
+3. load it from the Pi with `OpenOCD`
 
 ## Observed Hardware
 
