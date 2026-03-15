@@ -63,6 +63,100 @@ distributions rather than modern `ARM64` systems. That is why this repository
 uses the Pi mainly as the programming and measurement host, not as the ISE
 build host.
 
+### Open-source alternative assessment
+
+For `Papilio One` / `Spartan-3E`, there is no mature open-source bitstream flow
+that I would currently rely on for normal development on this Raspberry Pi.
+
+In practice:
+
+- `Yosys` is useful as a synthesis front-end, but it is not a complete
+  `Spartan-3E` build flow by itself.
+- `nextpnr` does not provide a `Spartan-3E` backend.
+- Programming tools such as `OpenOCD` or `xc3sprog` can load an existing
+  bitstream, but they do not replace synthesis, place-and-route, and bitstream
+  generation.
+
+So the practical answer for this board remains:
+
+1. build `.bit` files on an `x86-64` machine with `ISE 14.7`
+2. load them from the Pi over JTAG
+
+### Comparison: Sipeed Tang Nano 20K
+
+If the goal is an FPGA board with a practical open-source flow on a Raspberry
+Pi, the `Sipeed Tang Nano 20K` is in a much better position.
+
+Relevant facts:
+
+- the board uses a `Gowin GW2AR-LV18QN88C8/I7` FPGA
+- `Project Apicula` explicitly lists `Tang Nano 20K` as supported
+- `nextpnr` documents Gowin support through the `himbaechel` architecture
+- `openFPGALoader` documents a `tangnano20k` board target
+
+That means a realistic open-source flow for `Tang Nano 20K` is:
+
+1. `yosys`
+2. `nextpnr-himbaechel` with Gowin support
+3. `gowin_pack` from `Apicula`
+4. `openFPGALoader -b tangnano20k`
+
+So the board-level conclusion is:
+
+- `Papilio One`: good for legacy `Spartan-3E` work, but not a good match for a
+  native Raspberry Pi open-source FPGA toolchain
+- `Tang Nano 20K`: much better fit if the priority is an open-source flow that
+  can realistically run on Linux and on a Pi-class host
+
+### Box64 experiment on this Pi
+
+There is now a partially working emulation path on this Raspberry Pi host:
+
+- installed package: `box64-rpi4`
+- installed amd64 runtime path:
+  - `/usr/x86_64-linux-gnu/lib`
+  - `/usr/x86_64-linux-gnu/lib64`
+- verified by running an extracted Debian `amd64` `hello` binary under `box64`
+
+Verification command:
+
+```sh
+cd /tmp
+apt-get download hello:amd64
+rm -rf /tmp/hello_amd64
+mkdir -p /tmp/hello_amd64
+dpkg-deb -x hello_*_amd64.deb /tmp/hello_amd64
+BOX64_LD_LIBRARY_PATH=/usr/x86_64-linux-gnu/lib:/usr/x86_64-linux-gnu/lib64 \
+  box64 /tmp/hello_amd64/usr/bin/hello
+```
+
+Observed result:
+
+```text
+Hello, world!
+```
+
+Interpretation:
+
+- `x86_64` Linux command-line binaries can run under emulation on this Pi
+- this makes `ISE 14.7` CLI experimentation plausible
+- but `ISE` itself has not yet been staged or validated under `box64`
+
+The next practical step is to obtain the Linux `x86_64` `ISE 14.7` installer or
+an already-installed command-line tool tree and test `xst`, `ngdbuild`, `map`,
+`par`, and `bitgen` one by one under `box64`
+
+Helper script:
+
+- `tools/papilio_ise_box64.sh`
+
+Example usage once `ISE 14.7` is installed on an `x86_64` Linux filesystem tree:
+
+```sh
+./tools/papilio_ise_box64.sh --ise-root /opt/Xilinx/14.7/ISE_DS --check
+./tools/papilio_ise_box64.sh --ise-root /opt/Xilinx/14.7/ISE_DS xst -h
+```
+
 ## OpenOCD
 
 Use:

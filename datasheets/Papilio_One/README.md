@@ -43,6 +43,40 @@ Practical workflow:
 2. copy the bitstream into this repository
 3. load it from the Pi with `OpenOCD`
 
+## Open-source Flow Assessment
+
+For `Papilio One` / `Spartan-3E`, there is not currently a mature open-source
+end-to-end bitstream flow that I would treat as the default development path on
+this Raspberry Pi.
+
+By contrast, a board such as the `Sipeed Tang Nano 20K` has a substantially
+better open-source path:
+
+- `Project Apicula` lists `Tang Nano 20K` support
+- `nextpnr` documents Gowin support via `nextpnr-himbaechel`
+- `openFPGALoader` documents a `tangnano20k` board target
+
+So if the selection criterion is "open-source FPGA flow that works well on
+Linux / Raspberry Pi", a modern Gowin board such as `Tang Nano 20K` is a much
+better fit than `Papilio One`.
+
+## Box64 Experiment Note
+
+This Raspberry Pi host now has a working `Box64` test setup:
+
+- package installed: `box64-rpi4`
+- cross amd64 runtime installed under:
+  - `/usr/x86_64-linux-gnu/lib`
+  - `/usr/x86_64-linux-gnu/lib64`
+- verified using an extracted Debian `amd64` `hello` binary
+
+That does not prove `ISE 14.7` works yet, but it does prove the basic idea of
+running Linux `x86_64` CLI tools under emulation on this Pi.
+
+Repository helper:
+
+- `tools/papilio_ise_box64.sh`
+
 ## Observed Hardware
 
 - USB interface: `FT2232` (`0403:6010`)
