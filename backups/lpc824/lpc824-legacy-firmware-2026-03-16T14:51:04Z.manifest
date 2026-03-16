@@ -1,0 +1,7 @@
+timestamp_utc=2026-03-16T14:51:04Z
+target=lpc824
+flash_start=0x00000000
+flash_size_bytes=32768
+backup_file=backups/lpc824/lpc824-legacy-firmware-2026-03-16T14:51:04Z.bin
+sha256=e7b7e401c5be7ca16f95afbf97ec0be08b33ae58b8f1786c7becd90bf12045c6
+size_bytes=32768
