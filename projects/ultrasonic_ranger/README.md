@@ -55,3 +55,12 @@ Flash:
 ```sh
 ./tools/flash.sh --target lpc824 --lang c --project ultrasonic_ranger
 ```
+
+Web viewer:
+
+- `tools/ultrasonic_waveform_webapp/README.md`
+- `python3 tools/ultrasonic_waveform_webapp/server.py`
+
+UART protocol draft:
+
+- `docs/ultrasonic_ranger_uart_protocol.md`

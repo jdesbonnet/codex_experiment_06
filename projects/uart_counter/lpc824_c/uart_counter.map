@@ -1,7 +1,7 @@
 Archive member included to satisfy reference by file (symbol)
 
 /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_udivsi3.o)
-                              build/main.o (__aeabi_uidiv)
+                              build/system_LPC824.o (__aeabi_uidiv)
 /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_dvmd_tls.o)
                               /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_udivsi3.o) (__aeabi_idiv0)
 /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_aeabi_uldivmod.o)
@@ -77,7 +77,7 @@ END GROUP
  .crp           0x000002fc        0x4 build/startup_LPC824.o
                 0x00000300                        . = ALIGN (0x4)
 
-.text           0x00000300      0x9e8
+.text           0x00000300      0x980
                 0x00000300                        . = ALIGN (0x4)
  *(.text)
  .text          0x00000300      0x17c build/startup_LPC824.o
@@ -119,6 +119,7 @@ END GROUP
                 0x00000354                HardFault_Handler
                 0x00000358                SVC_Handler
                 0x0000035c                PendSV_Handler
+                0x00000360                SysTick_Handler
                 0x00000364                SPI0_IRQHandler
                 0x00000368                SPI1_IRQHandler
                 0x0000036c                Reserved18_IRQHandler
@@ -170,116 +171,111 @@ END GROUP
  .text          0x000007e0       0x3c /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_clzsi2.o)
                 0x000007e0                __clzsi2
  *(.text*)
- .text.SysTick_Config
-                0x0000081c       0x34 build/main.o
- .text.delay_ms
-                0x00000850       0x14 build/main.o
  .text.usart0_assign_pins
-                0x00000864       0x14 build/main.o
+                0x0000081c       0x14 build/main.o
  .text.usart0_configure_baud
-                0x00000878      0x17c build/main.o
+                0x00000830      0x17c build/main.o
  .text.usart0_init
-                0x000009f4       0x48 build/main.o
+                0x000009ac       0x48 build/main.o
  .text.uart_write_byte
-                0x00000a3c       0x14 build/main.o
+                0x000009f4       0x14 build/main.o
  .text.uart_write_string
-                0x00000a50       0x14 build/main.o
- .text.uart_write_decimal
-                0x00000a64       0x48 build/main.o
- .text.SysTick_Handler
-                0x00000aac       0x10 build/main.o
-                0x00000aac                SysTick_Handler
- .text.main     0x00000abc       0x4c build/main.o
-                0x00000abc                main
+                0x00000a08       0x14 build/main.o
+ .text.uart_rx_ready
+                0x00000a1c       0x10 build/main.o
+ .text.uart_read_byte
+                0x00000a2c        0xc build/main.o
+ .text.main     0x00000a38       0x54 build/main.o
+                0x00000a38                main
  .text.CLOCK_GetSystemPLLInClkRate
-                0x00000b08       0x1c build/system_LPC824.o
+                0x00000a8c       0x1c build/system_LPC824.o
  .text.Clock_GetPLLFreq
-                0x00000b24        0xc build/system_LPC824.o
+                0x00000aa8        0xc build/system_LPC824.o
  .text.SystemCoreClockUpdate
-                0x00000b30      0x13c build/system_LPC824.o
-                0x00000b30                SystemCoreClockUpdate
+                0x00000ab4      0x13c build/system_LPC824.o
+                0x00000ab4                SystemCoreClockUpdate
  .text.SystemInitHook
-                0x00000c6c        0x2 build/system_LPC824.o
-                0x00000c6c                SystemInitHook
- *fill*         0x00000c6e        0x2 
+                0x00000bf0        0x2 build/system_LPC824.o
+                0x00000bf0                SystemInitHook
+ *fill*         0x00000bf2        0x2 
  .text.SystemInit
-                0x00000c70       0x24 build/system_LPC824.o
-                0x00000c70                SystemInit
+                0x00000bf4       0x24 build/system_LPC824.o
+                0x00000bf4                SystemInit
  *(.rodata)
  *(.rodata*)
  .rodata.main.str1.4
-                0x00000c94       0x13 build/main.o
- *fill*         0x00000ca7        0x1 
+                0x00000c18       0x27 build/main.o
+ *fill*         0x00000c3f        0x1 
  .rodata.SystemCoreClockUpdate
-                0x00000ca8       0x40 build/system_LPC824.o
+                0x00000c40       0x40 build/system_LPC824.o
  *(.glue_7)
- .glue_7        0x00000ce8        0x0 linker stubs
+ .glue_7        0x00000c80        0x0 linker stubs
  *(.glue_7t)
- .glue_7t       0x00000ce8        0x0 linker stubs
+ .glue_7t       0x00000c80        0x0 linker stubs
  *(.eh_frame)
  *(.init)
  *(.fini)
-                0x00000ce8                        . = ALIGN (0x4)
+                0x00000c80                        . = ALIGN (0x4)
 
-.vfp11_veneer   0x00000ce8        0x0
- .vfp11_veneer  0x00000ce8        0x0 linker stubs
+.vfp11_veneer   0x00000c80        0x0
+ .vfp11_veneer  0x00000c80        0x0 linker stubs
 
-.v4_bx          0x00000ce8        0x0
- .v4_bx         0x00000ce8        0x0 linker stubs
+.v4_bx          0x00000c80        0x0
+ .v4_bx         0x00000c80        0x0 linker stubs
 
-.iplt           0x00000ce8        0x0
- .iplt          0x00000ce8        0x0 build/main.o
+.iplt           0x00000c80        0x0
+ .iplt          0x00000c80        0x0 build/main.o
 
 .ARM.extab
  *(.ARM.extab* .gnu.linkonce.armextab.*)
 
-.ARM            0x00000ce8        0x8
-                0x00000ce8                        __exidx_start = .
+.ARM            0x00000c80        0x8
+                0x00000c80                        __exidx_start = .
  *(.ARM.exidx*)
- .ARM.exidx     0x00000ce8        0x8 /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_udivmoddi4.o)
-                0x00000cf0                        __exidx_end = .
+ .ARM.exidx     0x00000c80        0x8 /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_udivmoddi4.o)
+                0x00000c88                        __exidx_end = .
 
-.rel.dyn        0x00000cf0        0x0
- .rel.iplt      0x00000cf0        0x0 build/main.o
+.rel.dyn        0x00000c88        0x0
+ .rel.iplt      0x00000c88        0x0 build/main.o
 
-.ctors          0x00000cf0        0x0
-                0x00000cf0                        __CTOR_LIST__ = .
+.ctors          0x00000c88        0x0
+                0x00000c88                        __CTOR_LIST__ = .
  *crtbegin.o(.ctors)
  *crtbegin?.o(.ctors)
  *(EXCLUDE_FILE(*crtend.o *crtend?.o) .ctors)
  *(SORT_BY_NAME(.ctors.*))
  *(.ctors)
-                0x00000cf0                        __CTOR_END__ = .
+                0x00000c88                        __CTOR_END__ = .
 
-.dtors          0x00000cf0        0x0
-                0x00000cf0                        __DTOR_LIST__ = .
+.dtors          0x00000c88        0x0
+                0x00000c88                        __DTOR_LIST__ = .
  *crtbegin.o(.dtors)
  *crtbegin?.o(.dtors)
  *(EXCLUDE_FILE(*crtend.o *crtend?.o) .dtors)
  *(SORT_BY_NAME(.dtors.*))
  *(.dtors)
-                0x00000cf0                        __DTOR_END__ = .
+                0x00000c88                        __DTOR_END__ = .
 
-.preinit_array  0x00000cf0        0x0
+.preinit_array  0x00000c88        0x0
                 [!provide]                        PROVIDE (__preinit_array_start = .)
  *(.preinit_array*)
                 [!provide]                        PROVIDE (__preinit_array_end = .)
 
-.init_array     0x00000cf0        0x0
+.init_array     0x00000c88        0x0
                 [!provide]                        PROVIDE (__init_array_start = .)
  *(SORT_BY_NAME(.init_array.*))
  *(.init_array*)
                 [!provide]                        PROVIDE (__init_array_end = .)
 
-.fini_array     0x00000cf0        0x0
+.fini_array     0x00000c88        0x0
                 [!provide]                        PROVIDE (__fini_array_start = .)
  *(SORT_BY_NAME(.fini_array.*))
  *(.fini_array*)
                 [!provide]                        PROVIDE (__fini_array_end = .)
-                0x00000cf0                        __etext = .
-                0x00000cf0                        __DATA_ROM = .
+                0x00000c88                        __etext = .
+                0x00000c88                        __DATA_ROM = .
 
-.data           0x10000000        0x4 load address 0x00000cf0
+.data           0x10000000        0x4 load address 0x00000c88
                 0x10000000                        . = ALIGN (0x4)
                 0x10000000                        __DATA_RAM = .
                 0x10000000                        __data_start__ = .
@@ -292,40 +288,43 @@ END GROUP
  *(.jcr*)
                 0x10000004                        . = ALIGN (0x4)
                 0x10000004                        __data_end__ = .
-                0x00000cf4                        __DATA_END = (__DATA_ROM + (__data_end__ - __data_start__))
+                0x00000c8c                        __DATA_END = (__DATA_ROM + (__data_end__ - __data_start__))
                 0x00008000                        text_end = (ORIGIN (m_text) + LENGTH (m_text))
                 0x00000001                        ASSERT ((__DATA_END <= text_end), region m_text overflowed with text and data)
 
-.igot.plt       0x10000004        0x0 load address 0x00000cf4
+.igot.plt       0x10000004        0x0 load address 0x00000c8c
  .igot.plt      0x10000004        0x0 build/main.o
 
-.bss            0x10000004        0x4 load address 0x00000cf4
+.bss            0x10000004        0x8 load address 0x00000c8c
                 0x10000004                        . = ALIGN (0x4)
                 0x10000004                        __START_BSS = .
                 0x10000004                        __bss_start__ = .
  *(.bss)
  *(.bss*)
- .bss.g_ms_ticks
+ .bss.g_last_rx_byte
                 0x10000004        0x4 build/main.o
+ .bss.g_rx_count
+                0x10000008        0x4 build/main.o
  *(COMMON)
-                0x10000008                        . = ALIGN (0x4)
-                0x10000008                        __bss_end__ = .
-                0x10000008                        __END_BSS = .
+                0x1000000c                        . = ALIGN (0x4)
+                0x1000000c                        __bss_end__ = .
+                0x1000000c                        __END_BSS = .
 
-.heap           0x10000008      0x400 load address 0x00000cf8
-                0x10000008                        . = ALIGN (0x8)
-                0x10000008                        __end__ = .
+.heap           0x1000000c      0x404 load address 0x00000c94
+                0x10000010                        . = ALIGN (0x8)
+ *fill*         0x1000000c        0x4 
+                0x10000010                        __end__ = .
                 [!provide]                        PROVIDE (end = .)
-                0x10000008                        __HeapBase = .
-                0x10000408                        . = (. + HEAP_SIZE)
- *fill*         0x10000008      0x400 
-                0x10000408                        __HeapLimit = .
-                0x10000408                        __heap_limit = .
+                0x10000010                        __HeapBase = .
+                0x10000410                        . = (. + HEAP_SIZE)
+ *fill*         0x10000010      0x400 
+                0x10000410                        __HeapLimit = .
+                0x10000410                        __heap_limit = .
 
-.stack          0x10000408      0x800 load address 0x000010f8
-                0x10000408                        . = ALIGN (0x8)
-                0x10000c08                        . = (. + STACK_SIZE)
- *fill*         0x10000408      0x800 
+.stack          0x10000410      0x800 load address 0x00001098
+                0x10000410                        . = ALIGN (0x8)
+                0x10000c10                        . = (. + STACK_SIZE)
+ *fill*         0x10000410      0x800 
                 0x10001fe0                        __StackTop = (ORIGIN (m_data) + LENGTH (m_data))
                 0x100017e0                        __StackLimit = (__StackTop - STACK_SIZE)
                 [!provide]                        PROVIDE (__stack = __StackTop)
@@ -357,96 +356,96 @@ END GROUP
 OUTPUT(uart_counter.elf elf32-littlearm)
 LOAD linker stubs
 
-.debug_info     0x00000000     0x1efe
- .debug_info    0x00000000      0xcec build/main.o
- .debug_info    0x00000cec      0x37b build/startup_LPC824.o
- .debug_info    0x00001067      0x5d4 build/system_LPC824.o
- .debug_info    0x0000163b       0x3e /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_udivsi3.o)
- .debug_info    0x00001679       0x3c /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_dvmd_tls.o)
- .debug_info    0x000016b5       0x31 /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_aeabi_uldivmod.o)
- .debug_info    0x000016e6      0x420 /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_muldi3.o)
- .debug_info    0x00001b06      0x3a3 /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_udivmoddi4.o)
- .debug_info    0x00001ea9       0x24 /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_clzdi2.o)
- .debug_info    0x00001ecd       0x31 /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_clzsi2.o)
+.debug_info     0x00000000     0x1b14
+ .debug_info    0x00000000      0x902 build/main.o
+ .debug_info    0x00000902      0x37b build/startup_LPC824.o
+ .debug_info    0x00000c7d      0x5d4 build/system_LPC824.o
+ .debug_info    0x00001251       0x3e /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_udivsi3.o)
+ .debug_info    0x0000128f       0x3c /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_dvmd_tls.o)
+ .debug_info    0x000012cb       0x31 /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_aeabi_uldivmod.o)
+ .debug_info    0x000012fc      0x420 /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_muldi3.o)
+ .debug_info    0x0000171c      0x3a3 /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_udivmoddi4.o)
+ .debug_info    0x00001abf       0x24 /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_clzdi2.o)
+ .debug_info    0x00001ae3       0x31 /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_clzsi2.o)
 
-.debug_abbrev   0x00000000      0x839
- .debug_abbrev  0x00000000      0x324 build/main.o
- .debug_abbrev  0x00000324       0x26 build/startup_LPC824.o
- .debug_abbrev  0x0000034a      0x1cb build/system_LPC824.o
- .debug_abbrev  0x00000515       0x28 /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_udivsi3.o)
- .debug_abbrev  0x0000053d       0x26 /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_dvmd_tls.o)
- .debug_abbrev  0x00000563       0x28 /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_aeabi_uldivmod.o)
- .debug_abbrev  0x0000058b      0x152 /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_muldi3.o)
- .debug_abbrev  0x000006dd      0x120 /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_udivmoddi4.o)
- .debug_abbrev  0x000007fd       0x14 /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_clzdi2.o)
- .debug_abbrev  0x00000811       0x28 /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_clzsi2.o)
+.debug_abbrev   0x00000000      0x722
+ .debug_abbrev  0x00000000      0x20d build/main.o
+ .debug_abbrev  0x0000020d       0x26 build/startup_LPC824.o
+ .debug_abbrev  0x00000233      0x1cb build/system_LPC824.o
+ .debug_abbrev  0x000003fe       0x28 /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_udivsi3.o)
+ .debug_abbrev  0x00000426       0x26 /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_dvmd_tls.o)
+ .debug_abbrev  0x0000044c       0x28 /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_aeabi_uldivmod.o)
+ .debug_abbrev  0x00000474      0x152 /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_muldi3.o)
+ .debug_abbrev  0x000005c6      0x120 /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_udivmoddi4.o)
+ .debug_abbrev  0x000006e6       0x14 /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_clzdi2.o)
+ .debug_abbrev  0x000006fa       0x28 /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_clzsi2.o)
 
 .debug_loclists
-                0x00000000      0x852
+                0x00000000      0x78c
  .debug_loclists
-                0x00000000      0x2a4 build/main.o
+                0x00000000      0x1de build/main.o
  .debug_loclists
-                0x000002a4      0x1b3 build/system_LPC824.o
+                0x000001de      0x1b3 build/system_LPC824.o
  .debug_loclists
-                0x00000457      0x13c /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_muldi3.o)
+                0x00000391      0x13c /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_muldi3.o)
  .debug_loclists
-                0x00000593      0x2bf /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_udivmoddi4.o)
+                0x000004cd      0x2bf /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_udivmoddi4.o)
 
-.debug_aranges  0x00000000      0x1a8
+.debug_aranges  0x00000000      0x198
  .debug_aranges
-                0x00000000       0x68 build/main.o
+                0x00000000       0x58 build/main.o
  .debug_aranges
-                0x00000068       0x20 build/startup_LPC824.o
+                0x00000058       0x20 build/startup_LPC824.o
  .debug_aranges
-                0x00000088       0x40 build/system_LPC824.o
+                0x00000078       0x40 build/system_LPC824.o
  .debug_aranges
-                0x000000c8       0x20 /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_udivsi3.o)
+                0x000000b8       0x20 /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_udivsi3.o)
  .debug_aranges
-                0x000000e8       0x20 /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_dvmd_tls.o)
+                0x000000d8       0x20 /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_dvmd_tls.o)
  .debug_aranges
-                0x00000108       0x20 /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_aeabi_uldivmod.o)
+                0x000000f8       0x20 /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_aeabi_uldivmod.o)
  .debug_aranges
-                0x00000128       0x20 /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_muldi3.o)
+                0x00000118       0x20 /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_muldi3.o)
  .debug_aranges
-                0x00000148       0x20 /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_udivmoddi4.o)
+                0x00000138       0x20 /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_udivmoddi4.o)
  .debug_aranges
-                0x00000168       0x20 /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_clzdi2.o)
+                0x00000158       0x20 /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_clzdi2.o)
  .debug_aranges
-                0x00000188       0x20 /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_clzsi2.o)
+                0x00000178       0x20 /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_clzsi2.o)
 
 .debug_rnglists
-                0x00000000       0xb2
+                0x00000000       0xa6
  .debug_rnglists
-                0x00000000       0x64 build/main.o
+                0x00000000       0x58 build/main.o
  .debug_rnglists
-                0x00000064       0x2c build/system_LPC824.o
+                0x00000058       0x2c build/system_LPC824.o
  .debug_rnglists
-                0x00000090       0x22 /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_muldi3.o)
+                0x00000084       0x22 /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_muldi3.o)
 
-.debug_line     0x00000000      0xd5c
- .debug_line    0x00000000      0x46d build/main.o
- .debug_line    0x0000046d      0x136 build/startup_LPC824.o
- .debug_line    0x000005a3      0x33e build/system_LPC824.o
- .debug_line    0x000008e1       0x56 /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_udivsi3.o)
- .debug_line    0x00000937       0x4a /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_dvmd_tls.o)
- .debug_line    0x00000981       0x55 /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_aeabi_uldivmod.o)
- .debug_line    0x000009d6      0x118 /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_muldi3.o)
- .debug_line    0x00000aee      0x1bc /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_udivmoddi4.o)
- .debug_line    0x00000caa       0x54 /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_clzdi2.o)
- .debug_line    0x00000cfe       0x5e /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_clzsi2.o)
+.debug_line     0x00000000      0xc4d
+ .debug_line    0x00000000      0x35e build/main.o
+ .debug_line    0x0000035e      0x136 build/startup_LPC824.o
+ .debug_line    0x00000494      0x33e build/system_LPC824.o
+ .debug_line    0x000007d2       0x56 /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_udivsi3.o)
+ .debug_line    0x00000828       0x4a /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_dvmd_tls.o)
+ .debug_line    0x00000872       0x55 /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_aeabi_uldivmod.o)
+ .debug_line    0x000008c7      0x118 /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_muldi3.o)
+ .debug_line    0x000009df      0x1bc /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_udivmoddi4.o)
+ .debug_line    0x00000b9b       0x54 /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_clzdi2.o)
+ .debug_line    0x00000bef       0x5e /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_clzsi2.o)
 
-.debug_str      0x00000000     0x1649
- .debug_str     0x00000000     0x1649 build/main.o
-                                0x918 (size before relaxing)
- .debug_str     0x00001649      0x630 build/startup_LPC824.o
- .debug_str     0x00001649      0x4df build/system_LPC824.o
- .debug_str     0x00001649       0xb9 /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_udivsi3.o)
- .debug_str     0x00001649       0xba /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_dvmd_tls.o)
- .debug_str     0x00001649       0xaf /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_aeabi_uldivmod.o)
- .debug_str     0x00001649      0x663 /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_muldi3.o)
- .debug_str     0x00001649      0x639 /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_udivmoddi4.o)
- .debug_str     0x00001649       0x9e /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_clzdi2.o)
- .debug_str     0x00001649       0xa7 /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_clzsi2.o)
+.debug_str      0x00000000     0x13d2
+ .debug_str     0x00000000     0x13d2 build/main.o
+                                0x622 (size before relaxing)
+ .debug_str     0x000013d2      0x630 build/startup_LPC824.o
+ .debug_str     0x000013d2      0x4df build/system_LPC824.o
+ .debug_str     0x000013d2       0xb9 /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_udivsi3.o)
+ .debug_str     0x000013d2       0xba /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_dvmd_tls.o)
+ .debug_str     0x000013d2       0xaf /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_aeabi_uldivmod.o)
+ .debug_str     0x000013d2      0x663 /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_muldi3.o)
+ .debug_str     0x000013d2      0x639 /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_udivmoddi4.o)
+ .debug_str     0x000013d2       0x9e /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_clzdi2.o)
+ .debug_str     0x000013d2       0xa7 /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_clzsi2.o)
 
 .comment        0x00000000       0x26
  .comment       0x00000000       0x26 build/main.o
@@ -455,12 +454,12 @@ LOAD linker stubs
  .comment       0x00000026       0x27 /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_muldi3.o)
  .comment       0x00000026       0x27 /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_udivmoddi4.o)
 
-.debug_frame    0x00000000      0x1f4
- .debug_frame   0x00000000       0xf4 build/main.o
- .debug_frame   0x000000f4       0x70 build/system_LPC824.o
- .debug_frame   0x00000164       0x20 /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_udivsi3.o)
- .debug_frame   0x00000184       0x34 /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_muldi3.o)
- .debug_frame   0x000001b8       0x3c /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_udivmoddi4.o)
+.debug_frame    0x00000000      0x1c4
+ .debug_frame   0x00000000       0xc4 build/main.o
+ .debug_frame   0x000000c4       0x70 build/system_LPC824.o
+ .debug_frame   0x00000134       0x20 /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_udivsi3.o)
+ .debug_frame   0x00000154       0x34 /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_muldi3.o)
+ .debug_frame   0x00000188       0x3c /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v6-m/nofp/libgcc.a(_udivmoddi4.o)
 
 .debug_line_str
                 0x00000000      0x10c

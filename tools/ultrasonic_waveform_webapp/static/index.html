@@ -1,0 +1,1306 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ultrasonic Waveform Viewer</title>
+  <style>
+    :root {
+      --paper: #f4efe4;
+      --panel: #fffaf2;
+      --ink: #171717;
+      --muted: #665f54;
+      --line: #d6c7ae;
+      --accent: #0e5c73;
+      --accent-2: #a04c28;
+      --warn: #8a2c2c;
+      --ok: #1e7a4c;
+      --grid: #e8dcc7;
+      --trace: #1a1a1a;
+      --history: #8b8376;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, #e7efe8 0, transparent 32%),
+        radial-gradient(circle at bottom right, #f0e3d8 0, transparent 28%),
+        var(--paper);
+      font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+    }
+
+    main {
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 24px 18px 36px;
+    }
+
+    header {
+      margin-bottom: 18px;
+    }
+
+    h1 {
+      margin: 0 0 6px;
+      font-size: 2.1rem;
+      letter-spacing: -0.04em;
+    }
+
+    .subtitle {
+      margin: 0;
+      color: var(--muted);
+      max-width: 72ch;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(300px, 380px) minmax(0, 1fr);
+      gap: 18px;
+    }
+
+    .stack {
+      display: grid;
+      gap: 18px;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 16px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+    }
+
+    .panel h2 {
+      margin: 0 0 12px;
+      font-size: 0.95rem;
+      text-transform: uppercase;
+      letter-spacing: 0.09em;
+    }
+
+    .chart-panel h2 {
+      margin-bottom: 8px;
+    }
+
+    .meta {
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .status-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: #efe6d6;
+      color: var(--ink);
+      font-size: 0.88rem;
+      font-weight: 600;
+    }
+
+    .badge.ok {
+      background: #e4f2e9;
+      color: var(--ok);
+    }
+
+    .badge.warn {
+      background: #f7e1db;
+      color: var(--warn);
+    }
+
+    .form-grid {
+      display: grid;
+      gap: 10px;
+    }
+
+    label {
+      display: grid;
+      gap: 4px;
+      font-size: 0.92rem;
+      color: var(--muted);
+    }
+
+    input, select, button {
+      font: inherit;
+    }
+
+    input, select {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 10px 12px;
+      background: #fffdf8;
+      color: var(--ink);
+    }
+
+    input:disabled, select:disabled {
+      opacity: 0.65;
+    }
+
+    .button-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+    }
+
+    .button-grid-2x2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    button {
+      border: 0;
+      border-radius: 12px;
+      padding: 11px 14px;
+      background: var(--accent);
+      color: white;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    button.secondary {
+      background: #4e6478;
+    }
+
+    button.warn {
+      background: var(--accent-2);
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.5;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px 14px;
+      font-family: "IBM Plex Mono", "Consolas", monospace;
+      font-size: 0.9rem;
+    }
+
+    .stats div {
+      display: grid;
+      gap: 2px;
+    }
+
+    .stats dt {
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+
+    .stats dd {
+      margin: 0;
+      font-weight: 700;
+    }
+
+    .chart-wrap {
+      margin-top: 10px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.72), rgba(255,255,255,0.92)),
+        linear-gradient(90deg, rgba(14,92,115,0.04), transparent 32%, rgba(160,76,40,0.04));
+      padding: 10px;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 320px;
+    }
+
+    .chart-caption {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+
+    pre {
+      margin: 0;
+      min-height: 170px;
+      max-height: 260px;
+      overflow: auto;
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: #f3ead8;
+      font-family: "IBM Plex Mono", "Consolas", monospace;
+      font-size: 0.83rem;
+      line-height: 1.45;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .future {
+      color: var(--muted);
+    }
+
+    .notice {
+      margin: 12px 0 0;
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+
+    @media (max-width: 1040px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .button-row {
+        grid-template-columns: 1fr;
+      }
+
+      .stats {
+        grid-template-columns: 1fr;
+      }
+
+      canvas {
+        height: 240px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>Ultrasonic Waveform Viewer</h1>
+      <p class="subtitle">
+        Live viewer for the LPC824 ultrasonic ranger stream. This first version reads directly from
+        a USB UART using the browser Web Serial API and is structured so later WebSocket or socket
+        bridge adapters can slot into the same frontend.
+      </p>
+    </header>
+
+    <div class="layout">
+      <section class="stack">
+        <div class="panel">
+          <h2>Connection</h2>
+          <div class="status-row">
+            <span class="badge" id="serial-support-badge">Web Serial check pending</span>
+            <span class="badge" id="connection-badge">Disconnected</span>
+          </div>
+          <div class="form-grid">
+            <label>
+              Connection type
+              <select id="source-type">
+                <option value="web-serial">Web Serial (browser)</option>
+                <option value="websocket">WebSocket (future)</option>
+                <option value="socket-bridge">Socket bridge (future)</option>
+              </select>
+            </label>
+            <label>
+              Baud rate
+              <input id="baud-rate" type="number" min="1200" step="1" value="230400">
+            </label>
+            <label>
+              Recent overlays
+              <input id="history-depth" type="range" min="1" max="12" step="1" value="6">
+            </label>
+            <div class="meta" id="history-depth-label">6 recent frames kept</div>
+          </div>
+          <div class="button-row" style="margin-top: 12px;">
+            <button id="connect-button">Connect</button>
+            <button id="disconnect-button" class="secondary" disabled>Disconnect</button>
+            <button id="clear-button" class="warn">Clear View</button>
+          </div>
+          <p class="meta" style="margin: 12px 0 0;" id="connection-note">
+            Use Chromium or Chrome. Web Serial only works in a secure context such as localhost.
+          </p>
+        </div>
+
+        <div class="panel">
+          <h2>Stream Status</h2>
+          <dl class="stats">
+            <div><dt>Frames decoded</dt><dd id="frames-decoded">0</dd></div>
+            <div><dt>Invalid frames</dt><dd id="invalid-frames">0</dd></div>
+            <div><dt>Last sample count</dt><dd id="sample-count">-</dd></div>
+            <div><dt>Frame rate</dt><dd id="frame-rate">-</dd></div>
+            <div><dt>Last frame age</dt><dd id="last-frame-age">-</dd></div>
+            <div><dt>Ignored text lines</dt><dd id="ignored-lines">0</dd></div>
+            <div><dt>Serial bytes</dt><dd id="serial-bytes">0</dd></div>
+            <div><dt>Last line kind</dt><dd id="last-line-kind">-</dd></div>
+          </dl>
+        </div>
+
+        <div class="panel">
+          <h2>Device Control</h2>
+          <div class="status-row">
+            <span class="badge" id="protocol-badge">Protocol idle</span>
+            <span class="badge" id="format-badge">Format unknown</span>
+          </div>
+          <div class="form-grid">
+            <label>
+              Capture mode
+              <select id="mode-select">
+                <option value="SINGLE">Single</option>
+                <option value="NSHOT">N shot</option>
+                <option value="CONTINUOUS">Continuous</option>
+              </select>
+            </label>
+            <label>
+              N shot count
+              <input id="nshot-input" type="number" min="1" max="64" step="1" value="1">
+            </label>
+            <label>
+              Output format
+              <select id="format-select">
+                <option value="COMPACT">Compact</option>
+                <option value="TEXT">Text</option>
+                <option value="BIN">Binary</option>
+              </select>
+            </label>
+            <label>
+              Excitation frequency (Hz)
+              <input id="txfreq-input" type="number" min="39000" max="41000" step="1" value="40000">
+            </label>
+            <label>
+              Excitation cycles
+              <input id="txcycles-input" type="number" min="1" max="32" step="1" value="1">
+            </label>
+            <label>
+              ADC sample rate (Hz)
+              <input id="srate-input" type="number" min="100000" max="1000000" step="1000" value="500000">
+            </label>
+          </div>
+          <div class="button-grid-2x2" style="margin-top: 12px;">
+            <button id="refresh-config-button" class="secondary">Refresh</button>
+            <button id="apply-config-button">Apply</button>
+            <button id="start-button">Start</button>
+            <button id="stop-button" class="warn">Stop</button>
+          </div>
+          <p class="notice" id="control-note">
+            `COMPACT` is the preferred live-view format. `TEXT` is also decoded. `BIN` is configurable
+            but not yet visualized in the browser.
+          </p>
+        </div>
+
+        <div class="panel">
+          <h2>Event Log</h2>
+          <pre id="event-log"></pre>
+        </div>
+      </section>
+
+      <section class="stack">
+        <div class="panel chart-panel">
+          <h2>Latest Waveform</h2>
+          <div class="meta">Most recent decoded `W` frame, drawn against fixed `0..4095` ADC counts.</div>
+          <div class="chart-wrap">
+            <canvas id="latest-canvas"></canvas>
+          </div>
+          <div class="chart-caption" id="latest-caption">No frame decoded yet.</div>
+        </div>
+
+        <div class="panel chart-panel">
+          <h2>Rolling Overlay</h2>
+          <div class="meta">Recent captures overlaid to expose drift, motion, and jitter between pings.</div>
+          <div class="chart-wrap">
+            <canvas id="overlay-canvas"></canvas>
+          </div>
+          <div class="chart-caption" id="overlay-caption">No history yet.</div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    const MAX_ADC_VALUE = 4095;
+    const LOG_LIMIT = 120;
+
+    class FrameDecoder {
+      constructor() {
+        this.buffer = "";
+        this.framesDecoded = 0;
+        this.invalidFrames = 0;
+        this.ignoredLines = 0;
+        this.serialBytes = 0;
+        this.lastLineKind = "-";
+      }
+
+      feedText(text) {
+        this.serialBytes += text.length;
+        this.buffer += text;
+
+        if (this.buffer.length > 262144) {
+          this.buffer = this.buffer.slice(-131072);
+        }
+
+        const results = [];
+        while (true) {
+          const newlineIndex = this.buffer.indexOf("\n");
+          if (newlineIndex < 0) {
+            break;
+          }
+          let line = this.buffer.slice(0, newlineIndex);
+          this.buffer = this.buffer.slice(newlineIndex + 1);
+          if (line.endsWith("\r")) {
+            line = line.slice(0, -1);
+          }
+          const parsed = this.parseLine(line);
+          if (parsed) {
+            results.push(parsed);
+          }
+        }
+        return results;
+      }
+
+      parseLine(line) {
+        if (line.length === 0) {
+          this.lastLineKind = "empty";
+          this.ignoredLines += 1;
+          return null;
+        }
+
+        if (line.startsWith("+INFO:")) {
+          this.lastLineKind = "info";
+          return { type: "info", line, fields: this.parseKeyValueFields(line.slice(6)) };
+        }
+
+        if (line.startsWith("+CFG:")) {
+          this.lastLineKind = "config";
+          return { type: "config", line, fields: this.parseKeyValueFields(line.slice(5)) };
+        }
+
+        if (line.startsWith("+DONE:")) {
+          this.lastLineKind = "done";
+          return { type: "done", line };
+        }
+
+        if (line === "OK") {
+          this.lastLineKind = "ok";
+          return { type: "ok", line };
+        }
+
+        if (line.startsWith("ERROR")) {
+          this.lastLineKind = "error";
+          return { type: "error", line };
+        }
+
+        if (!line.startsWith("W ")) {
+          if (line.startsWith("T seq=")) {
+            const textFrame = this.parseTextFrame(line);
+            if (textFrame) {
+              this.framesDecoded += 1;
+              this.lastLineKind = "waveform";
+              return textFrame;
+            }
+            this.invalidFrames += 1;
+            this.lastLineKind = "invalid-frame";
+            return { type: "invalid", reason: "bad text frame", line };
+          }
+          this.lastLineKind = "text";
+          this.ignoredLines += 1;
+          return { type: "text", line };
+        }
+
+        const payload = line.slice(2);
+        if ((payload.length % 2) !== 0) {
+          this.invalidFrames += 1;
+          this.lastLineKind = "invalid-frame";
+          return { type: "invalid", reason: "odd payload length", line };
+        }
+
+        const samples = new Uint16Array(payload.length / 2);
+        for (let i = 0; i < payload.length; i += 2) {
+          const hi = payload.charCodeAt(i) - 63;
+          const lo = payload.charCodeAt(i + 1) - 63;
+          if (hi < 0 || hi > 63 || lo < 0 || lo > 63) {
+            this.invalidFrames += 1;
+            this.lastLineKind = "invalid-frame";
+            return { type: "invalid", reason: "sample character out of range", line };
+          }
+          samples[i / 2] = (hi << 6) | lo;
+        }
+
+        this.framesDecoded += 1;
+        this.lastLineKind = "waveform";
+        return { type: "waveform", samples };
+      }
+
+      parseKeyValueFields(text) {
+        const fields = {};
+        for (const rawPart of text.split(",")) {
+          const part = rawPart.trim();
+          if (!part) {
+            continue;
+          }
+          const eqIndex = part.indexOf("=");
+          if (eqIndex < 0) {
+            continue;
+          }
+          fields[part.slice(0, eqIndex).trim()] = part.slice(eqIndex + 1).trim();
+        }
+        return fields;
+      }
+
+      parseTextFrame(line) {
+        const match = /^T seq=(\d+) count=(\d+) (.+)$/.exec(line);
+        if (!match) {
+          return null;
+        }
+        const count = Number(match[2]);
+        const rawValues = match[3].split(",");
+        if (rawValues.length !== count) {
+          return null;
+        }
+        const samples = new Uint16Array(count);
+        for (let i = 0; i < rawValues.length; i += 1) {
+          const value = Number(rawValues[i]);
+          if (!Number.isInteger(value) || value < 0 || value > MAX_ADC_VALUE) {
+            return null;
+          }
+          samples[i] = value;
+        }
+        return { type: "waveform", samples, sequence: Number(match[1]), format: "TEXT" };
+      }
+    }
+
+    class WebSerialSource {
+      constructor(app) {
+        this.app = app;
+        this.port = null;
+        this.reader = null;
+        this.readTask = null;
+        this.closed = false;
+        this.encoder = new TextEncoder();
+        this.disconnectHandler = this.onBrowserDisconnect.bind(this);
+      }
+
+      async connect(options) {
+        if (!("serial" in navigator)) {
+          throw new Error("Web Serial is not available in this browser.");
+        }
+
+        navigator.serial.addEventListener("disconnect", this.disconnectHandler);
+        this.port = await navigator.serial.requestPort();
+        await this.port.open({
+          baudRate: options.baudRate,
+          dataBits: 8,
+          stopBits: 1,
+          parity: "none",
+          flowControl: "none",
+          bufferSize: 65536,
+        });
+
+        this.closed = false;
+        this.reader = this.port.readable.getReader();
+        this.app.log(`serial connected at ${options.baudRate} baud`);
+        this.readTask = this.readLoop();
+      }
+
+      async disconnect() {
+        this.closed = true;
+        navigator.serial.removeEventListener("disconnect", this.disconnectHandler);
+
+        if (this.reader) {
+          try {
+            await this.reader.cancel();
+          } catch (_err) {
+          }
+        }
+
+        if (this.readTask) {
+          try {
+            await this.readTask;
+          } catch (_err) {
+          }
+        }
+
+        if (this.port) {
+          try {
+            await this.port.close();
+          } catch (_err) {
+          }
+        }
+
+        this.reader = null;
+        this.port = null;
+        this.readTask = null;
+        this.app.log("serial disconnected");
+      }
+
+      async sendLine(line) {
+        if (!this.port || !this.port.writable) {
+          throw new Error("serial port is not open");
+        }
+
+        const writer = this.port.writable.getWriter();
+        try {
+          await writer.write(this.encoder.encode(`${line}\r\n`));
+        } finally {
+          writer.releaseLock();
+        }
+      }
+
+      async readLoop() {
+        const decoder = new TextDecoder();
+        try {
+          while (!this.closed && this.reader) {
+            const { value, done } = await this.reader.read();
+            if (done) {
+              break;
+            }
+            if (value && value.length > 0) {
+              const text = decoder.decode(value, { stream: true });
+              this.app.onIncomingText(text);
+            }
+          }
+        } catch (error) {
+          if (!this.closed) {
+            this.app.log(`serial read error: ${error.message}`);
+          }
+        } finally {
+          if (this.reader) {
+            try {
+              this.reader.releaseLock();
+            } catch (_err) {
+            }
+          }
+          this.reader = null;
+        }
+      }
+
+      async onBrowserDisconnect() {
+        if (!this.closed) {
+          this.app.log("serial device disconnected by browser");
+          await this.disconnect();
+          this.app.setDisconnectedState();
+        }
+      }
+    }
+
+    class WebSocketSource {
+      async connect() {
+        throw new Error("WebSocket transport is reserved for a later iteration.");
+      }
+
+      async disconnect() {
+      }
+
+      async sendLine() {
+        throw new Error("WebSocket transport is reserved for a later iteration.");
+      }
+    }
+
+    class SocketBridgeSource {
+      async connect() {
+        throw new Error("Socket bridge transport is reserved for a later iteration.");
+      }
+
+      async disconnect() {
+      }
+
+      async sendLine() {
+        throw new Error("Socket bridge transport is reserved for a later iteration.");
+      }
+    }
+
+    class WaveformApp {
+      constructor() {
+        this.decoder = new FrameDecoder();
+        this.source = null;
+        this.connected = false;
+        this.latestFrame = null;
+        this.historyFrames = [];
+        this.historyDepth = 6;
+        this.lastFrameAtMs = 0;
+        this.frameTimestamps = [];
+        this.renderRequested = false;
+        this.commandChain = Promise.resolve();
+        this.deviceInfo = null;
+        this.deviceConfig = null;
+
+        this.elements = {
+          sourceType: document.getElementById("source-type"),
+          baudRate: document.getElementById("baud-rate"),
+          historyDepth: document.getElementById("history-depth"),
+          historyDepthLabel: document.getElementById("history-depth-label"),
+          connectButton: document.getElementById("connect-button"),
+          disconnectButton: document.getElementById("disconnect-button"),
+          clearButton: document.getElementById("clear-button"),
+          refreshConfigButton: document.getElementById("refresh-config-button"),
+          applyConfigButton: document.getElementById("apply-config-button"),
+          startButton: document.getElementById("start-button"),
+          stopButton: document.getElementById("stop-button"),
+          modeSelect: document.getElementById("mode-select"),
+          nshotInput: document.getElementById("nshot-input"),
+          formatSelect: document.getElementById("format-select"),
+          txfreqInput: document.getElementById("txfreq-input"),
+          txcyclesInput: document.getElementById("txcycles-input"),
+          srateInput: document.getElementById("srate-input"),
+          protocolBadge: document.getElementById("protocol-badge"),
+          formatBadge: document.getElementById("format-badge"),
+          controlNote: document.getElementById("control-note"),
+          serialSupportBadge: document.getElementById("serial-support-badge"),
+          connectionBadge: document.getElementById("connection-badge"),
+          connectionNote: document.getElementById("connection-note"),
+          framesDecoded: document.getElementById("frames-decoded"),
+          invalidFrames: document.getElementById("invalid-frames"),
+          sampleCount: document.getElementById("sample-count"),
+          frameRate: document.getElementById("frame-rate"),
+          lastFrameAge: document.getElementById("last-frame-age"),
+          ignoredLines: document.getElementById("ignored-lines"),
+          serialBytes: document.getElementById("serial-bytes"),
+          lastLineKind: document.getElementById("last-line-kind"),
+          eventLog: document.getElementById("event-log"),
+          latestCanvas: document.getElementById("latest-canvas"),
+          overlayCanvas: document.getElementById("overlay-canvas"),
+          latestCaption: document.getElementById("latest-caption"),
+          overlayCaption: document.getElementById("overlay-caption"),
+        };
+
+        this.logLines = [];
+        this.installHandlers();
+        this.updateSupportState();
+        this.updateControlState();
+        this.updateStats();
+        this.requestRender();
+        setInterval(() => this.updateStats(), 250);
+      }
+
+      installHandlers() {
+        this.elements.connectButton.addEventListener("click", () => this.connect());
+        this.elements.disconnectButton.addEventListener("click", () => this.disconnect());
+        this.elements.clearButton.addEventListener("click", () => this.clearFrames());
+        this.elements.refreshConfigButton.addEventListener("click", () => this.refreshDeviceConfig());
+        this.elements.applyConfigButton.addEventListener("click", () => this.applyDeviceConfig());
+        this.elements.startButton.addEventListener("click", () => this.startCapture());
+        this.elements.stopButton.addEventListener("click", () => this.stopCapture());
+        this.elements.modeSelect.addEventListener("change", () => this.updateControlState());
+        this.elements.formatSelect.addEventListener("change", () => this.updateControlState());
+        this.elements.historyDepth.addEventListener("input", () => {
+          this.historyDepth = Number(this.elements.historyDepth.value);
+          this.trimHistory();
+          this.elements.historyDepthLabel.textContent = `${this.historyDepth} recent frames kept`;
+          this.requestRender();
+        });
+        window.addEventListener("resize", () => this.requestRender());
+      }
+
+      updateSupportState() {
+        if ("serial" in navigator) {
+          this.elements.serialSupportBadge.textContent = "Web Serial available";
+          this.elements.serialSupportBadge.className = "badge ok";
+        } else {
+          this.elements.serialSupportBadge.textContent = "Web Serial unavailable";
+          this.elements.serialSupportBadge.className = "badge warn";
+          this.log("browser does not expose Web Serial");
+        }
+      }
+
+      updateControlState() {
+        const connected = this.connected;
+        const mode = this.elements.modeSelect.value;
+        const format = this.elements.formatSelect.value;
+
+        this.elements.nshotInput.disabled = (mode !== "NSHOT");
+        this.elements.refreshConfigButton.disabled = !connected;
+        this.elements.applyConfigButton.disabled = !connected;
+        this.elements.startButton.disabled = !connected;
+        this.elements.stopButton.disabled = !connected;
+
+        if (format === "BIN") {
+          this.elements.formatBadge.textContent = "Binary selected";
+          this.elements.formatBadge.className = "badge warn";
+          this.elements.controlNote.textContent =
+            "Binary output is configurable but not yet visualized in the browser. Use COMPACT or TEXT for live plots.";
+        } else if (format === "TEXT") {
+          this.elements.formatBadge.textContent = "Text frames selected";
+          this.elements.formatBadge.className = "badge";
+          this.elements.controlNote.textContent =
+            "TEXT output is larger than COMPACT but still decoded by this viewer.";
+        } else {
+          this.elements.formatBadge.textContent = "Compact frames selected";
+          this.elements.formatBadge.className = "badge ok";
+          this.elements.controlNote.textContent =
+            "COMPACT is the preferred live-view format. TEXT is also decoded. BIN is configurable but not yet visualized in the browser.";
+        }
+      }
+
+      createSource(type) {
+        if (type === "web-serial") {
+          return new WebSerialSource(this);
+        }
+        if (type === "websocket") {
+          return new WebSocketSource(this);
+        }
+        if (type === "socket-bridge") {
+          return new SocketBridgeSource(this);
+        }
+        throw new Error(`unsupported source type: ${type}`);
+      }
+
+      async connect() {
+        if (this.connected) {
+          return;
+        }
+
+        const sourceType = this.elements.sourceType.value;
+        const baudRate = Number(this.elements.baudRate.value);
+        if (!Number.isFinite(baudRate) || baudRate <= 0) {
+          this.log("invalid baud rate");
+          return;
+        }
+
+        this.elements.connectButton.disabled = true;
+        this.log(`connecting using ${sourceType}`);
+
+        try {
+          this.source = this.createSource(sourceType);
+          await this.source.connect({ baudRate });
+          this.connected = true;
+          this.elements.connectionBadge.textContent = `Connected via ${sourceType}`;
+          this.elements.connectionBadge.className = "badge ok";
+          this.elements.disconnectButton.disabled = false;
+          this.elements.connectionNote.textContent = `Live source active at ${baudRate} baud.`;
+          this.elements.protocolBadge.textContent = "Connected";
+          this.elements.protocolBadge.className = "badge ok";
+          this.updateControlState();
+          setTimeout(() => this.refreshDeviceConfig(), 150);
+        } catch (error) {
+          this.log(`connect failed: ${error.message}`);
+          this.source = null;
+          this.connected = false;
+          this.elements.connectionBadge.textContent = "Disconnected";
+          this.elements.connectionBadge.className = "badge warn";
+          this.elements.protocolBadge.textContent = "Protocol idle";
+          this.elements.protocolBadge.className = "badge";
+          this.updateControlState();
+        } finally {
+          this.elements.connectButton.disabled = false;
+        }
+      }
+
+      async disconnect() {
+        if (this.source) {
+          await this.source.disconnect();
+        }
+        this.setDisconnectedState();
+      }
+
+      setDisconnectedState() {
+        this.connected = false;
+        this.source = null;
+        this.deviceInfo = null;
+        this.deviceConfig = null;
+        this.elements.connectionBadge.textContent = "Disconnected";
+        this.elements.connectionBadge.className = "badge warn";
+        this.elements.disconnectButton.disabled = true;
+        this.elements.connectionNote.textContent = "No live source connected.";
+        this.elements.protocolBadge.textContent = "Protocol idle";
+        this.elements.protocolBadge.className = "badge";
+        this.updateControlState();
+      }
+
+      clearFrames() {
+        this.latestFrame = null;
+        this.historyFrames = [];
+        this.frameTimestamps = [];
+        this.lastFrameAtMs = 0;
+        this.decoder.framesDecoded = 0;
+        this.decoder.invalidFrames = 0;
+        this.decoder.ignoredLines = 0;
+        this.decoder.serialBytes = 0;
+        this.decoder.lastLineKind = "-";
+        this.log("viewer state cleared");
+        this.updateStats();
+        this.requestRender();
+      }
+
+      queueCommands(lines, pauseMs = 120) {
+        if (!this.source || !this.connected) {
+          this.log("command ignored: not connected");
+          return Promise.resolve();
+        }
+
+        const filtered = lines.filter((line) => line && line.length > 0);
+        if (!filtered.length) {
+          return Promise.resolve();
+        }
+
+        const run = async () => {
+          this.elements.protocolBadge.textContent = "Command pending";
+          this.elements.protocolBadge.className = "badge";
+          for (const line of filtered) {
+            this.log(`host: ${line}`);
+            await this.source.sendLine(line);
+            if (pauseMs > 0) {
+              await new Promise((resolve) => window.setTimeout(resolve, pauseMs));
+            }
+          }
+        };
+
+        this.commandChain = this.commandChain
+          .then(run)
+          .catch((error) => {
+            this.log(`command failed: ${error.message}`);
+          });
+
+        return this.commandChain;
+      }
+
+      refreshDeviceConfig() {
+        return this.queueCommands(["ATCFG?"], 80);
+      }
+
+      applyDeviceConfig() {
+        const mode = this.elements.modeSelect.value;
+        const format = this.elements.formatSelect.value;
+        const nshot = Number(this.elements.nshotInput.value);
+        const txfreq = Number(this.elements.txfreqInput.value);
+        const txcycles = Number(this.elements.txcyclesInput.value);
+        const srate = Number(this.elements.srateInput.value);
+
+        if (!Number.isFinite(nshot) || nshot < 1) {
+          this.log("invalid N shot count");
+          return;
+        }
+        if (!Number.isFinite(txfreq) || !Number.isFinite(txcycles) || !Number.isFinite(srate)) {
+          this.log("invalid device configuration");
+          return;
+        }
+
+        const commands = [
+          "ATSTOP",
+          `ATMODE=${mode}`,
+          `ATFMT=${format}`,
+          `ATTXFREQ=${Math.round(txfreq)}`,
+          `ATTXCYCLES=${Math.round(txcycles)}`,
+          `ATSRATE=${Math.round(srate)}`,
+        ];
+        if (mode === "NSHOT") {
+          commands.splice(2, 0, `ATNSHOT=${Math.round(nshot)}`);
+        }
+        commands.push("ATCFG?");
+        return this.queueCommands(commands, 120);
+      }
+
+      startCapture() {
+        return this.queueCommands(["ATGO"], 80);
+      }
+
+      stopCapture() {
+        return this.queueCommands(["ATSTOP"], 80);
+      }
+
+      applyConfigFields(fields) {
+        this.deviceConfig = fields;
+        if (fields.mode) {
+          this.elements.modeSelect.value = fields.mode;
+        }
+        if (fields.nshot) {
+          this.elements.nshotInput.value = fields.nshot;
+        }
+        if (fields.fmt) {
+          this.elements.formatSelect.value = fields.fmt;
+        }
+        if (fields.txfreq) {
+          this.elements.txfreqInput.value = fields.txfreq;
+        }
+        if (fields.txcycles) {
+          this.elements.txcyclesInput.value = fields.txcycles;
+        }
+        if (fields.srate) {
+          this.elements.srateInput.value = fields.srate;
+        }
+        this.updateControlState();
+      }
+
+      onIncomingText(text) {
+        const parsed = this.decoder.feedText(text);
+        for (const item of parsed) {
+          if (item.type === "waveform") {
+            this.onWaveform(item.samples);
+          } else if (item.type === "config") {
+            this.applyConfigFields(item.fields);
+            this.elements.protocolBadge.textContent = "Config updated";
+            this.elements.protocolBadge.className = "badge ok";
+            this.log(`device: ${item.line}`);
+          } else if (item.type === "info") {
+            this.deviceInfo = item.fields;
+            this.elements.protocolBadge.textContent = "Protocol active";
+            this.elements.protocolBadge.className = "badge ok";
+            this.log(`device: ${item.line}`);
+          } else if (item.type === "done") {
+            this.elements.protocolBadge.textContent = item.line;
+            this.elements.protocolBadge.className = "badge ok";
+            this.log(`device: ${item.line}`);
+          } else if (item.type === "ok") {
+            this.elements.protocolBadge.textContent = "Last command OK";
+            this.elements.protocolBadge.className = "badge ok";
+            this.log("device: OK");
+          } else if (item.type === "error") {
+            this.elements.protocolBadge.textContent = item.line;
+            this.elements.protocolBadge.className = "badge warn";
+            this.log(`device: ${item.line}`);
+          } else if (item.type === "text") {
+            this.log(`device: ${item.line}`);
+          } else if (item.type === "invalid") {
+            this.log(`invalid frame: ${item.reason}`);
+          }
+        }
+        this.updateStats();
+      }
+
+      onWaveform(samples) {
+        const now = performance.now();
+        this.latestFrame = samples;
+        this.historyFrames.push(samples);
+        this.trimHistory();
+        this.lastFrameAtMs = now;
+        this.frameTimestamps.push(now);
+        while (this.frameTimestamps.length > 32) {
+          this.frameTimestamps.shift();
+        }
+        this.requestRender();
+      }
+
+      trimHistory() {
+        while (this.historyFrames.length > this.historyDepth) {
+          this.historyFrames.shift();
+        }
+      }
+
+      updateStats() {
+        this.elements.framesDecoded.textContent = String(this.decoder.framesDecoded);
+        this.elements.invalidFrames.textContent = String(this.decoder.invalidFrames);
+        this.elements.ignoredLines.textContent = String(this.decoder.ignoredLines);
+        this.elements.serialBytes.textContent = String(this.decoder.serialBytes);
+        this.elements.lastLineKind.textContent = this.decoder.lastLineKind;
+        this.elements.sampleCount.textContent = this.latestFrame ? String(this.latestFrame.length) : "-";
+
+        if (this.frameTimestamps.length >= 2) {
+          const first = this.frameTimestamps[0];
+          const last = this.frameTimestamps[this.frameTimestamps.length - 1];
+          const fps = (this.frameTimestamps.length - 1) * 1000 / Math.max(1, last - first);
+          this.elements.frameRate.textContent = `${fps.toFixed(2)} fps`;
+        } else {
+          this.elements.frameRate.textContent = "-";
+        }
+
+        if (this.lastFrameAtMs > 0) {
+          const ageMs = performance.now() - this.lastFrameAtMs;
+          this.elements.lastFrameAge.textContent = `${(ageMs / 1000).toFixed(2)} s`;
+        } else {
+          this.elements.lastFrameAge.textContent = "-";
+        }
+      }
+
+      log(message) {
+        const stamp = new Date().toISOString().replace("T", " ").replace("Z", "Z");
+        this.logLines.push(`[${stamp}] ${message}`);
+        if (this.logLines.length > LOG_LIMIT) {
+          this.logLines = this.logLines.slice(-LOG_LIMIT);
+        }
+        this.elements.eventLog.textContent = this.logLines.join("\n");
+        this.elements.eventLog.scrollTop = this.elements.eventLog.scrollHeight;
+      }
+
+      requestRender() {
+        if (this.renderRequested) {
+          return;
+        }
+        this.renderRequested = true;
+        requestAnimationFrame(() => {
+          this.renderRequested = false;
+          this.render();
+        });
+      }
+
+      render() {
+        this.drawLatest();
+        this.drawOverlay();
+      }
+
+      drawLatest() {
+        const canvas = this.elements.latestCanvas;
+        this.resizeCanvas(canvas);
+        const ctx = canvas.getContext("2d");
+        this.drawChartBackground(ctx, canvas, "latest");
+
+        if (!this.latestFrame) {
+          this.drawEmptyState(ctx, canvas, "waiting for waveform frames");
+          this.elements.latestCaption.textContent = "No frame decoded yet.";
+          return;
+        }
+
+        this.drawAxes(ctx, canvas, this.latestFrame.length);
+        this.drawTrace(ctx, canvas, this.latestFrame, "rgba(20, 20, 20, 0.96)", 2.0);
+        this.elements.latestCaption.textContent =
+          `Latest frame: ${this.latestFrame.length} samples, fixed vertical range 0..4095 ADC counts.`;
+      }
+
+      drawOverlay() {
+        const canvas = this.elements.overlayCanvas;
+        this.resizeCanvas(canvas);
+        const ctx = canvas.getContext("2d");
+        this.drawChartBackground(ctx, canvas, "overlay");
+
+        if (!this.historyFrames.length) {
+          this.drawEmptyState(ctx, canvas, "waiting for waveform history");
+          this.elements.overlayCaption.textContent = "No history yet.";
+          return;
+        }
+
+        const latest = this.historyFrames[this.historyFrames.length - 1];
+        this.drawAxes(ctx, canvas, latest.length);
+
+        const total = this.historyFrames.length;
+        for (let i = 0; i < total; i += 1) {
+          const alpha = 0.12 + (0.45 * (i + 1) / total);
+          const width = (i === total - 1) ? 1.8 : 1.0;
+          const color = (i === total - 1)
+            ? "rgba(20, 20, 20, 0.9)"
+            : `rgba(120, 112, 101, ${alpha.toFixed(3)})`;
+          this.drawTrace(ctx, canvas, this.historyFrames[i], color, width);
+        }
+
+        this.elements.overlayCaption.textContent =
+          `${this.historyFrames.length} frame(s) overlaid, newest trace drawn strongest.`;
+      }
+
+      resizeCanvas(canvas) {
+        const rect = canvas.getBoundingClientRect();
+        const ratio = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+        const width = Math.max(320, Math.round(rect.width * ratio));
+        const height = Math.max(220, Math.round(rect.height * ratio));
+        if (canvas.width !== width || canvas.height !== height) {
+          canvas.width = width;
+          canvas.height = height;
+        }
+      }
+
+      drawChartBackground(ctx, canvas, variant) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+        if (variant === "latest") {
+          gradient.addColorStop(0, "#fffef8");
+          gradient.addColorStop(1, "#fbf4e8");
+        } else {
+          gradient.addColorStop(0, "#fffdf8");
+          gradient.addColorStop(1, "#f2eadc");
+        }
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }
+
+      chartRect(canvas) {
+        const marginLeft = 70;
+        const marginRight = 20;
+        const marginTop = 20;
+        const marginBottom = 42;
+        return {
+          left: marginLeft,
+          top: marginTop,
+          right: canvas.width - marginRight,
+          bottom: canvas.height - marginBottom,
+          width: canvas.width - marginLeft - marginRight,
+          height: canvas.height - marginTop - marginBottom,
+        };
+      }
+
+      drawAxes(ctx, canvas, sampleCount) {
+        const rect = this.chartRect(canvas);
+        ctx.save();
+        ctx.strokeStyle = "#d8cab2";
+        ctx.lineWidth = 1;
+        ctx.font = `${Math.max(12, canvas.width * 0.012)}px "IBM Plex Mono", monospace`;
+        ctx.fillStyle = "#6b6255";
+
+        for (let i = 0; i <= 4; i += 1) {
+          const y = rect.top + rect.height * (i / 4);
+          ctx.strokeStyle = "#e6dac4";
+          ctx.beginPath();
+          ctx.moveTo(rect.left, y);
+          ctx.lineTo(rect.right, y);
+          ctx.stroke();
+
+          const value = Math.round(MAX_ADC_VALUE * (1 - i / 4));
+          ctx.fillText(String(value), 8, y + 4);
+        }
+
+        for (let i = 0; i <= 6; i += 1) {
+          const x = rect.left + rect.width * (i / 6);
+          ctx.strokeStyle = "#ebe0cd";
+          ctx.beginPath();
+          ctx.moveTo(x, rect.top);
+          ctx.lineTo(x, rect.bottom);
+          ctx.stroke();
+
+          const value = Math.round((sampleCount - 1) * (i / 6));
+          const text = String(value);
+          const metrics = ctx.measureText(text);
+          ctx.fillText(text, x - metrics.width / 2, canvas.height - 12);
+        }
+
+        ctx.strokeStyle = "#9f8d72";
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.moveTo(rect.left, rect.top);
+        ctx.lineTo(rect.left, rect.bottom);
+        ctx.lineTo(rect.right, rect.bottom);
+        ctx.stroke();
+
+        ctx.fillStyle = "#5f574a";
+        ctx.fillText("ADC counts", 8, 18);
+        const label = "sample index";
+        const metrics = ctx.measureText(label);
+        ctx.fillText(label, rect.left + rect.width - metrics.width, canvas.height - 12);
+        ctx.restore();
+      }
+
+      drawTrace(ctx, canvas, samples, color, lineWidth) {
+        const rect = this.chartRect(canvas);
+        const xStep = rect.width / Math.max(1, samples.length - 1);
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(rect.left, rect.top, rect.width, rect.height);
+        ctx.clip();
+
+        ctx.strokeStyle = color;
+        ctx.lineWidth = lineWidth;
+        ctx.beginPath();
+        for (let i = 0; i < samples.length; i += 1) {
+          const x = rect.left + xStep * i;
+          const y = rect.bottom - (samples[i] / MAX_ADC_VALUE) * rect.height;
+          if (i === 0) {
+            ctx.moveTo(x, y);
+          } else {
+            ctx.lineTo(x, y);
+          }
+        }
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      drawEmptyState(ctx, canvas, message) {
+        ctx.save();
+        ctx.fillStyle = "#847b6e";
+        ctx.font = `${Math.max(14, canvas.width * 0.016)}px "IBM Plex Sans", sans-serif`;
+        const metrics = ctx.measureText(message);
+        ctx.fillText(message, (canvas.width - metrics.width) / 2, canvas.height / 2);
+        ctx.restore();
+      }
+    }
+
+    window.addEventListener("DOMContentLoaded", () => {
+      window.ultrasonicWaveformApp = new WaveformApp();
+    });
+  </script>
+</body>
+</html>

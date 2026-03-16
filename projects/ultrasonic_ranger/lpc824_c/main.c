@@ -1,5 +1,6 @@
 #include <stdbool.h>
 #include <stdint.h>
+#include <string.h>
 
 #include "fsl_device_registers.h"
 
@@ -7,14 +8,9 @@
  * GCC-native port of the legacy LPCXpresso/LPCOpen ultrasonic ranger:
  * `LPC824_Ultrasonic_Ranger/src/LPC824_Ultrasonic_Ranger.c`
  *
- * The firmware uses the LPC824 SCT to emit a short 40 kHz burst, then samples
- * the receive amplifier on ADC3, chaining three DMA descriptors to capture
- * 3072 16-bit ADC result words into SRAM. The packed sample stream is emitted
- * over USART0.
- *
- * Original design notes reference UM10800 chapters 11/12 (DMA), 16 (SCT), and
- * 21 (ADC). This port keeps the same hardware behavior but replaces the old
- * LPCOpen helpers with direct CMSIS register access.
+ * This version adds a lightweight UART control protocol using AT-style
+ * commands while preserving the original compact `W ` waveform stream format
+ * as the default output.
  */
 
 #ifndef ULTRASONIC_UART_BAUD_RATE
@@ -25,21 +21,31 @@
 #define ULTRASONIC_ADC_CHANNEL 3u
 #endif
 
-#ifndef ULTRASONIC_ADC_SAMPLE_RATE
-#define ULTRASONIC_ADC_SAMPLE_RATE 500000u
+#ifndef ULTRASONIC_ADC_SAMPLE_RATE_DEFAULT
+#define ULTRASONIC_ADC_SAMPLE_RATE_DEFAULT 500000u
 #endif
 
-#ifndef ULTRASONIC_TRANSDUCER_FREQUENCY
-#define ULTRASONIC_TRANSDUCER_FREQUENCY 40000u
+#ifndef ULTRASONIC_TRANSDUCER_FREQUENCY_DEFAULT
+#define ULTRASONIC_TRANSDUCER_FREQUENCY_DEFAULT 40000u
 #endif
 
-#ifndef ULTRASONIC_PULSE_CYCLE_COUNT
-#define ULTRASONIC_PULSE_CYCLE_COUNT 1u
+#ifndef ULTRASONIC_PULSE_CYCLE_COUNT_DEFAULT
+#define ULTRASONIC_PULSE_CYCLE_COUNT_DEFAULT 1u
 #endif
 
 #ifndef ULTRASONIC_DMA_BUFFER_SIZE
 #define ULTRASONIC_DMA_BUFFER_SIZE 1024u
 #endif
+
+#define ULTRASONIC_SAMPLE_COUNT (ULTRASONIC_DMA_BUFFER_SIZE * 3u)
+#define ULTRASONIC_PROTOCOL_VERSION 1u
+#define AT_COMMAND_BUFFER_SIZE 96u
+#define AT_TXFREQ_MIN_HZ 1000u
+#define AT_TXFREQ_MAX_HZ 100000u
+#define AT_TXCYCLES_MIN 1u
+#define AT_TXCYCLES_MAX 255u
+#define AT_SRATE_MIN_HZ 10000u
+#define AT_SRATE_MAX_HZ 1000000u
 
 #define PIN_UART_RXD 0u
 #define PIN_UART_TXD 4u
@@ -57,16 +63,71 @@ typedef struct {
     uint32_t next;
 } dma_descriptor_t;
 
+typedef enum {
+    CAPTURE_MODE_SINGLE = 0,
+    CAPTURE_MODE_NSHOT,
+    CAPTURE_MODE_CONTINUOUS,
+} capture_mode_t;
+
+typedef enum {
+    OUTPUT_FORMAT_COMPACT = 0,
+    OUTPUT_FORMAT_TEXT,
+    OUTPUT_FORMAT_BIN,
+} output_format_t;
+
+typedef struct {
+    capture_mode_t mode;
+    output_format_t format;
+    uint32_t nshot;
+    uint32_t tx_frequency_hz;
+    uint32_t tx_cycles;
+    uint32_t adc_sample_rate_hz;
+    uint32_t sample_count;
+} ultrasonic_config_t;
+
 _Static_assert(sizeof(dma_descriptor_t) == 16u, "Unexpected DMA descriptor size");
 
 static dma_descriptor_t g_dma_table[DMA_CHANNEL_COUNT] __attribute__((aligned(512)));
 static dma_descriptor_t g_dma_desc_b __attribute__((aligned(16)));
 static dma_descriptor_t g_dma_desc_c __attribute__((aligned(16)));
 
-static uint16_t g_adc_buffer[ULTRASONIC_DMA_BUFFER_SIZE * 3u];
+static uint16_t g_adc_buffer[ULTRASONIC_SAMPLE_COUNT];
 
 static volatile uint32_t g_dma_block_count;
 static volatile uint32_t g_pulse_cycle_count;
+
+static ultrasonic_config_t g_config = {
+    .mode = CAPTURE_MODE_CONTINUOUS,
+    .format = OUTPUT_FORMAT_COMPACT,
+    .nshot = 1u,
+    .tx_frequency_hz = ULTRASONIC_TRANSDUCER_FREQUENCY_DEFAULT,
+    .tx_cycles = ULTRASONIC_PULSE_CYCLE_COUNT_DEFAULT,
+    .adc_sample_rate_hz = ULTRASONIC_ADC_SAMPLE_RATE_DEFAULT,
+    .sample_count = ULTRASONIC_SAMPLE_COUNT,
+};
+static const ultrasonic_config_t g_default_config = {
+    .mode = CAPTURE_MODE_CONTINUOUS,
+    .format = OUTPUT_FORMAT_COMPACT,
+    .nshot = 1u,
+    .tx_frequency_hz = ULTRASONIC_TRANSDUCER_FREQUENCY_DEFAULT,
+    .tx_cycles = ULTRASONIC_PULSE_CYCLE_COUNT_DEFAULT,
+    .adc_sample_rate_hz = ULTRASONIC_ADC_SAMPLE_RATE_DEFAULT,
+    .sample_count = ULTRASONIC_SAMPLE_COUNT,
+};
+
+static bool g_continuous_active = true;
+static uint32_t g_pending_frames = 0u;
+static uint32_t g_frame_sequence = 0u;
+static char g_command_buffer[AT_COMMAND_BUFFER_SIZE];
+static char g_pending_command_buffer[AT_COMMAND_BUFFER_SIZE];
+static uint32_t g_command_length = 0u;
+static bool g_command_overflow = false;
+static bool g_pending_command_ready = false;
+static bool g_pending_command_toolong = false;
+static bool g_pending_command_dropped = false;
+
+static void pump_uart_rx(void);
+static void service_pending_command(void);
 
 static inline uint32_t pin_mask(uint32_t pin)
 {
@@ -111,6 +172,66 @@ static void debug_pin_pulse(uint32_t count)
     }
 }
 
+static const char *mode_to_string(capture_mode_t mode)
+{
+    switch (mode) {
+    case CAPTURE_MODE_SINGLE:
+        return "SINGLE";
+    case CAPTURE_MODE_NSHOT:
+        return "NSHOT";
+    case CAPTURE_MODE_CONTINUOUS:
+        return "CONTINUOUS";
+    default:
+        return "UNKNOWN";
+    }
+}
+
+static const char *format_to_string(output_format_t format)
+{
+    switch (format) {
+    case OUTPUT_FORMAT_COMPACT:
+        return "COMPACT";
+    case OUTPUT_FORMAT_TEXT:
+        return "TEXT";
+    case OUTPUT_FORMAT_BIN:
+        return "BIN";
+    default:
+        return "UNKNOWN";
+    }
+}
+
+static bool parse_u32(const char *text, uint32_t *value_out)
+{
+    uint32_t value = 0u;
+    const char *cursor = text;
+
+    if (*cursor == '\0') {
+        return false;
+    }
+
+    while (*cursor != '\0') {
+        const char ch = *cursor++;
+        if (ch < '0' || ch > '9') {
+            return false;
+        }
+        value = (value * 10u) + (uint32_t)(ch - '0');
+    }
+
+    *value_out = value;
+    return true;
+}
+
+static bool string_equals(const char *lhs, const char *rhs)
+{
+    return strcmp(lhs, rhs) == 0;
+}
+
+static bool string_starts_with(const char *text, const char *prefix)
+{
+    const size_t prefix_len = strlen(prefix);
+    return strncmp(text, prefix, prefix_len) == 0;
+}
+
 static void usart0_assign_pins(void)
 {
     uint32_t reg = SWM0->PINASSIGN.PINASSIGN0;
@@ -146,12 +267,6 @@ static void usart0_configure_baud(uint32_t baud_rate)
     uint32_t best_brg = 0u;
     uint32_t best_mult = 0u;
 
-    /*
-     * FRG divider for LPC82x USARTs:
-     *   U_PCLK = FCLK / (1 + MULT / DIV), with DIV fixed to 256 when DIV register
-     *   is programmed to 0xFF. The USART baud generator then divides U_PCLK by
-     *   16 * (BRG + 1) when OSR = 15.
-     */
     SYSCON->UARTCLKDIV = SYSCON_UARTCLKDIV_DIV(1u);
     SYSCON->UARTFRGDIV = SYSCON_UARTFRGDIV_DIV(0xFFu);
 
@@ -206,35 +321,46 @@ static void usart0_init(void)
     USART0->CFG |= USART_CFG_ENABLE_MASK;
 }
 
+static bool uart_rx_ready(void)
+{
+    return (USART0->STAT & USART_STAT_RXRDY_MASK) != 0u;
+}
+
+static uint8_t uart_read_byte(void)
+{
+    return (uint8_t)((USART0->RXDAT & USART_RXDAT_RXDAT_MASK) >> USART_RXDAT_RXDAT_SHIFT);
+}
+
 static void uart_write_byte(uint8_t byte)
 {
     while ((USART0->STAT & USART_STAT_TXRDY_MASK) == 0u) {
+        pump_uart_rx();
     }
 
     USART0->TXDAT = USART_TXDAT_TXDAT(byte);
+    pump_uart_rx();
 }
 
-static void uart_write_decimal(int32_t value)
+static void uart_write_data(const uint8_t *data, uint32_t length)
+{
+    for (uint32_t i = 0u; i < length; ++i) {
+        uart_write_byte(data[i]);
+    }
+}
+
+static void uart_write_decimal(uint32_t value)
 {
     char buffer[12];
     uint32_t i = 0u;
-    uint32_t magnitude;
 
-    if (value == 0) {
+    if (value == 0u) {
         uart_write_byte('0');
         return;
     }
 
-    if (value < 0) {
-        uart_write_byte('-');
-        magnitude = (uint32_t)(-value);
-    } else {
-        magnitude = (uint32_t)value;
-    }
-
-    while (magnitude > 0u) {
-        buffer[i++] = (char)('0' + (magnitude % 10u));
-        magnitude /= 10u;
+    while (value > 0u) {
+        buffer[i++] = (char)('0' + (value % 10u));
+        value /= 10u;
     }
 
     while (i > 0u) {
@@ -247,6 +373,91 @@ static void uart_write_string(const char *s)
     while (*s != '\0') {
         uart_write_byte((uint8_t)*s++);
     }
+}
+
+static void uart_write_crlf(void)
+{
+    uart_write_byte('\r');
+    uart_write_byte('\n');
+}
+
+static void emit_ok(void)
+{
+    uart_write_string("OK");
+    uart_write_crlf();
+}
+
+static void emit_error(const char *reason)
+{
+    uart_write_string("ERROR");
+    if (reason != NULL && *reason != '\0') {
+        uart_write_byte(':');
+        uart_write_string(reason);
+    }
+    uart_write_crlf();
+}
+
+static void emit_info(void)
+{
+    uart_write_string("+INFO: proto=");
+    uart_write_decimal(ULTRASONIC_PROTOCOL_VERSION);
+    uart_write_string(",target=LPC824,fw=ultrasonic_ranger");
+    uart_write_crlf();
+}
+
+static void emit_config(void)
+{
+    uart_write_string("+CFG: mode=");
+    uart_write_string(mode_to_string(g_config.mode));
+    uart_write_string(",nshot=");
+    uart_write_decimal(g_config.nshot);
+    uart_write_string(",fmt=");
+    uart_write_string(format_to_string(g_config.format));
+    uart_write_string(",txfreq=");
+    uart_write_decimal(g_config.tx_frequency_hz);
+    uart_write_string(",txcycles=");
+    uart_write_decimal(g_config.tx_cycles);
+    uart_write_string(",srate=");
+    uart_write_decimal(g_config.adc_sample_rate_hz);
+    uart_write_string(",samples=");
+    uart_write_decimal(g_config.sample_count);
+    uart_write_crlf();
+}
+
+static void emit_done_frames(uint32_t frame_count)
+{
+    uart_write_string("+DONE: frames=");
+    uart_write_decimal(frame_count);
+    uart_write_crlf();
+}
+
+static void emit_done_stopped(void)
+{
+    uart_write_string("+DONE: stopped");
+    uart_write_crlf();
+}
+
+static void emit_query_value(const char *name, const char *value)
+{
+    uart_write_byte('+');
+    uart_write_string(name);
+    uart_write_string(": ");
+    uart_write_string(value);
+    uart_write_crlf();
+}
+
+static void emit_query_value_u32(const char *name, uint32_t value)
+{
+    uart_write_byte('+');
+    uart_write_string(name);
+    uart_write_string(": ");
+    uart_write_decimal(value);
+    uart_write_crlf();
+}
+
+static bool capture_is_active(void)
+{
+    return g_continuous_active || (g_pending_frames > 0u);
 }
 
 static void sct_halt(void)
@@ -288,7 +499,7 @@ static void sct_set_match(uint32_t match_index, uint32_t value)
 
 static void setup_sct_for_transducer(void)
 {
-    const uint32_t half_period_ticks = SystemCoreClock / (ULTRASONIC_TRANSDUCER_FREQUENCY * 2u);
+    const uint32_t half_period_ticks = SystemCoreClock / (g_config.tx_frequency_hz * 2u);
 
     sct_reset_block();
     sct_assign_transducer_pins();
@@ -304,7 +515,6 @@ static void setup_sct_for_transducer(void)
     SCT0->OUT[1].SET = 1u << 2;
     SCT0->OUT[1].CLR = 1u << 0;
 
-    /* Count a full transducer period on event 0, which is the autolimit event. */
     SCT0->EVFLAG = 0xFFFFFFFFu;
     SCT0->EVEN = 1u << 0;
     NVIC_ClearPendingIRQ(SCT0_IRQn);
@@ -313,7 +523,7 @@ static void setup_sct_for_transducer(void)
 
 static void setup_sct_for_adc(void)
 {
-    const uint32_t half_period_ticks = SystemCoreClock / (ULTRASONIC_ADC_SAMPLE_RATE * 2u);
+    const uint32_t half_period_ticks = SystemCoreClock / (g_config.adc_sample_rate_hz * 2u);
 
     sct_reset_block();
 
@@ -405,18 +615,9 @@ static void adc_init(void)
                  SYSCON_SYSAHBCLKCTRL_ADC_MASK);
     peripheral_reset(SYSCON_PRESETCTRL_ADC_RST_N_MASK);
 
-    /*
-     * LPCOpen's Chip_ADC_Init() powers the ADC analog block up before
-     * calibration. Without this, CALMODE never completes and the port stalls
-     * here.
-     */
     SYSCON->PDAWAKECFG &= ~SYSCON_PDAWAKECFG_ADC_PD_MASK;
     SYSCON->PDRUNCFG &= ~SYSCON_PDRUNCFG_ADC_PD_MASK;
 
-    /*
-     * Disable pull resistors on ADC3 / PIO0_23. The legacy firmware relied on
-     * this to stop the input drifting toward VDD.
-     */
     IOCON->PIO[IOCON_INDEX_PIO0_23] =
         (IOCON->PIO[IOCON_INDEX_PIO0_23] & ~IOCON_PIO_MODE_MASK) |
         IOCON_PIO_MODE(0u);
@@ -435,6 +636,433 @@ static void adc_init(void)
         ADC_SEQ_CTRL_SEQ_ENA(1u);
     ADC0->INTEN = ADC_INTEN_SEQA_INTEN(1u);
     ADC0->FLAGS = 0xFFFFFFFFu;
+}
+
+static void capture_frame(void)
+{
+    setup_sct_for_transducer();
+    g_pulse_cycle_count = 0u;
+    debug_pin_pulse(2u);
+    sct_run();
+    while (g_pulse_cycle_count < g_config.tx_cycles) {
+        pump_uart_rx();
+        __WFI();
+    }
+    sct_halt();
+
+    setup_dma_for_adc();
+    setup_sct_for_adc();
+
+    g_dma_block_count = 0u;
+    sct_run();
+    while (g_dma_block_count < 3u) {
+        pump_uart_rx();
+        __WFI();
+    }
+    sct_halt();
+
+    for (uint32_t i = 0u; i < ULTRASONIC_SAMPLE_COUNT; ++i) {
+        g_adc_buffer[i] >>= 4u;
+    }
+}
+
+static void emit_frame_compact(void)
+{
+    uart_write_byte('W');
+    uart_write_byte(' ');
+    for (uint32_t i = 0u; i < ULTRASONIC_SAMPLE_COUNT; ++i) {
+        if ((i & 0x1Fu) == 0u) {
+            pump_uart_rx();
+        }
+        uart_write_byte((uint8_t)(((g_adc_buffer[i] >> 6u) & 0x3Fu) + '?'));
+        uart_write_byte((uint8_t)((g_adc_buffer[i] & 0x3Fu) + '?'));
+    }
+    uart_write_crlf();
+}
+
+static void emit_frame_text(void)
+{
+    uart_write_string("T seq=");
+    uart_write_decimal(g_frame_sequence);
+    uart_write_string(" count=");
+    uart_write_decimal(ULTRASONIC_SAMPLE_COUNT);
+    uart_write_byte(' ');
+    for (uint32_t i = 0u; i < ULTRASONIC_SAMPLE_COUNT; ++i) {
+        if ((i & 0x1Fu) == 0u) {
+            pump_uart_rx();
+        }
+        uart_write_decimal(g_adc_buffer[i]);
+        if (i + 1u < ULTRASONIC_SAMPLE_COUNT) {
+            uart_write_byte(',');
+        }
+    }
+    uart_write_crlf();
+}
+
+static uint16_t crc16_ccitt_update(uint16_t crc, uint8_t data)
+{
+    crc ^= (uint16_t)data << 8u;
+    for (uint32_t i = 0u; i < 8u; ++i) {
+        if ((crc & 0x8000u) != 0u) {
+            crc = (uint16_t)((crc << 1u) ^ 0x1021u);
+        } else {
+            crc <<= 1u;
+        }
+    }
+    return crc;
+}
+
+static void emit_frame_binary(void)
+{
+    const uint16_t payload_len = (uint16_t)((ULTRASONIC_SAMPLE_COUNT / 2u) * 3u);
+    uint16_t crc = 0xFFFFu;
+    const uint8_t header[12] = {
+        0x55u,
+        0x57u,
+        0x01u,
+        0x01u,
+        (uint8_t)(g_frame_sequence & 0xFFu),
+        (uint8_t)((g_frame_sequence >> 8u) & 0xFFu),
+        (uint8_t)((g_frame_sequence >> 16u) & 0xFFu),
+        (uint8_t)((g_frame_sequence >> 24u) & 0xFFu),
+        (uint8_t)(ULTRASONIC_SAMPLE_COUNT & 0xFFu),
+        (uint8_t)((ULTRASONIC_SAMPLE_COUNT >> 8u) & 0xFFu),
+        (uint8_t)(payload_len & 0xFFu),
+        (uint8_t)((payload_len >> 8u) & 0xFFu),
+    };
+
+    uart_write_data(header, sizeof(header));
+    for (uint32_t i = 0u; i < sizeof(header); ++i) {
+        crc = crc16_ccitt_update(crc, header[i]);
+    }
+
+    for (uint32_t i = 0u; i < ULTRASONIC_SAMPLE_COUNT; i += 2u) {
+        if ((i & 0x3Fu) == 0u) {
+            pump_uart_rx();
+        }
+        const uint16_t sample_a = (uint16_t)(g_adc_buffer[i] & 0x0FFFu);
+        const uint16_t sample_b = (uint16_t)(g_adc_buffer[i + 1u] & 0x0FFFu);
+        const uint8_t packed[3] = {
+            (uint8_t)(sample_a & 0xFFu),
+            (uint8_t)(((sample_a >> 8u) & 0x0Fu) | ((sample_b & 0x0Fu) << 4u)),
+            (uint8_t)((sample_b >> 4u) & 0xFFu),
+        };
+        uart_write_data(packed, 3u);
+        crc = crc16_ccitt_update(crc, packed[0]);
+        crc = crc16_ccitt_update(crc, packed[1]);
+        crc = crc16_ccitt_update(crc, packed[2]);
+    }
+
+    uart_write_byte((uint8_t)(crc & 0xFFu));
+    uart_write_byte((uint8_t)((crc >> 8u) & 0xFFu));
+}
+
+static void emit_current_frame(void)
+{
+    ++g_frame_sequence;
+    switch (g_config.format) {
+    case OUTPUT_FORMAT_COMPACT:
+        emit_frame_compact();
+        break;
+    case OUTPUT_FORMAT_TEXT:
+        emit_frame_text();
+        break;
+    case OUTPUT_FORMAT_BIN:
+        emit_frame_binary();
+        break;
+    default:
+        emit_error("FORMAT");
+        break;
+    }
+}
+
+static void apply_default_configuration(void)
+{
+    g_config = g_default_config;
+    g_continuous_active = false;
+    g_pending_frames = 0u;
+}
+
+static void handle_command(const char *line)
+{
+    if (string_equals(line, "AT")) {
+        emit_ok();
+        return;
+    }
+
+    if (string_equals(line, "ATI")) {
+        emit_info();
+        emit_ok();
+        return;
+    }
+
+    if (string_equals(line, "ATCFG?")) {
+        emit_config();
+        emit_ok();
+        return;
+    }
+
+    if (string_equals(line, "ATMODE?")) {
+        emit_query_value("MODE", mode_to_string(g_config.mode));
+        emit_ok();
+        return;
+    }
+
+    if (string_starts_with(line, "ATMODE=")) {
+        if (capture_is_active()) {
+            emit_error("BUSY");
+            return;
+        }
+        const char *value = line + strlen("ATMODE=");
+        if (string_equals(value, "SINGLE")) {
+            g_config.mode = CAPTURE_MODE_SINGLE;
+        } else if (string_equals(value, "NSHOT")) {
+            g_config.mode = CAPTURE_MODE_NSHOT;
+        } else if (string_equals(value, "CONTINUOUS")) {
+            g_config.mode = CAPTURE_MODE_CONTINUOUS;
+        } else {
+            emit_error("BADARG");
+            return;
+        }
+        emit_ok();
+        return;
+    }
+
+    if (string_equals(line, "ATNSHOT?")) {
+        emit_query_value_u32("NSHOT", g_config.nshot);
+        emit_ok();
+        return;
+    }
+
+    if (string_starts_with(line, "ATNSHOT=")) {
+        uint32_t value;
+        if (capture_is_active()) {
+            emit_error("BUSY");
+            return;
+        }
+        if (!parse_u32(line + strlen("ATNSHOT="), &value) || value == 0u) {
+            emit_error("BADARG");
+            return;
+        }
+        g_config.nshot = value;
+        emit_ok();
+        return;
+    }
+
+    if (string_equals(line, "ATFMT?")) {
+        emit_query_value("FMT", format_to_string(g_config.format));
+        emit_ok();
+        return;
+    }
+
+    if (string_starts_with(line, "ATFMT=")) {
+        if (capture_is_active()) {
+            emit_error("BUSY");
+            return;
+        }
+        const char *value = line + strlen("ATFMT=");
+        if (string_equals(value, "COMPACT")) {
+            g_config.format = OUTPUT_FORMAT_COMPACT;
+        } else if (string_equals(value, "TEXT")) {
+            g_config.format = OUTPUT_FORMAT_TEXT;
+        } else if (string_equals(value, "BIN")) {
+            g_config.format = OUTPUT_FORMAT_BIN;
+        } else {
+            emit_error("BADARG");
+            return;
+        }
+        emit_ok();
+        return;
+    }
+
+    if (string_equals(line, "ATTXFREQ?")) {
+        emit_query_value_u32("TXFREQ", g_config.tx_frequency_hz);
+        emit_ok();
+        return;
+    }
+
+    if (string_starts_with(line, "ATTXFREQ=")) {
+        uint32_t value;
+        if (capture_is_active()) {
+            emit_error("BUSY");
+            return;
+        }
+        if (!parse_u32(line + strlen("ATTXFREQ="), &value)) {
+            emit_error("BADARG");
+            return;
+        }
+        if (value < AT_TXFREQ_MIN_HZ || value > AT_TXFREQ_MAX_HZ) {
+            emit_error("RANGE");
+            return;
+        }
+        g_config.tx_frequency_hz = value;
+        emit_ok();
+        return;
+    }
+
+    if (string_equals(line, "ATTXCYCLES?")) {
+        emit_query_value_u32("TXCYCLES", g_config.tx_cycles);
+        emit_ok();
+        return;
+    }
+
+    if (string_starts_with(line, "ATTXCYCLES=")) {
+        uint32_t value;
+        if (capture_is_active()) {
+            emit_error("BUSY");
+            return;
+        }
+        if (!parse_u32(line + strlen("ATTXCYCLES="), &value)) {
+            emit_error("BADARG");
+            return;
+        }
+        if (value < AT_TXCYCLES_MIN || value > AT_TXCYCLES_MAX) {
+            emit_error("RANGE");
+            return;
+        }
+        g_config.tx_cycles = value;
+        emit_ok();
+        return;
+    }
+
+    if (string_equals(line, "ATSRATE?")) {
+        emit_query_value_u32("SRATE", g_config.adc_sample_rate_hz);
+        emit_ok();
+        return;
+    }
+
+    if (string_starts_with(line, "ATSRATE=")) {
+        uint32_t value;
+        if (capture_is_active()) {
+            emit_error("BUSY");
+            return;
+        }
+        if (!parse_u32(line + strlen("ATSRATE="), &value)) {
+            emit_error("BADARG");
+            return;
+        }
+        if (value < AT_SRATE_MIN_HZ || value > AT_SRATE_MAX_HZ) {
+            emit_error("RANGE");
+            return;
+        }
+        g_config.adc_sample_rate_hz = value;
+        emit_ok();
+        return;
+    }
+
+    if (string_equals(line, "ATSAMPLES?")) {
+        emit_query_value_u32("SAMPLES", g_config.sample_count);
+        emit_ok();
+        return;
+    }
+
+    if (string_equals(line, "ATGO")) {
+        if (capture_is_active()) {
+            emit_error("BUSY");
+            return;
+        }
+        switch (g_config.mode) {
+        case CAPTURE_MODE_SINGLE:
+            g_pending_frames = 1u;
+            break;
+        case CAPTURE_MODE_NSHOT:
+            g_pending_frames = g_config.nshot;
+            break;
+        case CAPTURE_MODE_CONTINUOUS:
+            g_continuous_active = true;
+            break;
+        default:
+            emit_error("MODE");
+            return;
+        }
+        emit_ok();
+        return;
+    }
+
+    if (string_equals(line, "ATSTOP")) {
+        g_continuous_active = false;
+        g_pending_frames = 0u;
+        emit_done_stopped();
+        return;
+    }
+
+    if (string_equals(line, "ATDEFAULT")) {
+        if (capture_is_active()) {
+            emit_error("BUSY");
+            return;
+        }
+        apply_default_configuration();
+        emit_ok();
+        return;
+    }
+
+    emit_error("UNKNOWN");
+}
+
+static void queue_completed_command(void)
+{
+    if (g_command_overflow) {
+        g_pending_command_toolong = true;
+        g_command_overflow = false;
+        g_command_length = 0u;
+        return;
+    }
+
+    if (g_command_length == 0u) {
+        return;
+    }
+
+    g_command_buffer[g_command_length] = '\0';
+
+    if (g_pending_command_ready) {
+        g_pending_command_dropped = true;
+    } else {
+        memcpy(g_pending_command_buffer, g_command_buffer, g_command_length + 1u);
+        g_pending_command_ready = true;
+    }
+
+    g_command_length = 0u;
+}
+
+static void pump_uart_rx(void)
+{
+    while (uart_rx_ready()) {
+        const char byte = (char)uart_read_byte();
+
+        if (byte == '\r') {
+            continue;
+        }
+
+        if (byte == '\n') {
+            queue_completed_command();
+            continue;
+        }
+
+        if (g_command_length + 1u >= AT_COMMAND_BUFFER_SIZE) {
+            g_command_overflow = true;
+            continue;
+        }
+
+        g_command_buffer[g_command_length++] = byte;
+    }
+}
+
+static void service_pending_command(void)
+{
+    if (g_pending_command_toolong) {
+        g_pending_command_toolong = false;
+        emit_error("TOOLONG");
+    }
+
+    if (g_pending_command_dropped) {
+        g_pending_command_dropped = false;
+        emit_error("BUSY");
+    }
+
+    if (g_pending_command_ready) {
+        g_pending_command_ready = false;
+        handle_command(g_pending_command_buffer);
+    }
 }
 
 void DMA0_IRQHandler(void)
@@ -462,53 +1090,29 @@ int main(void)
     gpio_write(PIN_TRANSDUCER_TX_A, false);
 
     usart0_init();
-    uart_write_string("ultrasonic: boot\r\n");
     adc_init();
-    uart_write_string("ultrasonic: adc-init-done\r\n");
+
+    emit_info();
+    emit_config();
 
     while (1) {
-        //uart_write_string("ultrasonic: tx-burst\r\n");
-        setup_sct_for_transducer();
-        g_pulse_cycle_count = 0u;
-        debug_pin_pulse(2u);
-        sct_run();
-        while (g_pulse_cycle_count < ULTRASONIC_PULSE_CYCLE_COUNT) {
-            __WFI();
-        }
-        sct_halt();
-        //uart_write_string("ultrasonic: tx-burst-done\r\n");
+        pump_uart_rx();
+        service_pending_command();
 
-        //uart_write_string("ultrasonic: dma-start\r\n");
-        setup_dma_for_adc();
-        setup_sct_for_adc();
-
-        g_dma_block_count = 0u;
-        sct_run();
-        while (g_dma_block_count < 3u) {
-            __WFI();
-        }
-        sct_halt();
-        //uart_write_string("ultrasonic: dma-done\r\n");
-
-        for (uint32_t i = 0u; i < (ULTRASONIC_DMA_BUFFER_SIZE * 3u); ++i) {
-            g_adc_buffer[i] >>= 4u;
+        if (!capture_is_active()) {
+            continue;
         }
 
-        uart_write_byte('W');
-        uart_write_byte(' ');
-        for (uint32_t i = 0u; i < (ULTRASONIC_DMA_BUFFER_SIZE * 3u); ++i) {
-            uart_write_byte((uint8_t)(((g_adc_buffer[i] >> 6u) & 0x3Fu) + '?'));
-            uart_write_byte((uint8_t)((g_adc_buffer[i] & 0x3Fu) + '?'));
-        }
-        uart_write_byte('\r');
-        uart_write_byte('\n');
+        capture_frame();
+        emit_current_frame();
+        pump_uart_rx();
+        service_pending_command();
 
-        /*
-         * Keep the decimal printer linked in the first migration step. It is
-         * useful for quick instrumentation while validating the new build.
-         */
-        if (false) {
-            uart_write_decimal(0);
+        if (g_pending_frames > 0u) {
+            --g_pending_frames;
+            if (g_pending_frames == 0u && g_config.mode != CAPTURE_MODE_CONTINUOUS) {
+                emit_done_frames((g_config.mode == CAPTURE_MODE_SINGLE) ? 1u : g_config.nshot);
+            }
         }
     }
 }

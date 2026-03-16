@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include <stdint.h>
 
 #include "fsl_device_registers.h"
@@ -6,20 +7,8 @@
 #define PIN_UART_TXD 4u
 #define PIN_UART_RXD 0u
 
-static volatile uint32_t g_ms_ticks;
-
-void SysTick_Handler(void)
-{
-    ++g_ms_ticks;
-}
-
-static void delay_ms(uint32_t delay)
-{
-    const uint32_t deadline = g_ms_ticks + delay;
-
-    while ((int32_t)(g_ms_ticks - deadline) < 0) {
-    }
-}
+static volatile uint32_t g_rx_count;
+static volatile uint32_t g_last_rx_byte;
 
 static void usart0_assign_pins(void)
 {
@@ -107,24 +96,14 @@ static void uart_write_string(const char *s)
     }
 }
 
-static void uart_write_decimal(uint32_t value)
+static bool uart_rx_ready(void)
 {
-    char buffer[10];
-    uint32_t i = 0u;
+    return (USART0->STAT & USART_STAT_RXRDY_MASK) != 0u;
+}
 
-    if (value == 0u) {
-        uart_write_byte('0');
-        return;
-    }
-
-    while (value > 0u) {
-        buffer[i++] = (char)('0' + (value % 10u));
-        value /= 10u;
-    }
-
-    while (i > 0u) {
-        uart_write_byte((uint8_t)buffer[--i]);
-    }
+static uint8_t uart_read_byte(void)
+{
+    return (uint8_t)((USART0->RXDAT & USART_RXDAT_RXDAT_MASK) >> USART_RXDAT_RXDAT_SHIFT);
 }
 
 int main(void)
@@ -132,15 +111,16 @@ int main(void)
     SystemCoreClockUpdate();
     usart0_init();
 
-    if (SysTick_Config(SystemCoreClock / 1000u) != 0u) {
-        while (1) {
-        }
-    }
+    uart_write_string("LPC824 UART RX latch ready\r\n");
 
-    for (uint32_t counter = 0u;; ++counter) {
-        uart_write_string("LPC824 UART ");
-        uart_write_decimal(counter);
-        uart_write_string("\r\n");
-        delay_ms(500u);
+    for (;;) {
+        if (uart_rx_ready()) {
+            const uint8_t byte = uart_read_byte();
+            g_last_rx_byte = byte;
+            g_rx_count += 1u;
+            uart_write_string("RX ");
+            uart_write_byte(byte);
+            uart_write_string("\r\n");
+        }
     }
 }
