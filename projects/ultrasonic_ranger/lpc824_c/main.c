@@ -467,7 +467,7 @@ int main(void)
     uart_write_string("ultrasonic: adc-init-done\r\n");
 
     while (1) {
-        uart_write_string("ultrasonic: tx-burst\r\n");
+        //uart_write_string("ultrasonic: tx-burst\r\n");
         setup_sct_for_transducer();
         g_pulse_cycle_count = 0u;
         debug_pin_pulse(2u);
@@ -476,9 +476,9 @@ int main(void)
             __WFI();
         }
         sct_halt();
-        uart_write_string("ultrasonic: tx-burst-done\r\n");
+        //uart_write_string("ultrasonic: tx-burst-done\r\n");
 
-        uart_write_string("ultrasonic: dma-start\r\n");
+        //uart_write_string("ultrasonic: dma-start\r\n");
         setup_dma_for_adc();
         setup_sct_for_adc();
 
@@ -488,7 +488,7 @@ int main(void)
             __WFI();
         }
         sct_halt();
-        uart_write_string("ultrasonic: dma-done\r\n");
+        //uart_write_string("ultrasonic: dma-done\r\n");
 
         for (uint32_t i = 0u; i < (ULTRASONIC_DMA_BUFFER_SIZE * 3u); ++i) {
             g_adc_buffer[i] >>= 4u;
