@@ -97,6 +97,17 @@ Apply the same principle to target support.
 - Scripts in `./tools` should provide `--verbose`
 - Missing files and locked resources should produce single-line human-readable messages
 
+### Web UI
+
+- Prefer a lab-instrument dashboard style over generic web-app styling
+- Support both light and dark themes where practical
+- For scope-like displays:
+  - light theme should read like a white engineering plot
+  - dark theme should read like a scope display
+  - use a single trace color family with faded persistence
+  - put key controls below and beside the plot in an instrument-like layout
+- Current ultrasonic viewer reference: `tools/ultrasonic_waveform_webapp/README.md`
+
 ### Git
 
 - Backticks in commit messages have been problematic; avoid careless use

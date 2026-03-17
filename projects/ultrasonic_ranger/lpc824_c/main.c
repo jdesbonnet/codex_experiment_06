@@ -379,6 +379,13 @@ static void uart_write_string(const char *s)
     }
 }
 
+static void uart_wait_tx_idle(void)
+{
+    while ((USART0->STAT & USART_STAT_TXIDLE_MASK) == 0u) {
+        pump_uart_rx();
+    }
+}
+
 static void uart_write_crlf(void)
 {
     uart_write_byte('\r');
@@ -1057,6 +1064,15 @@ static void handle_command(const char *line)
         g_pending_frames = 0u;
         emit_done_stopped();
         return;
+    }
+
+    if (string_equals(line, "ATRESET")) {
+        emit_ok();
+        uart_wait_tx_idle();
+        __DSB();
+        NVIC_SystemReset();
+        for (;;) {
+        }
     }
 
     if (string_equals(line, "ATDEFAULT")) {

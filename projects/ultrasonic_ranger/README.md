@@ -65,6 +65,8 @@ UART capture tool:
 
 - `python3 tools/ultrasonic_ranger_capture.py query`
 - `python3 tools/ultrasonic_ranger_capture.py capture --format ENV --mode SINGLE`
+- `python3 tools/ultrasonic_ranger_capture.py capture --format ENV --mode CONTINUOUS --stdout-format csv`
+- `python3 tools/ultrasonic_ranger_capture.py capture --format ENV --mode SINGLE --save-dir results/ultrasonic_env_single`
 
 UART protocol draft:
 

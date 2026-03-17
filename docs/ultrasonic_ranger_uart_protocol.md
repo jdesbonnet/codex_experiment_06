@@ -55,6 +55,7 @@ Base commands:
 - `ATSAMPLES?`
 - `ATGO`
 - `ATSTOP`
+- `ATRESET`
 - `ATDEFAULT`
 
 Recommended mode values:
@@ -248,6 +249,7 @@ The first implementation should include:
 - `ATSRATE=<hz>`
 - `ATGO`
 - `ATSTOP`
+- `ATRESET`
 
 The first implementation should keep:
 
@@ -260,6 +262,8 @@ The first implementation should keep:
   command/data escape model.
 - Waveform streaming and command processing share the same line-oriented control
   channel.
+- `ATRESET` performs a full MCU reset. The device emits `OK`, resets, then
+  reboots and emits the normal startup `+INFO` and `+CFG` banners.
 - If configuration changes during `CONTINUOUS` mode are awkward on the MCU,
   firmware may require streaming to be stopped before applying `ATTX*`,
   `ATSRATE`, or `ATSAMPLES`.

@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import sys
 import subprocess
 import time
 from dataclasses import dataclass
@@ -236,6 +237,27 @@ def write_frame_csv(path: Path, frame: FrameRecord) -> None:
             writer.writerow([index, value])
 
 
+def emit_frame_stdout(frame: FrameRecord, stdout_format: str) -> None:
+    if stdout_format == "raw":
+        print(frame.raw_line)
+        return
+    if stdout_format == "csv":
+        print(",".join(str(value) for value in frame.samples))
+        return
+    if stdout_format == "json":
+        print(
+            json.dumps(
+                {
+                    "kind": frame.kind,
+                    "samples": frame.samples,
+                },
+                separators=(",", ":"),
+            )
+        )
+        return
+    raise RuntimeError(f"Unsupported stdout format: {stdout_format}")
+
+
 def capture_subcommand(args: argparse.Namespace) -> int:
     capture_format = args.format.upper()
     if capture_format not in ASCII_FORMATS:
@@ -348,46 +370,50 @@ def capture_subcommand(args: argparse.Namespace) -> int:
                 if isinstance(record, TextRecord):
                     log_text_record(client, record)
 
-        timestamp = time.strftime("%Y-%m-%dT%H-%M-%SZ", time.gmtime())
-        output_dir = args.output_dir or (Path("results") / f"ultrasonic_capture_{timestamp}")
-        output_dir.mkdir(parents=True, exist_ok=True)
+        for frame in frames:
+            emit_frame_stdout(frame, args.stdout_format)
 
-        manifest = {
-            "timestamp_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
-            "port": args.port,
-            "baud": args.baud,
-            "mode": mode,
-            "format": capture_format,
-            "txfreq_hz": args.txfreq,
-            "txcycles": args.txcycles,
-            "srate_hz": args.srate,
-            "frames_requested": frame_target,
-            "frames_captured": len(frames),
-            "config": parse_cfg_line(config_line) if config_line else None,
-            "files": [],
-        }
+        if args.save_dir is not None:
+            timestamp = time.strftime("%Y-%m-%dT%H-%M-%SZ", time.gmtime())
+            output_dir = args.save_dir or (Path("results") / f"ultrasonic_capture_{timestamp}")
+            output_dir.mkdir(parents=True, exist_ok=True)
 
-        for index, frame in enumerate(frames, start=1):
-            name = f"{frame.kind}_{index:03d}.csv"
-            path = output_dir / name
-            write_frame_csv(path, frame)
-            manifest["files"].append(
-                {
-                    "path": str(path),
-                    "kind": frame.kind,
-                    "samples": len(frame.samples),
-                }
-            )
+            manifest = {
+                "timestamp_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+                "port": args.port,
+                "baud": args.baud,
+                "mode": mode,
+                "format": capture_format,
+                "txfreq_hz": args.txfreq,
+                "txcycles": args.txcycles,
+                "srate_hz": args.srate,
+                "frames_requested": frame_target,
+                "frames_captured": len(frames),
+                "config": parse_cfg_line(config_line) if config_line else None,
+                "files": [],
+            }
 
-        manifest_path = output_dir / "capture_manifest.json"
-        manifest_path.write_text(json.dumps(manifest, indent=2), encoding="utf-8")
+            for index, frame in enumerate(frames, start=1):
+                name = f"{frame.kind}_{index:03d}.csv"
+                path = output_dir / name
+                write_frame_csv(path, frame)
+                manifest["files"].append(
+                    {
+                        "path": str(path),
+                        "kind": frame.kind,
+                        "samples": len(frame.samples),
+                    }
+                )
 
-        print(f"Captured {len(frames)} frame(s) to {output_dir}")
-        if config_line:
-            print(config_line)
-        for item in manifest["files"]:
-            print(f"{item['kind']}: {item['samples']} samples -> {item['path']}")
-        print(f"manifest: {manifest_path}")
+            manifest_path = output_dir / "capture_manifest.json"
+            manifest_path.write_text(json.dumps(manifest, indent=2), encoding="utf-8")
+
+            print(f"Captured {len(frames)} frame(s) to {output_dir}", file=sys.stderr)
+            if config_line:
+                print(config_line, file=sys.stderr)
+            for item in manifest["files"]:
+                print(f"{item['kind']}: {item['samples']} samples -> {item['path']}", file=sys.stderr)
+            print(f"manifest: {manifest_path}", file=sys.stderr)
         return 0
     finally:
         client.close()
@@ -466,7 +492,17 @@ def build_parser() -> argparse.ArgumentParser:
     capture_parser.add_argument("--txcycles", type=int, default=1, help="Excitation cycles")
     capture_parser.add_argument("--srate", type=int, default=500000, help="ADC sample rate in Hz")
     capture_parser.add_argument("--timeout", type=float, default=DEFAULT_CAPTURE_TIMEOUT_S, help="Capture timeout in seconds")
-    capture_parser.add_argument("--output-dir", type=Path, help="Directory for captured CSV files")
+    capture_parser.add_argument(
+        "--stdout-format",
+        default="raw",
+        choices=("raw", "csv", "json"),
+        help="How to print captured frames to stdout, default raw",
+    )
+    capture_parser.add_argument(
+        "--save-dir",
+        type=Path,
+        help="Optional directory for captured CSV files and manifest; if omitted, nothing is written to disk",
+    )
     capture_parser.set_defaults(func=capture_subcommand)
 
     monitor_parser = subparsers.add_parser("monitor", help="Print decoded UART traffic for a short interval")
