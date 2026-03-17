@@ -51,6 +51,7 @@ Use a browser with Web Serial support, typically Chromium or Chrome.
 - Live plotting currently supports:
   - `COMPACT`
   - `TEXT`
+- `ENV`
 - `BIN` can be selected and sent to the device, but the browser app does not
   yet decode binary waveform frames.
 - Future transport adapters should fit behind the same frontend source

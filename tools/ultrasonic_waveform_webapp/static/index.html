@@ -362,6 +362,7 @@
                 <option value="COMPACT">Compact</option>
                 <option value="TEXT">Text</option>
                 <option value="BIN">Binary</option>
+                <option value="ENV">Envelope</option>
               </select>
             </label>
             <label>
@@ -384,8 +385,8 @@
             <button id="stop-button" class="warn">Stop</button>
           </div>
           <p class="notice" id="control-note">
-            `COMPACT` is the preferred live-view format. `TEXT` is also decoded. `BIN` is configurable
-            but not yet visualized in the browser.
+            `COMPACT` is the preferred live-view format. `TEXT` and `ENV` are also decoded. `BIN` is
+            configurable but not yet visualized in the browser.
           </p>
         </div>
 
@@ -398,7 +399,7 @@
       <section class="stack">
         <div class="panel chart-panel">
           <h2>Latest Waveform</h2>
-          <div class="meta">Most recent decoded `W` frame, drawn against fixed `0..4095` ADC counts.</div>
+          <div class="meta">Most recent decoded `W`, `T`, or `E` frame, drawn against fixed `0..4095` ADC counts.</div>
           <div class="chart-wrap">
             <canvas id="latest-canvas"></canvas>
           </div>
@@ -407,7 +408,7 @@
 
         <div class="panel chart-panel">
           <h2>Rolling Overlay</h2>
-          <div class="meta">Recent captures overlaid to expose drift, motion, and jitter between pings.</div>
+          <div class="meta">Recent waveform or envelope captures overlaid to expose drift, motion, and jitter between pings.</div>
           <div class="chart-wrap">
             <canvas id="overlay-canvas"></canvas>
           </div>
@@ -490,23 +491,29 @@
           return { type: "error", line };
         }
 
-        if (!line.startsWith("W ")) {
-          if (line.startsWith("T seq=")) {
-            const textFrame = this.parseTextFrame(line);
-            if (textFrame) {
-              this.framesDecoded += 1;
-              this.lastLineKind = "waveform";
-              return textFrame;
-            }
-            this.invalidFrames += 1;
-            this.lastLineKind = "invalid-frame";
-            return { type: "invalid", reason: "bad text frame", line };
-          }
-          this.lastLineKind = "text";
-          this.ignoredLines += 1;
-          return { type: "text", line };
+        if (line.startsWith("W ") || line.startsWith("E ")) {
+          return this.parseCompactFrame(line);
         }
 
+        if (line.startsWith("T seq=")) {
+          const textFrame = this.parseTextFrame(line);
+          if (textFrame) {
+            this.framesDecoded += 1;
+            this.lastLineKind = "waveform";
+            return textFrame;
+          }
+          this.invalidFrames += 1;
+          this.lastLineKind = "invalid-frame";
+          return { type: "invalid", reason: "bad text frame", line };
+        }
+
+        this.lastLineKind = "text";
+        this.ignoredLines += 1;
+        return { type: "text", line };
+      }
+
+      parseCompactFrame(line) {
+        const kind = (line[0] === "E") ? "envelope" : "waveform";
         const payload = line.slice(2);
         if ((payload.length % 2) !== 0) {
           this.invalidFrames += 1;
@@ -527,8 +534,8 @@
         }
 
         this.framesDecoded += 1;
-        this.lastLineKind = "waveform";
-        return { type: "waveform", samples };
+        this.lastLineKind = kind;
+        return { type: kind, samples, format: (kind === "envelope") ? "ENV" : "COMPACT" };
       }
 
       parseKeyValueFields(text) {
@@ -817,7 +824,12 @@
           this.elements.formatBadge.textContent = "Binary selected";
           this.elements.formatBadge.className = "badge warn";
           this.elements.controlNote.textContent =
-            "Binary output is configurable but not yet visualized in the browser. Use COMPACT or TEXT for live plots.";
+            "Binary output is configurable but not yet visualized in the browser. Use COMPACT, TEXT, or ENV for live plots.";
+        } else if (format === "ENV") {
+          this.elements.formatBadge.textContent = "Envelope selected";
+          this.elements.formatBadge.className = "badge ok";
+          this.elements.controlNote.textContent =
+            "ENV shows one MCU-computed envelope point per ultrasound cycle using peak absolute deviation from midscale.";
         } else if (format === "TEXT") {
           this.elements.formatBadge.textContent = "Text frames selected";
           this.elements.formatBadge.className = "badge";
@@ -1023,8 +1035,8 @@
       onIncomingText(text) {
         const parsed = this.decoder.feedText(text);
         for (const item of parsed) {
-          if (item.type === "waveform") {
-            this.onWaveform(item.samples);
+          if (item.type === "waveform" || item.type === "envelope") {
+            this.onWaveform(item);
           } else if (item.type === "config") {
             this.applyConfigFields(item.fields);
             this.elements.protocolBadge.textContent = "Config updated";
@@ -1056,10 +1068,10 @@
         this.updateStats();
       }
 
-      onWaveform(samples) {
+      onWaveform(frame) {
         const now = performance.now();
-        this.latestFrame = samples;
-        this.historyFrames.push(samples);
+        this.latestFrame = frame;
+        this.historyFrames.push(frame);
         this.trimHistory();
         this.lastFrameAtMs = now;
         this.frameTimestamps.push(now);
@@ -1081,7 +1093,7 @@
         this.elements.ignoredLines.textContent = String(this.decoder.ignoredLines);
         this.elements.serialBytes.textContent = String(this.decoder.serialBytes);
         this.elements.lastLineKind.textContent = this.decoder.lastLineKind;
-        this.elements.sampleCount.textContent = this.latestFrame ? String(this.latestFrame.length) : "-";
+        this.elements.sampleCount.textContent = this.latestFrame ? String(this.latestFrame.samples.length) : "-";
 
         if (this.frameTimestamps.length >= 2) {
           const first = this.frameTimestamps[0];
@@ -1138,10 +1150,11 @@
           return;
         }
 
-        this.drawAxes(ctx, canvas, this.latestFrame.length);
-        this.drawTrace(ctx, canvas, this.latestFrame, "rgba(20, 20, 20, 0.96)", 2.0);
+        this.drawAxes(ctx, canvas, this.latestFrame.samples.length);
+        this.drawTrace(ctx, canvas, this.latestFrame.samples, "rgba(20, 20, 20, 0.96)", 2.0);
+        const kindLabel = (this.latestFrame.type === "envelope") ? "Envelope" : "Waveform";
         this.elements.latestCaption.textContent =
-          `Latest frame: ${this.latestFrame.length} samples, fixed vertical range 0..4095 ADC counts.`;
+          `${kindLabel}: ${this.latestFrame.samples.length} samples, fixed vertical range 0..4095 ADC counts.`;
       }
 
       drawOverlay() {
@@ -1157,7 +1170,7 @@
         }
 
         const latest = this.historyFrames[this.historyFrames.length - 1];
-        this.drawAxes(ctx, canvas, latest.length);
+        this.drawAxes(ctx, canvas, latest.samples.length);
 
         const total = this.historyFrames.length;
         for (let i = 0; i < total; i += 1) {
@@ -1166,7 +1179,7 @@
           const color = (i === total - 1)
             ? "rgba(20, 20, 20, 0.9)"
             : `rgba(120, 112, 101, ${alpha.toFixed(3)})`;
-          this.drawTrace(ctx, canvas, this.historyFrames[i], color, width);
+          this.drawTrace(ctx, canvas, this.historyFrames[i].samples, color, width);
         }
 
         this.elements.overlayCaption.textContent =

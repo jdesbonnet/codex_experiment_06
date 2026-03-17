@@ -68,6 +68,7 @@ Recommended format values:
 - `COMPACT`
 - `TEXT`
 - `BIN`
+- `ENV`
 
 ## Response Model
 
@@ -103,12 +104,13 @@ Default values should match current firmware behavior:
 - `TXCYCLES=1`
 - `SRATE=500000`
 - `SAMPLES=3072`
+- `ENVSAMPLES≈246` at defaults
 
 Suggested aggregate config query:
 
 ```text
 ATCFG?
-+CFG: mode=CONTINUOUS,nshot=1,fmt=COMPACT,txfreq=40000,txcycles=1,srate=500000,samples=3072
++CFG: mode=CONTINUOUS,nshot=1,fmt=COMPACT,txfreq=40000,txcycles=1,srate=500000,samples=3072,envsamples=246
 OK
 ```
 
@@ -200,6 +202,36 @@ Important rule:
 - while `FMT=BIN` streaming is active, do not interleave ASCII status lines with
   binary waveform packets
 - emit `OK` before streaming starts and `+DONE` after streaming stops
+
+### `FMT=ENV`
+
+Envelope mode computes one envelope sample per ultrasound cycle on the MCU and
+emits a compact ASCII-armored frame.
+
+First implementation:
+
+- algorithm: peak `abs(sample - 2048)` per ultrasound cycle
+- output rate: one envelope sample per cycle
+- default output count: about `246` envelope points per frame at
+  `TXFREQ=40000` and `SRATE=500000`
+
+Frame layout:
+
+- prefix: `E `
+- payload: two printable 6-bit characters per envelope sample
+- suffix: `\r\n`
+
+Example:
+
+```text
+E RfTnUs...
+```
+
+This is intentionally simple for the Cortex-M0+:
+
+- no Hilbert transform
+- no floating point
+- no adaptive bias in the first version
 
 ## Recommended First Implementation Scope
 

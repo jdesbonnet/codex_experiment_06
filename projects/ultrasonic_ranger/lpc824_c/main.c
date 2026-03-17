@@ -73,6 +73,7 @@ typedef enum {
     OUTPUT_FORMAT_COMPACT = 0,
     OUTPUT_FORMAT_TEXT,
     OUTPUT_FORMAT_BIN,
+    OUTPUT_FORMAT_ENV,
 } output_format_t;
 
 typedef struct {
@@ -92,6 +93,7 @@ static dma_descriptor_t g_dma_desc_b __attribute__((aligned(16)));
 static dma_descriptor_t g_dma_desc_c __attribute__((aligned(16)));
 
 static uint16_t g_adc_buffer[ULTRASONIC_SAMPLE_COUNT];
+static uint32_t g_output_sample_count = ULTRASONIC_SAMPLE_COUNT;
 
 static volatile uint32_t g_dma_block_count;
 static volatile uint32_t g_pulse_cycle_count;
@@ -195,6 +197,8 @@ static const char *format_to_string(output_format_t format)
         return "TEXT";
     case OUTPUT_FORMAT_BIN:
         return "BIN";
+    case OUTPUT_FORMAT_ENV:
+        return "ENV";
     default:
         return "UNKNOWN";
     }
@@ -405,6 +409,14 @@ static void emit_info(void)
     uart_write_crlf();
 }
 
+static uint32_t estimate_envelope_sample_count(void)
+{
+    const uint64_t numerator =
+        ((uint64_t)g_config.sample_count * (uint64_t)g_config.tx_frequency_hz) +
+        ((uint64_t)g_config.adc_sample_rate_hz - 1u);
+    return (uint32_t)(numerator / (uint64_t)g_config.adc_sample_rate_hz);
+}
+
 static void emit_config(void)
 {
     uart_write_string("+CFG: mode=");
@@ -421,6 +433,8 @@ static void emit_config(void)
     uart_write_decimal(g_config.adc_sample_rate_hz);
     uart_write_string(",samples=");
     uart_write_decimal(g_config.sample_count);
+    uart_write_string(",envsamples=");
+    uart_write_decimal(estimate_envelope_sample_count());
     uart_write_crlf();
 }
 
@@ -664,13 +678,50 @@ static void capture_frame(void)
     for (uint32_t i = 0u; i < ULTRASONIC_SAMPLE_COUNT; ++i) {
         g_adc_buffer[i] >>= 4u;
     }
+
+    g_output_sample_count = ULTRASONIC_SAMPLE_COUNT;
+}
+
+static void build_envelope_frame(void)
+{
+    const uint16_t bias = 2048u;
+    uint32_t phase_accumulator = 0u;
+    uint32_t write_index = 0u;
+    uint16_t current_peak = 0u;
+    bool have_peak = false;
+
+    for (uint32_t i = 0u; i < ULTRASONIC_SAMPLE_COUNT; ++i) {
+        const uint16_t sample = g_adc_buffer[i];
+        const uint16_t amplitude = (sample >= bias) ? (sample - bias) : (bias - sample);
+
+        if (amplitude > current_peak) {
+            current_peak = amplitude;
+        }
+        have_peak = true;
+
+        phase_accumulator += g_config.tx_frequency_hz;
+        if (phase_accumulator >= g_config.adc_sample_rate_hz) {
+            g_adc_buffer[write_index++] = current_peak;
+            current_peak = 0u;
+            have_peak = false;
+            while (phase_accumulator >= g_config.adc_sample_rate_hz) {
+                phase_accumulator -= g_config.adc_sample_rate_hz;
+            }
+        }
+    }
+
+    if (have_peak && write_index < ULTRASONIC_SAMPLE_COUNT) {
+        g_adc_buffer[write_index++] = current_peak;
+    }
+
+    g_output_sample_count = write_index;
 }
 
 static void emit_frame_compact(void)
 {
     uart_write_byte('W');
     uart_write_byte(' ');
-    for (uint32_t i = 0u; i < ULTRASONIC_SAMPLE_COUNT; ++i) {
+    for (uint32_t i = 0u; i < g_output_sample_count; ++i) {
         if ((i & 0x1Fu) == 0u) {
             pump_uart_rx();
         }
@@ -685,16 +736,30 @@ static void emit_frame_text(void)
     uart_write_string("T seq=");
     uart_write_decimal(g_frame_sequence);
     uart_write_string(" count=");
-    uart_write_decimal(ULTRASONIC_SAMPLE_COUNT);
+    uart_write_decimal(g_output_sample_count);
     uart_write_byte(' ');
-    for (uint32_t i = 0u; i < ULTRASONIC_SAMPLE_COUNT; ++i) {
+    for (uint32_t i = 0u; i < g_output_sample_count; ++i) {
         if ((i & 0x1Fu) == 0u) {
             pump_uart_rx();
         }
         uart_write_decimal(g_adc_buffer[i]);
-        if (i + 1u < ULTRASONIC_SAMPLE_COUNT) {
+        if (i + 1u < g_output_sample_count) {
             uart_write_byte(',');
         }
+    }
+    uart_write_crlf();
+}
+
+static void emit_frame_envelope(void)
+{
+    uart_write_byte('E');
+    uart_write_byte(' ');
+    for (uint32_t i = 0u; i < g_output_sample_count; ++i) {
+        if ((i & 0x1Fu) == 0u) {
+            pump_uart_rx();
+        }
+        uart_write_byte((uint8_t)(((g_adc_buffer[i] >> 6u) & 0x3Fu) + '?'));
+        uart_write_byte((uint8_t)((g_adc_buffer[i] & 0x3Fu) + '?'));
     }
     uart_write_crlf();
 }
@@ -714,7 +779,7 @@ static uint16_t crc16_ccitt_update(uint16_t crc, uint8_t data)
 
 static void emit_frame_binary(void)
 {
-    const uint16_t payload_len = (uint16_t)((ULTRASONIC_SAMPLE_COUNT / 2u) * 3u);
+    const uint16_t payload_len = (uint16_t)(((g_output_sample_count + 1u) / 2u) * 3u);
     uint16_t crc = 0xFFFFu;
     const uint8_t header[12] = {
         0x55u,
@@ -725,8 +790,8 @@ static void emit_frame_binary(void)
         (uint8_t)((g_frame_sequence >> 8u) & 0xFFu),
         (uint8_t)((g_frame_sequence >> 16u) & 0xFFu),
         (uint8_t)((g_frame_sequence >> 24u) & 0xFFu),
-        (uint8_t)(ULTRASONIC_SAMPLE_COUNT & 0xFFu),
-        (uint8_t)((ULTRASONIC_SAMPLE_COUNT >> 8u) & 0xFFu),
+        (uint8_t)(g_output_sample_count & 0xFFu),
+        (uint8_t)((g_output_sample_count >> 8u) & 0xFFu),
         (uint8_t)(payload_len & 0xFFu),
         (uint8_t)((payload_len >> 8u) & 0xFFu),
     };
@@ -736,12 +801,12 @@ static void emit_frame_binary(void)
         crc = crc16_ccitt_update(crc, header[i]);
     }
 
-    for (uint32_t i = 0u; i < ULTRASONIC_SAMPLE_COUNT; i += 2u) {
+    for (uint32_t i = 0u; i < g_output_sample_count; i += 2u) {
         if ((i & 0x3Fu) == 0u) {
             pump_uart_rx();
         }
         const uint16_t sample_a = (uint16_t)(g_adc_buffer[i] & 0x0FFFu);
-        const uint16_t sample_b = (uint16_t)(g_adc_buffer[i + 1u] & 0x0FFFu);
+        const uint16_t sample_b = (uint16_t)(((i + 1u) < g_output_sample_count) ? (g_adc_buffer[i + 1u] & 0x0FFFu) : 0u);
         const uint8_t packed[3] = {
             (uint8_t)(sample_a & 0xFFu),
             (uint8_t)(((sample_a >> 8u) & 0x0Fu) | ((sample_b & 0x0Fu) << 4u)),
@@ -760,6 +825,9 @@ static void emit_frame_binary(void)
 static void emit_current_frame(void)
 {
     ++g_frame_sequence;
+    if (g_config.format == OUTPUT_FORMAT_ENV) {
+        build_envelope_frame();
+    }
     switch (g_config.format) {
     case OUTPUT_FORMAT_COMPACT:
         emit_frame_compact();
@@ -769,6 +837,9 @@ static void emit_current_frame(void)
         break;
     case OUTPUT_FORMAT_BIN:
         emit_frame_binary();
+        break;
+    case OUTPUT_FORMAT_ENV:
+        emit_frame_envelope();
         break;
     default:
         emit_error("FORMAT");
@@ -867,6 +938,8 @@ static void handle_command(const char *line)
             g_config.format = OUTPUT_FORMAT_TEXT;
         } else if (string_equals(value, "BIN")) {
             g_config.format = OUTPUT_FORMAT_BIN;
+        } else if (string_equals(value, "ENV")) {
+            g_config.format = OUTPUT_FORMAT_ENV;
         } else {
             emit_error("BADARG");
             return;

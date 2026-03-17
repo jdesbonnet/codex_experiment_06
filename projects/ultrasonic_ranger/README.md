@@ -61,6 +61,18 @@ Web viewer:
 - `tools/ultrasonic_waveform_webapp/README.md`
 - `python3 tools/ultrasonic_waveform_webapp/server.py`
 
+UART capture tool:
+
+- `python3 tools/ultrasonic_ranger_capture.py query`
+- `python3 tools/ultrasonic_ranger_capture.py capture --format ENV --mode SINGLE`
+
 UART protocol draft:
 
 - `docs/ultrasonic_ranger_uart_protocol.md`
+
+Current firmware output formats:
+
+- `COMPACT` raw waveform
+- `TEXT` raw waveform
+- `BIN` raw waveform
+- `ENV` MCU-computed envelope with one peak-amplitude sample per ultrasound cycle
