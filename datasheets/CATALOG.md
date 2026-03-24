@@ -11,6 +11,12 @@ Guideline: when adding material for a new hardware family, prefer a dedicated su
 | `datasheets/23LC1023.pdf` | Memory IC | Microchip `23LC1024`/`23LC1023` serial SRAM datasheet. |
 | `datasheets/raspberrypi-3pin-debug-spec.pdf` | Debug probe | Raspberry Pi 3-pin debug connector specification. |
 
+## ESP32-S3
+
+| Path | Category | Description |
+| --- | --- | --- |
+| `datasheets/ESP32S3/README.md` | Documentation index | Stub index and bench notes for the `ESP32-S3` platform. |
+
 ## SD Cards
 
 | Path | Category | Description |

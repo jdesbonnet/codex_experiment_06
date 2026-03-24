@@ -62,6 +62,16 @@ Default attached MCU target: `LPC1114FN28/102`.
 - Inferred FPGA: `Xilinx XC3S500E`
 - Docs: `targets/papilio_one/README.md`, `targets/papilio_one/openocd/base.cfg`, `datasheets/Papilio_One/README.md`
 
+### ESP32-S3
+
+- Native `USB JTAG/serial` path works over one cable
+- Current serial device has enumerated as `/dev/ttyACM0`
+- `OpenOCD` works with `interface/esp_usb_jtag.cfg` and `target/esp32s3.cfg`
+- Current backup tooling:
+  - `tools/esp32s3_flash_backup.sh`
+  - `tools/esp32s3_flash_restore.sh`
+- Docs: `targets/esp32s3/README.md`, `datasheets/ESP32S3/README.md`
+
 ### LPC8xx Family
 
 The repository may target `LPC810`, `LPC812`, and `LPC824`.
