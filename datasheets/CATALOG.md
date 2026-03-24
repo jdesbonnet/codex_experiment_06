@@ -16,6 +16,7 @@ Guideline: when adding material for a new hardware family, prefer a dedicated su
 | Path | Category | Description |
 | --- | --- | --- |
 | `datasheets/ESP32S3/README.md` | Documentation index | Bench notes and vendor reference links for the attached `ESP32-S3` `JC3248W535`-family touchscreen board. |
+| `datasheets/ESP32S3/JC832W535_motherboard.pdf` | Product brochure | Local brochure for the `JC3248W535`-family `ESP32-S3` touchscreen board, confirming `AXS15231B`, `320x480`, capacitive touch, `5V`, and typical `150 mA` draw. |
 
 ## SD Cards
 

@@ -7,6 +7,9 @@ Most likely board family:
 
 - `JC3248W535` / `JC3248W535C`
 - SpotPear's own pages sometimes call the same board `JC4832W535`
+- local brochure filename uses `JC832W535`, which may be a vendor naming
+  variant or a typo; treat it as part of the same board family until proven
+  otherwise
 - user-supplied product page was an AliExpress listing
 - closest vendor documentation match is the SpotPear `JC3248W535` board family
 
@@ -25,6 +28,23 @@ Observed device details:
 - PSRAM: `8 MB embedded`
 - crystal: `40 MHz`
 - MAC: `3c:0f:02:d3:00:dc`
+
+Brochure-confirmed hardware details from
+`datasheets/ESP32S3/JC832W535_motherboard.pdf`:
+
+- MCU: `ESP32-S3`
+- display size: `3.5"` TFT IPS
+- display resolution: `320x480`
+- touch: capacitive
+- display controller: `AXS15231B`
+- operating voltage: `5V`
+- typical power consumption: about `150 mA`
+- module dimensions: `94.5 x 62.0 mm`
+- display area: `73.4 x 49.0 mm`
+- operating temperature: `-20 C` to `70 C`
+- storage temperature: `-30 C` to `80 C`
+- supports Wi-Fi and Bluetooth
+- supports lithium battery power supply
 
 Observed factory/demo firmware behavior:
 
@@ -45,6 +65,36 @@ SpotPear user-guide notes for the matching board family:
 
 That matches the style of firmware installed on the attached device closely
 enough to treat SpotPear's documentation as the current best match.
+
+## USB architecture implications
+
+This matters for any HID / Stream Deck style firmware on this board.
+
+What is known:
+
+- the attached board currently enumerates as Espressif `USB JTAG/serial debug unit`
+- Espressif documents `USB Serial/JTAG` on `ESP32-S3` as a fixed-function
+  hardware device
+- Espressif also documents that `USB Device` mode and `USB Serial/JTAG` share a
+  single on-chip PHY
+- SpotPear says this board supports automatic download, which is consistent
+  with the USB-C connector being wired to the native USB pins
+
+Practical conclusion:
+
+- a USB HID keyboard / Stream Deck style application is plausible on this board
+- but the firmware would need to use the `USB Device Stack` / `TinyUSB` path
+  instead of `USB Serial/JTAG`
+- you should not expect simultaneous use of:
+  - native USB HID to the host
+  - native USB Serial/JTAG debugging
+  on the same connector without extra hardware
+
+Realistic development workflow:
+
+1. flash and debug with the current `USB Serial/JTAG` path
+2. boot a `TinyUSB HID` application for host-side testing
+3. use Wi-Fi, BLE, or a secondary serial path for runtime diagnostics/config
 
 Current local artifacts:
 
@@ -92,13 +142,30 @@ Direct vendor resource links from the guide:
 - factory firmware image:
   - <https://cdn.static.spotpear.com/uploads/picture/learn/ESP32/esp32-s3-touch-3.5/JC3248W535C_I_Y_EN-80M.bin>
 
+Local brochure:
+
+- `datasheets/ESP32S3/JC832W535_motherboard.pdf`
+  - product brochure for this board family
+  - confirms `AXS15231B`, `320x480`, capacitive touch, `5V`, and typical
+    `150 mA` consumption
+
 Inferences and caveats:
 
 - The SpotPear board family appears to match the attached hardware closely, but
   this is still an inference from public product descriptions and the observed
   factory demo behavior.
 - Community reports indicate the display controller is likely `AXS15231B` and
-  the touch path is `I2C`, but this should be verified from the vendor
-  schematic or driver package before being treated as canonical.
+  the touch path is `I2C`; the brochure now confirms `AXS15231B`, but the touch
+  bus should still be verified from the vendor schematic or driver package
+  before being treated as canonical.
 - Our own full-flash backup remains the primary restore path:
   - `backups/esp32s3/esp32s3-flash-2026-03-24T00:05:49Z.bin`
+
+Official USB references:
+
+- `USB Serial/JTAG Controller Console`
+  - <https://docs.espressif.com/projects/esp-idf/en/latest/esp32s3/api-guides/usb-serial-jtag-console.html>
+- `USB Device Stack`
+  - <https://docs.espressif.com/projects/esp-idf/en/latest/esp32s3/api-reference/peripherals/usb_device.html>
+- `Configure ESP32-S3 Built-in JTAG Interface`
+  - <https://docs.espressif.com/projects/esp-idf/en/latest/esp32s3/api-guides/jtag-debugging/configure-builtin-jtag.html>

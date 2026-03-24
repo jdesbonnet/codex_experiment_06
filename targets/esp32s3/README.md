@@ -30,6 +30,11 @@ Practical implications:
 - one USB cable is sufficient for serial console and JTAG
 - flash backup and restore can be done over the native USB link
 - installed demo firmware is a vendor demo, not a standard upstream image
+- the USB-C connector is very likely wired to native USB `D-`/`D+`
+  (`GPIO19`/`GPIO20`)
+- on `ESP32-S3`, `USB Serial/JTAG` and `USB Device` share one on-chip PHY, so
+  a HID application on the native USB connector would replace the current
+  `USB Serial/JTAG` behavior during runtime
 
 Current backup tooling:
 
@@ -43,6 +48,8 @@ Current known-good backup:
 Board-family notes:
 
 - display: `3.5"` `320x480` capacitive touch LCD
+- local brochure confirms display controller `AXS15231B`
+- local brochure indicates `5V` input and typical board draw of about `150 mA`
 - factory demo includes:
   - clock
   - weather
@@ -54,6 +61,21 @@ Board-family notes:
   - default firmware source code is **not** provided
   - sample Arduino code and LVGL/touch examples **are** provided
   - vendor publishes a factory firmware image and burn tool
+  - the board supports automatic download
+
+USB/HID notes:
+
+- The current attached firmware uses Espressif's fixed-function
+  `USB Serial/JTAG` path.
+- A Stream Deck style implementation would instead need firmware built on the
+  `USB Device Stack` / `TinyUSB` path and enumerate as `HID`.
+- That is feasible on `ESP32-S3`, but not simultaneously with the current
+  native `USB Serial/JTAG` runtime on the same connector unless extra hardware
+  is added.
+- A realistic workflow is:
+  1. flash/debug using the current USB Serial/JTAG path
+  2. boot HID application firmware for host-side testing
+  3. use Wi-Fi, BLE, or a secondary serial/debug path for runtime logs/config
 
 Useful external references:
 
@@ -61,6 +83,14 @@ Useful external references:
   - <https://spotpear.com/wiki/ESP32-S3-3.5-inch-LCD-Captive-TouchScreen-Display-480x320-Tablet-MP3-Video-Weather-Clock.html>
 - SpotPear product page:
   - <https://spotpear.com/shop/ESP32-S3-3.5-inch-LCD-Captive-TouchScreen-Display-480x320-Tablet-MP3-Video-Weather-Clock/JC3248W535.html>
+- Local product brochure:
+  - `datasheets/ESP32S3/JC832W535_motherboard.pdf`
+- ESP-IDF `USB Serial/JTAG Controller Console` guide:
+  - <https://docs.espressif.com/projects/esp-idf/en/latest/esp32s3/api-guides/usb-serial-jtag-console.html>
+- ESP-IDF `USB Device Stack` guide:
+  - <https://docs.espressif.com/projects/esp-idf/en/latest/esp32s3/api-reference/peripherals/usb_device.html>
+- ESP-IDF built-in JTAG guide:
+  - <https://docs.espressif.com/projects/esp-idf/en/latest/esp32s3/api-guides/jtag-debugging/configure-builtin-jtag.html>
 - local board notes:
   - `datasheets/ESP32S3/README.md`
 
