@@ -15,7 +15,7 @@ Guideline: when adding material for a new hardware family, prefer a dedicated su
 
 | Path | Category | Description |
 | --- | --- | --- |
-| `datasheets/ESP32S3/README.md` | Documentation index | Stub index and bench notes for the `ESP32-S3` platform. |
+| `datasheets/ESP32S3/README.md` | Documentation index | Bench notes and vendor reference links for the attached `ESP32-S3` `JC3248W535`-family touchscreen board. |
 
 ## SD Cards
 

@@ -67,6 +67,9 @@ Default attached MCU target: `LPC1114FN28/102`.
 - Native `USB JTAG/serial` path works over one cable
 - Current serial device has enumerated as `/dev/ttyACM0`
 - `OpenOCD` works with `interface/esp_usb_jtag.cfg` and `target/esp32s3.cfg`
+- Current attached board is most likely `JC3248W535` / `JC3248W535C`
+  3.5-inch touchscreen board family
+- SpotPear vendor docs are the current best match
 - Current backup tooling:
   - `tools/esp32s3_flash_backup.sh`
   - `tools/esp32s3_flash_restore.sh`
