@@ -53,6 +53,20 @@ Guideline: when adding material for a new hardware family, prefer a dedicated su
 | `datasheets/LPC1114/LPC111X.pdf` | MCU datasheet | NXP `LPC111x/LPC11Cxx` family datasheet. |
 | `datasheets/LPC1114/UM10398.pdf` | MCU reference manual | NXP `LPC111x/LPC11Cxx` user manual. |
 
+## LPC82x / LPC824
+
+| Path | Category | Description |
+| --- | --- | --- |
+| `datasheets/LPC82x/README.md` | Documentation index | Local index for the NXP `LPC82x` family reference set used for `LPC824` work. |
+| `datasheets/LPC82x/LPC82X.pdf` | MCU datasheet | NXP `LPC82x` family datasheet covering `LPC824`. |
+| `datasheets/LPC82x/UM10800.pdf` | MCU reference manual | NXP `LPC82x` user manual. |
+| `datasheets/LPC82x/ES_LPC82X.pdf` | Silicon errata | NXP `LPC82x` errata. |
+| `datasheets/LPC82x/AN13815.pdf` | Bootloader application note | NXP `LPC800` USART ISP programming note. |
+| `datasheets/LPC82x/AN12726.pdf` | Peripheral application note | NXP SCTimer/PWM application note for `LPC8xx`. |
+| `datasheets/LPC82x/AN11782.zip` | Vendor software package | NXP `LPC82x`-related application software package. |
+| `datasheets/LPC82x/AN12726SW.zip` | Vendor software package | NXP software package accompanying `AN12726`. |
+| `datasheets/LPC82x/AN13095SW.zip` | Vendor software package | NXP `LPC82x`-related software/examples package. |
+
 ## Siglent SDM3065X
 
 | Path | Category | Description |

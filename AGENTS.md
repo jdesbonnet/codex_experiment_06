@@ -79,6 +79,9 @@ Default attached MCU target: `LPC1114FN28/102`.
 
 The repository may target `LPC810`, `LPC812`, and `LPC824`.
 Prefer shared `lpc8xx` family code plus thin per-device overlays.
+- Current local docs for `LPC824` are in:
+  - `datasheets/LPC82x/README.md`
+  - `targets/lpc824/README.md`
 
 ## Debugprobe UART Workflow
 
