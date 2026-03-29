@@ -1,5 +1,22 @@
 # Blood Pressure Monitor LCD Reader Proposal
 
+
+## Current Status Note
+
+Since this proposal was first written, the repository has gained a shared backend
+harness under `tools/bp_monitor_reader/`.
+
+Current verified status on this Pi 5:
+
+- `template`: working baseline, still the only production-usable path
+- `tesseract`: runs locally but is not accurate enough
+- `paddleocr`: backend implemented, inference currently segfaults on this Pi
+- `florence`: backend implemented, local CPU stack staged, but inference is still too slow to be practical
+
+For the live implementation state, treat `docs/local_lcd_ai_reader_project_plan.md`
+and `tools/bp_monitor_reader/README.md` as the source of truth.
+
+
 ## Purpose
 
 This document captures a concrete proposal for reading a blood pressure monitor

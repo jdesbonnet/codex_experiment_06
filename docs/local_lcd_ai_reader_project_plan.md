@@ -71,6 +71,33 @@ Important caveat:
   existed, so the dataset is useful for regression, but it is not yet a clean
   independent test corpus for generalization claims
 
+
+### Current model-backend status
+
+The common backend harness is now implemented in `tools/bp_monitor_reader/`.
+
+Verified status on this Pi 5:
+
+- `template`
+  - working baseline
+  - current regression remains `169/169` populated fields matched
+- `tesseract`
+  - runs locally with no extra model downloads
+  - current accuracy is poor; it is not competitive with the calibrated baseline
+- `paddleocr`
+  - backend is implemented
+  - model download/load works
+  - inference currently segfaults inside Paddle/PaddleOCR on this Pi
+- `florence`
+  - backend is implemented
+  - processor and model can be loaded from the local snapshot cache after compatibility patches
+  - reproducibility helpers now exist in `tools/bp_monitor_reader/setup_florence_cpu_env.sh` and `tools/bp_monitor_reader/patch_florence_snapshot.py`
+  - current inference cost is too high; a single-field OCR test timed out at `90 s`
+
+This means the template reader remains the only production-usable path today.
+The AI backends are now real experiments rather than paper designs, but they
+are not yet operational replacements.
+
 ## Visual Summary
 
 Pipeline examples:
@@ -125,16 +152,17 @@ Practical feasibility split:
 
 ### Local environment state
 
-As currently installed on this Pi:
+As currently installed on this Pi after the first implementation pass:
 
 - `cv2`: present
-- `torch`: not present
-- `transformers`: not present
-- `onnxruntime`: not present
-- `paddleocr`: not present
+- system `torch`: present (`python3-torch` from Debian)
+- system `onnxruntime`: present (`python3-onnxruntime` from Debian)
+- `paddleocr`: present in `/tmp/bp_reader_venv`
+- `transformers` stack for Florence: present in `/tmp/bp_florence_venv`
 
-So there is no local AI stack installed yet. The next step is not model tuning.
-The next step is controlled installation and benchmarking.
+The current question is no longer whether the dependencies can be staged. The
+current question is which model paths are actually usable on this Pi without a
+GPU.
 
 ## Model Paths To Explore
 
