@@ -29,6 +29,7 @@ Supported subset:
 from __future__ import annotations
 
 import argparse
+import json
 import pathlib
 import re
 import subprocess
@@ -37,48 +38,78 @@ import tempfile
 from dataclasses import dataclass
 
 
+# Instruction byte sizes (must match tools/vm_asm.py first_pass).
+INSTR_SIZE = {
+    "NOP": 1, "ADD": 1, "SUB": 1, "DUP": 1, "DROP": 1, "SWAP": 1, "HALT": 1,
+    "EQ": 1, "LT": 1, "MOD": 1, "MUL": 1, "DIV": 1,
+    "MGET": 1, "MSET": 1, "MGET32": 1, "MSET32": 1,
+    "AND": 1, "OR": 1, "XOR": 1, "NOT": 1, "SHL": 1, "SHR": 1, "ROL": 1, "ROR": 1,
+    "PUSH8": 2, "HOST": 2, "LGET": 2, "LSET": 2,
+    "PUSH16": 3, "JMP": 3, "JZ": 3,
+    "PUSH32": 5,
+}
+
+
 @dataclass
 class Token:
     kind: str
     text: str
+    line: int = 1
+    col: int = 1
 
 
 def strip_comments(src: str) -> str:
-    src = re.sub(r"/\*.*?\*/", "", src, flags=re.S)
-    src = re.sub(r"//.*$", "", src, flags=re.M)
+    # Preserve newlines so lex() line counting stays accurate.
+    def _block(m: re.Match[str]) -> str:
+        return "".join(c if c == "\n" else " " for c in m.group(0))
+
+    src = re.sub(r"/\*.*?\*/", _block, src, flags=re.S)
+    src = re.sub(r"//[^\n]*", lambda m: " " * len(m.group(0)), src)
     return src
 
 
 def lex(src: str) -> list[Token]:
     tokens: list[Token] = []
     i = 0
+    line = 1
+    col = 1
     while i < len(src):
         ch = src[i]
+        if ch == "\n":
+            line += 1
+            col = 1
+            i += 1
+            continue
         if ch.isspace():
+            col += 1
             i += 1
             continue
         if src.startswith("==", i):
-            tokens.append(Token("SYM", "=="))
+            tokens.append(Token("SYM", "==", line, col))
             i += 2
+            col += 2
             continue
         if ch in "{}();,=+-*/<>%":
-            tokens.append(Token("SYM", ch))
+            tokens.append(Token("SYM", ch, line, col))
             i += 1
+            col += 1
             continue
         m = re.match(r"[A-Za-z_]\w*", src[i:])
         if m:
             text = m.group(0)
             kind = "KW" if text in {"const", "int", "while", "if", "else"} else "ID"
-            tokens.append(Token(kind, text))
+            tokens.append(Token(kind, text, line, col))
             i += len(text)
+            col += len(text)
             continue
         m = re.match(r"[+-]?(?:0x[0-9A-Fa-f]+|\d+)", src[i:])
         if m:
-            tokens.append(Token("NUM", m.group(0)))
+            tokens.append(Token("NUM", m.group(0), line, col))
             i += len(m.group(0))
+            col += len(m.group(0))
             continue
         raise ValueError(f"lex error near: {src[i:i+20]!r}")
-    tokens.append(Token("EOF", ""))
+    tokens.append(Token("EOF", "", line, col))
     return tokens
 
 
@@ -116,6 +147,15 @@ class Parser:
         return stmts
 
     def parse_stmt(self) -> dict:
+        t = self.peek()
+        line = t.line
+        col = t.col
+        node = self._parse_stmt_inner()
+        node["line"] = line
+        node["col"] = col
+        return node
+
+    def _parse_stmt_inner(self) -> dict:
         t = self.peek()
         if t.kind == "KW" and t.text == "const":
             self.take()
@@ -239,6 +279,9 @@ class Compiler:
         self.vars: dict[str, int] = {}
         self.lines: list[str] = []
         self.label_id = 0
+        self.pc = 0
+        self.entries: list[dict] = []
+        self.local_decls: list[dict] = []
 
     def new_label(self, prefix: str) -> str:
         name = f"{prefix}_{self.label_id}"
@@ -247,6 +290,28 @@ class Compiler:
 
     def emit(self, line: str) -> None:
         self.lines.append(line)
+        stripped = line.strip()
+        if not stripped or stripped.endswith(":"):
+            return
+        op = stripped.split()[0].upper()
+        size = INSTR_SIZE.get(op)
+        if size is None:
+            raise ValueError(f"internal: unknown opcode '{op}' in emit()")
+        self.pc += size
+
+    def record_entry(self, line: int | None, col: int | None, kind: str) -> None:
+        if line is None:
+            return
+        if self.entries and self.entries[-1]["pc"] == self.pc:
+            # Replace earlier zero-width record with the inner kind so source
+            # line stays attached to the actual emitted instruction.
+            self.entries[-1]["line"] = line
+            self.entries[-1]["col"] = col
+            self.entries[-1]["kind"] = kind
+            return
+        self.entries.append(
+            {"pc": self.pc, "line": line, "col": col, "kind": kind}
+        )
 
     def alloc_var(self, name: str) -> int:
         if name in self.vars:
@@ -419,11 +484,19 @@ class Compiler:
 
     def emit_stmt(self, stmt: dict) -> None:
         kind = stmt["kind"]
+        entry_kind = {
+            "while": "loop_head",
+            "if": "if_head",
+        }.get(kind, "stmt")
+        self.record_entry(stmt.get("line"), stmt.get("col"), entry_kind)
         if kind == "const_decl":
             self.consts[stmt["name"]] = self.eval_const_expr(stmt["expr"])
             return
         if kind == "var_decl":
             idx = self.alloc_var(stmt["name"])
+            self.local_decls.append(
+                {"slot": idx, "name": stmt["name"], "line": stmt.get("line")}
+            )
             if stmt["init"] is not None:
                 self.emit_expr(stmt["init"])
                 self.emit(f"LSET {idx}")
@@ -524,6 +597,15 @@ class Compiler:
         self.emit("HALT")
         return "\n".join(self.lines) + "\n"
 
+    def build_source_map(self, source: str, bytecode_size: int) -> dict:
+        return {
+            "version": 1,
+            "source": source,
+            "bytecode_size": bytecode_size,
+            "entries": list(self.entries),
+            "locals": list(self.local_decls),
+        }
+
 
 def compile_to_asm(src: str) -> str:
     src = strip_comments(src)
@@ -533,16 +615,36 @@ def compile_to_asm(src: str) -> str:
     return Compiler().compile(prog)
 
 
+def compile_with_map(src: str, source_path: str) -> tuple[str, Compiler]:
+    """Compile to assembly and also return the Compiler (carrying map state)."""
+    src = strip_comments(src)
+    tokens = lex(src)
+    parser = Parser(tokens)
+    prog = parser.parse_program()
+    comp = Compiler()
+    asm = comp.compile(prog)
+    return asm, comp
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Compile tiny C-like source to tiny_vm assembly/bytecode")
     parser.add_argument("input", type=pathlib.Path, help="input .cvm.c file")
     parser.add_argument("-S", "--asm", type=pathlib.Path, help="output assembly file")
     parser.add_argument("-o", "--output", type=pathlib.Path, help="output bytecode .bin")
+    parser.add_argument(
+        "--map",
+        action="store_true",
+        help="emit source map sidecar JSON at <output>.map",
+    )
     args = parser.parse_args()
+
+    if args.map and args.output is None:
+        print("error: --map requires --output", file=sys.stderr)
+        return 1
 
     src = args.input.read_text(encoding="utf-8")
     try:
-        asm = compile_to_asm(src)
+        asm, comp = compile_with_map(src, str(args.input))
     except Exception as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 1
@@ -562,6 +664,13 @@ def main() -> int:
             subprocess.run(cmd, check=True)
         finally:
             tmp_path.unlink(missing_ok=True)
+
+        if args.map:
+            bytecode_size = args.output.stat().st_size
+            mapping = comp.build_source_map(str(args.input), bytecode_size)
+            map_path = pathlib.Path(str(args.output) + ".map")
+            map_path.write_text(json.dumps(mapping, indent=2) + "\n", encoding="utf-8")
+            print(f"wrote source map: {map_path}")
     return 0
 
 

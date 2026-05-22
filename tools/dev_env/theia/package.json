@@ -1,0 +1,23 @@
+{
+  "name": "tiny-vm-theia",
+  "version": "0.1.0",
+  "private": true,
+  "engines": {
+    "node": ">=18.17.0"
+  },
+  "workspaces": [
+    "tiny-vm-extension",
+    "browser-app"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces --if-present",
+    "start": "npm run start --workspace browser-app",
+    "clean": "npm run clean --workspaces --if-present"
+  },
+  "overrides": {
+    "@vscode/ripgrep": "1.15.14"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.60.0"
+  }
+}

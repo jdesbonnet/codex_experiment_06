@@ -1,0 +1,40 @@
+{
+  "name": "browser-app",
+  "version": "0.1.0",
+  "private": true,
+  "description": "tiny_vm IDE Theia browser application",
+  "dependencies": {
+    "@theia/core": "^1.71.1",
+    "@theia/debug": "^1.71.1",
+    "@theia/editor": "^1.71.1",
+    "@theia/filesystem": "^1.71.1",
+    "@theia/messages": "^1.71.1",
+    "@theia/monaco": "^1.71.1",
+    "@theia/navigator": "^1.71.1",
+    "@theia/output": "^1.71.1",
+    "@theia/preferences": "^1.71.1",
+    "@theia/process": "^1.71.1",
+    "@theia/terminal": "^1.71.1",
+    "@theia/workspace": "^1.71.1",
+    "tiny-vm-extension": "0.1.0"
+  },
+  "devDependencies": {
+    "@theia/cli": "^1.71.1"
+  },
+  "scripts": {
+    "clean": "theia clean",
+    "build": "theia build --mode development",
+    "start": "theia start --hostname 0.0.0.0 --port 3000"
+  },
+  "theia": {
+    "target": "browser",
+    "frontend": {
+      "config": {
+        "applicationName": "tiny_vm IDE",
+        "preferences": {
+          "files.enableTrash": false
+        }
+      }
+    }
+  }
+}

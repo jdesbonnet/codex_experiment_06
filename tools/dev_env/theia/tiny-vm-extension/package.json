@@ -1,0 +1,39 @@
+{
+  "name": "tiny-vm-extension",
+  "version": "0.1.0",
+  "description": "Theia extension for the tiny_vm bytecode engine",
+  "license": "MIT",
+  "private": true,
+  "keywords": ["theia-extension"],
+  "files": [
+    "lib",
+    "src",
+    "data"
+  ],
+  "main": "lib/common",
+  "dependencies": {
+    "@theia/core": "^1.71.1",
+    "@theia/debug": "^1.71.1",
+    "@theia/editor": "^1.71.1",
+    "@theia/filesystem": "^1.71.1",
+    "@theia/monaco": "^1.71.1",
+    "@theia/output": "^1.71.1",
+    "@theia/process": "^1.71.1",
+    "@theia/workspace": "^1.71.1"
+  },
+  "devDependencies": {
+    "rimraf": "^3.0.2",
+    "typescript": "~5.4.5"
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "clean": "rimraf lib",
+    "watch": "tsc -b -w"
+  },
+  "theiaExtensions": [
+    {
+      "frontend": "lib/browser/tiny-vm-frontend-module",
+      "backend": "lib/node/tiny-vm-backend-module"
+    }
+  ]
+}

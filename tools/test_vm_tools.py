@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import json
 import pathlib
 import subprocess
 import tempfile
@@ -170,6 +171,105 @@ print_hex32(load32le(4));
             raise AssertionError("compiler produced empty binary")
 
 
+def _validate_source_map(map_obj: dict, *, expect_source_suffix: str, bytecode_size: int) -> None:
+    if map_obj.get("version") != 1:
+        raise AssertionError(f"expected version 1, got {map_obj.get('version')!r}")
+    if not str(map_obj.get("source", "")).endswith(expect_source_suffix):
+        raise AssertionError(f"source did not end with {expect_source_suffix!r}: {map_obj.get('source')!r}")
+    if map_obj.get("bytecode_size") != bytecode_size:
+        raise AssertionError(
+            f"bytecode_size mismatch: map says {map_obj.get('bytecode_size')}, file is {bytecode_size}"
+        )
+    entries = map_obj.get("entries")
+    if not isinstance(entries, list) or not entries:
+        raise AssertionError("entries missing or empty")
+    last_pc = -1
+    for ent in entries:
+        if ent["pc"] < last_pc:
+            raise AssertionError(f"pc not monotonic at entry {ent}")
+        last_pc = ent["pc"]
+        if ent["line"] < 1:
+            raise AssertionError(f"non-positive line number in entry {ent}")
+    if entries[-1]["pc"] > bytecode_size:
+        raise AssertionError("entry pc exceeds bytecode size")
+
+
+def test_vm_cc_map_emission() -> None:
+    src = """
+int i = 1;
+while (i < 4) {
+  print_u32(i);
+  i = i + 1;
+}
+"""
+    with tempfile.TemporaryDirectory() as td:
+        tdp = pathlib.Path(td)
+        cvm = tdp / "t.cvm.c"
+        out = tdp / "t.bin"
+        cvm.write_text(src, encoding="utf-8")
+        run(["./tools/vm_cc.py", str(cvm), "-o", str(out), "--map"])
+        map_path = pathlib.Path(str(out) + ".map")
+        if not map_path.exists():
+            raise AssertionError("vm_cc.py --map did not write a .map file")
+        data = json.loads(map_path.read_text(encoding="utf-8"))
+        _validate_source_map(data, expect_source_suffix="t.cvm.c", bytecode_size=out.stat().st_size)
+        kinds = {e["kind"] for e in data["entries"]}
+        if "loop_head" not in kinds:
+            raise AssertionError(f"expected loop_head in entry kinds: {kinds}")
+        locals_ = data.get("locals", [])
+        if not any(loc["name"] == "i" and loc["slot"] == 0 for loc in locals_):
+            raise AssertionError(f"expected local 'i' at slot 0: {locals_}")
+
+
+def test_vm_cc_map_covers_all_existing_tests() -> None:
+    test_dir = ROOT / "projects" / "tiny_vm" / "tests"
+    sources = sorted(test_dir.glob("*.cvm.c"))
+    if not sources:
+        raise AssertionError("no .cvm.c tests found")
+    with tempfile.TemporaryDirectory() as td:
+        tdp = pathlib.Path(td)
+        for src in sources:
+            out = tdp / (src.stem + ".bin")
+            run(["./tools/vm_cc.py", str(src), "-o", str(out), "--map"])
+            map_path = pathlib.Path(str(out) + ".map")
+            data = json.loads(map_path.read_text(encoding="utf-8"))
+            _validate_source_map(data, expect_source_suffix=src.name, bytecode_size=out.stat().st_size)
+
+
+def test_vm_asm_map_emission() -> None:
+    asm_src = "# header\nPUSH8 7\nDUP\nADD\nHALT\n"
+    with tempfile.TemporaryDirectory() as td:
+        tdp = pathlib.Path(td)
+        asm = tdp / "t.vm"
+        out = tdp / "t.bin"
+        asm.write_text(asm_src, encoding="utf-8")
+        run(["./tools/vm_asm.py", str(asm), "-o", str(out), "--map"])
+        map_path = pathlib.Path(str(out) + ".map")
+        data = json.loads(map_path.read_text(encoding="utf-8"))
+        _validate_source_map(data, expect_source_suffix="t.vm", bytecode_size=out.stat().st_size)
+        entries = data["entries"]
+        # 4 instructions, expected pcs 0,2,3,4
+        if [e["pc"] for e in entries] != [0, 2, 3, 4]:
+            raise AssertionError(f"unexpected pc sequence: {[e['pc'] for e in entries]}")
+        if [e["line"] for e in entries] != [2, 3, 4, 5]:
+            raise AssertionError(f"unexpected line sequence: {[e['line'] for e in entries]}")
+
+
+def test_vm_cc_map_requires_output() -> None:
+    src = "int x = 1;\n"
+    with tempfile.TemporaryDirectory() as td:
+        tdp = pathlib.Path(td)
+        cvm = tdp / "t.cvm.c"
+        cvm.write_text(src, encoding="utf-8")
+        proc = subprocess.run(
+            ["./tools/vm_cc.py", str(cvm), "--map"], cwd=ROOT, capture_output=True
+        )
+        if proc.returncode == 0:
+            raise AssertionError("vm_cc.py --map without -o should fail")
+        if b"--map requires --output" not in proc.stderr:
+            raise AssertionError(f"unexpected stderr: {proc.stderr!r}")
+
+
 def test_sha1_generator_smoke() -> None:
     with tempfile.TemporaryDirectory() as td:
         tdp = pathlib.Path(td)
@@ -195,6 +295,10 @@ def main() -> int:
     test_vm_cc_bitwise_supported()
     test_vm_cc_rotate_supported()
     test_vm_cc_mem32_supported()
+    test_vm_cc_map_emission()
+    test_vm_cc_map_covers_all_existing_tests()
+    test_vm_asm_map_emission()
+    test_vm_cc_map_requires_output()
     test_sha1_generator_smoke()
     print("vm tool tests: OK")
     return 0

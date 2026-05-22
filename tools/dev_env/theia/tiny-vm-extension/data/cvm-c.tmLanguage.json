@@ -1,0 +1,76 @@
+{
+  "scopeName": "source.tiny-vm-c",
+  "name": "tiny_vm C",
+  "fileTypes": ["cvm.c"],
+  "patterns": [
+    { "include": "#comments" },
+    { "include": "#keywords" },
+    { "include": "#builtins" },
+    { "include": "#numbers" },
+    { "include": "#operators" },
+    { "include": "#identifiers" }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment.block.tiny-vm-c",
+          "begin": "/\\*",
+          "end": "\\*/"
+        },
+        {
+          "name": "comment.line.double-slash.tiny-vm-c",
+          "match": "//.*$"
+        }
+      ]
+    },
+    "keywords": {
+      "patterns": [
+        {
+          "name": "keyword.control.tiny-vm-c",
+          "match": "\\b(if|else|while)\\b"
+        },
+        {
+          "name": "storage.type.tiny-vm-c",
+          "match": "\\b(int|const)\\b"
+        }
+      ]
+    },
+    "builtins": {
+      "patterns": [
+        {
+          "name": "support.function.builtin.tiny-vm-c",
+          "match": "\\b(led_write|delay_ms|print_u32|print_hex32|host|store8|store32le|load8|load32le|and32|or32|xor32|not32|shl32|shr32|rol32|ror32)\\b"
+        }
+      ]
+    },
+    "numbers": {
+      "patterns": [
+        {
+          "name": "constant.numeric.hex.tiny-vm-c",
+          "match": "\\b0[xX][0-9A-Fa-f]+\\b"
+        },
+        {
+          "name": "constant.numeric.dec.tiny-vm-c",
+          "match": "\\b[0-9]+\\b"
+        }
+      ]
+    },
+    "operators": {
+      "patterns": [
+        {
+          "name": "keyword.operator.tiny-vm-c",
+          "match": "==|<|>|\\+|-|\\*|/|%|="
+        }
+      ]
+    },
+    "identifiers": {
+      "patterns": [
+        {
+          "name": "variable.other.tiny-vm-c",
+          "match": "\\b[A-Za-z_][A-Za-z0-9_]*\\b"
+        }
+      ]
+    }
+  }
+}

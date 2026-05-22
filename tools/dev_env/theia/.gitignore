@@ -1,0 +1,10 @@
+node_modules/
+lib/
+gen-webpack.config.js
+gen-webpack.node.config.js
+.theia/
+plugins/
+*-app/lib/
+*-app/src-gen/
+*-app/gen-*.js
+package-lock.json

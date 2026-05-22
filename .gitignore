@@ -52,3 +52,22 @@ projects/*/tm4c123gxl_rust/target/
 tools/wch-openocd/
 third_party/wch-openocd/
 third_party/ch32fun/
+
+# Theia IDE build artifacts
+tools/dev_env/theia/**/node_modules/
+tools/dev_env/theia/**/lib/
+tools/dev_env/theia/**/src-gen/
+tools/dev_env/theia/**/gen-webpack*.js
+tools/dev_env/theia/**/package-lock.json
+tools/dev_env/theia/.theia/
+tools/dev_env/theia/plugins/
+
+# Playwright e2e artifacts
+tools/dev_env/theia/test-results/
+tools/dev_env/theia/e2e/report/
+tools/dev_env/theia/e2e/snapshots/
+tools/dev_env/theia/e2e/recordings/
+tools/dev_env/theia/playwright-report/
+
+# Theia auto-generated webpack stubs (created on every `theia build`)
+tools/dev_env/theia/browser-app/webpack.config.js

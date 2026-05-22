@@ -23,6 +23,7 @@ Syntax:
 from __future__ import annotations
 
 import argparse
+import json
 import pathlib
 import re
 import struct
@@ -78,19 +79,30 @@ def clean_line(line: str) -> str:
 
 
 def tokenize(path: pathlib.Path) -> list[str]:
+    tokens, _ = tokenize_with_lines(path)
+    return tokens
+
+
+def tokenize_with_lines(path: pathlib.Path) -> tuple[list[str], list[int]]:
     tokens: list[str] = []
-    for raw in path.read_text(encoding="utf-8").splitlines():
+    line_numbers: list[int] = []
+    for line_no, raw in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
         line = clean_line(raw)
         if not line:
             continue
         tokens.append(line)
-    return tokens
+        line_numbers.append(line_no)
+    return tokens, line_numbers
 
 
-def first_pass(lines: list[str]) -> dict[str, int]:
+def first_pass(
+    lines: list[str],
+    line_numbers: list[int] | None = None,
+    map_entries: list[dict] | None = None,
+) -> dict[str, int]:
     labels: dict[str, int] = {}
     pc = 0
-    for line in lines:
+    for idx, line in enumerate(lines):
         if line.endswith(":"):
             label = line[:-1].strip()
             if not re.match(r"^[A-Za-z_][A-Za-z0-9_]*$", label):
@@ -104,6 +116,9 @@ def first_pass(lines: list[str]) -> dict[str, int]:
         op = parts[0].upper()
         if op not in OPCODES:
             raise ValueError(f"unknown opcode '{op}'")
+
+        if map_entries is not None and line_numbers is not None:
+            map_entries.append({"pc": pc, "line": line_numbers[idx]})
 
         pc += 1
         if op in ONE_U8:
@@ -173,11 +188,17 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Assemble tiny_vm source to bytecode")
     parser.add_argument("input", type=pathlib.Path, help="input assembly file")
     parser.add_argument("-o", "--output", type=pathlib.Path, required=True, help="output .bin file")
+    parser.add_argument(
+        "--map",
+        action="store_true",
+        help="emit source map sidecar JSON at <output>.map",
+    )
     args = parser.parse_args()
 
     try:
-        lines = tokenize(args.input)
-        labels = first_pass(lines)
+        lines, line_numbers = tokenize_with_lines(args.input)
+        map_entries: list[dict] | None = [] if args.map else None
+        labels = first_pass(lines, line_numbers, map_entries)
         code = second_pass(lines, labels)
     except Exception as exc:
         print(f"error: {exc}", file=sys.stderr)
@@ -185,6 +206,17 @@ def main() -> int:
 
     args.output.write_bytes(code)
     print(f"wrote {len(code)} bytes to {args.output}")
+
+    if args.map and map_entries is not None:
+        mapping = {
+            "version": 1,
+            "source": str(args.input),
+            "bytecode_size": len(code),
+            "entries": map_entries,
+        }
+        map_path = pathlib.Path(str(args.output) + ".map")
+        map_path.write_text(json.dumps(mapping, indent=2) + "\n", encoding="utf-8")
+        print(f"wrote source map: {map_path}")
     return 0
 
 

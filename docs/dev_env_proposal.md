@@ -4,6 +4,18 @@ This is the execution plan for a development environment for the `tiny_vm`
 bytecode engine. It expands the original one-paragraph proposal into a spec
 that other agents can implement step by step.
 
+**Implementation status (current session):**
+
+| Milestone                              | Status                  |
+| -------------------------------------- | ----------------------- |
+| M1: source-map emission (`vm_cc.py`/`vm_asm.py --map`) | shipped (4 new tests in `tools/test_vm_tools.py`) |
+| M2: host-side simulator                | shipped (`tools/dev_env/sim/`, 16 tests passing) |
+| M3: Python DAP server                  | shipped (`tools/dev_env/dap/`, 2 end-to-end tests passing) |
+| M4: Theia browser app                  | scaffolded under `tools/dev_env/theia/` (install + build steps in `scripts/install.sh`) |
+| M5: hardening + smoke + README         | shipped (`tools/dev_env/scripts/smoke.sh`, `tools/dev_env/README.md`) |
+
+See `tools/dev_env/README.md` for the user-facing entrypoint.
+
 ## 1. Purpose and Scope
 
 Goal: provide a unified development environment for authoring, simulating,
