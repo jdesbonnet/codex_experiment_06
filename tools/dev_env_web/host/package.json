@@ -1,0 +1,13 @@
+{
+  "name": "tiny-vm-web-host",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Self-hosted VS Code Web environment for the tiny_vm web extension. M2 pins @vscode/test-web; M5 may swap to a fully static bundle.",
+  "scripts": {
+    "serve": "vscode-test-web --extensionDevelopmentPath=../extension --port=3000 --host=127.0.0.1 ../../.. "
+  },
+  "devDependencies": {
+    "@vscode/test-web": "^0.0.80",
+    "playwright-core": "^1.49.0"
+  }
+}

@@ -1,0 +1,64 @@
+{
+  "name": "tiny-vm",
+  "displayName": "tiny_vm",
+  "description": "tiny_vm bytecode language support + simulator-driven debugger (VS Code Web)",
+  "version": "0.1.0",
+  "license": "MIT",
+  "private": true,
+  "publisher": "tiny-vm-local",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "extensionKind": ["web"],
+  "browser": "./dist/web/extension.js",
+  "activationEvents": [
+    "onLanguage:tiny-vm-c",
+    "onLanguage:tiny-vm-asm",
+    "onCommand:tinyVm.openOpcodeTable"
+  ],
+  "contributes": {
+    "languages": [
+      {
+        "id": "tiny-vm-c",
+        "aliases": ["tiny_vm C", "tiny-vm-c", "cvm-c"],
+        "extensions": [".cvm.c"],
+        "configuration": "./language-configurations/tiny-vm-c.json"
+      },
+      {
+        "id": "tiny-vm-asm",
+        "aliases": ["tiny_vm Asm", "tiny-vm-asm"],
+        "extensions": [".vm"],
+        "configuration": "./language-configurations/tiny-vm-asm.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "tiny-vm-c",
+        "scopeName": "source.tiny-vm-c",
+        "path": "./syntaxes/tiny-vm-c.tmLanguage.json"
+      },
+      {
+        "language": "tiny-vm-asm",
+        "scopeName": "source.tiny-vm-asm",
+        "path": "./syntaxes/tiny-vm-asm.tmLanguage.json"
+      }
+    ],
+    "commands": [
+      {
+        "command": "tinyVm.openOpcodeTable",
+        "title": "tiny_vm: Open Opcode Table",
+        "category": "tiny_vm"
+      }
+    ]
+  },
+  "scripts": {
+    "build": "node esbuild.config.mjs",
+    "watch": "node esbuild.config.mjs --watch",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.85.0",
+    "esbuild": "^0.25.0",
+    "typescript": "~5.4.5"
+  }
+}

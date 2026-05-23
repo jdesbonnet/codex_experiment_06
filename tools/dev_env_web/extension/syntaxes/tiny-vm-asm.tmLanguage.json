@@ -1,0 +1,58 @@
+{
+  "scopeName": "source.tiny-vm-asm",
+  "name": "tiny_vm assembly",
+  "fileTypes": ["vm"],
+  "patterns": [
+    { "include": "#comments" },
+    { "include": "#labels" },
+    { "include": "#opcodes" },
+    { "include": "#numbers" },
+    { "include": "#identifiers" }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment.line.number-sign.tiny-vm-asm",
+          "match": "#.*$"
+        }
+      ]
+    },
+    "labels": {
+      "patterns": [
+        {
+          "name": "entity.name.label.tiny-vm-asm",
+          "match": "^[A-Za-z_][A-Za-z0-9_]*\\s*:"
+        }
+      ]
+    },
+    "opcodes": {
+      "patterns": [
+        {
+          "name": "keyword.operator.opcode.tiny-vm-asm",
+          "match": "\\b(NOP|PUSH8|PUSH16|PUSH32|ADD|SUB|DUP|DROP|SWAP|JMP|JZ|HOST|LGET|LSET|EQ|LT|MOD|MUL|DIV|MGET|MSET|MGET32|MSET32|AND|OR|XOR|NOT|SHL|SHR|ROL|ROR|HALT)\\b"
+        }
+      ]
+    },
+    "numbers": {
+      "patterns": [
+        {
+          "name": "constant.numeric.hex.tiny-vm-asm",
+          "match": "\\b0[xX][0-9A-Fa-f]+\\b"
+        },
+        {
+          "name": "constant.numeric.dec.tiny-vm-asm",
+          "match": "-?\\b[0-9]+\\b"
+        }
+      ]
+    },
+    "identifiers": {
+      "patterns": [
+        {
+          "name": "variable.other.tiny-vm-asm",
+          "match": "\\b[A-Za-z_][A-Za-z0-9_]*\\b"
+        }
+      ]
+    }
+  }
+}
