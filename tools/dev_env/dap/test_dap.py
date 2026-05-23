@@ -4,7 +4,7 @@ End-to-end DAP server tests for tiny_vm.
 
 Spawns server.py as a subprocess, reads its port announcement, then drives
 the protocol over TCP to verify the acceptance scenario in
-docs/dev_env_proposal.md M3:
+docs/theia_proposal.md M3:
 
     A scripted DAP client can set a .cvm.c source breakpoint on the count10
     test, hit it, inspect the loop counter local, and continue to halt.

@@ -2,7 +2,7 @@
 
 Unified development environment for authoring, simulating, and debugging
 `tiny_vm` bytecode programs. Architecture lives in
-`docs/dev_env_proposal.md`.
+`docs/theia_proposal.md`.
 
 ## What's here
 
@@ -148,7 +148,7 @@ since the assembler does not see those.
 
 ## Deferred (v2)
 
-Per `docs/dev_env_proposal.md` section 6 "Deferred milestones":
+Per `docs/theia_proposal.md` section 6 "Deferred milestones":
 
 - IDE button for flashing and `vm_upload.py` to real hardware.
 - Native MCU debugging from the IDE via

@@ -2,7 +2,7 @@
 Loader and lookup helpers for the source-map JSON files emitted by
 tools/vm_cc.py --map and tools/vm_asm.py --map.
 
-Map schema (see docs/dev_env_proposal.md section 5.2):
+Map schema (see docs/theia_proposal.md section 5.2):
 
     {
       "version": 1,
