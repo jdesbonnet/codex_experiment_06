@@ -31,6 +31,9 @@ Project implementation directories use `hardware_language_variant` (variant opti
 
 ## Dependencies (C)
 
+ARM Cortex-M bare-metal toolchain (covers `lpc1114`, `lpc824`, `lpc8xx`,
+`stm32f103c8`, `tm4c123gxl`):
+
 - `gcc-arm-none-eabi`
 - `binutils-arm-none-eabi`
 - `libnewlib-arm-none-eabi`
@@ -38,14 +41,25 @@ Project implementation directories use `hardware_language_variant` (variant opti
 - `gdb-multiarch`
 - `openocd`
 
-On Raspberry Pi OS (Trixie/Debian):
+Raspberry Pi OS (Trixie/Debian), Ubuntu 24.04 LTS, and Ubuntu 26.04 all
+use the same package names:
 
 ```sh
 sudo apt update
-sudo apt install gcc-arm-none-eabi binutils-arm-none-eabi libnewlib-arm-none-eabi gdb-multiarch openocd
+sudo apt install -y \
+  gcc-arm-none-eabi binutils-arm-none-eabi libnewlib-arm-none-eabi \
+  gdb-multiarch openocd
 ```
 
-You can verify with:
+On Ubuntu 24.04 / 26.04, also make sure `universe` is enabled (default on
+desktop installs, sometimes off on minimal/cloud images):
+
+```sh
+sudo add-apt-repository universe   # only if `apt install` reports a missing package
+sudo apt update
+```
+
+Verify the install:
 
 ```sh
 ./check-toolchain.sh
@@ -53,20 +67,103 @@ You can verify with:
 
 ## Dependencies (Rust)
 
-Install Rust via rustup and the Cortex-M targets:
+Install Rust via rustup and the Cortex-M targets. The OS-packaged `rustc`
+on Ubuntu 24.04 (1.75) and 26.04 is too old for some embedded crates;
+prefer rustup:
 
 ```sh
+# All distros (Raspberry Pi OS, Ubuntu 24.04, Ubuntu 26.04)
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-source $HOME/.cargo/env
-rustup target add thumbv6m-none-eabi
-rustup target add thumbv7em-none-eabi
+source "$HOME/.cargo/env"
+rustup target add thumbv6m-none-eabi    # lpc1114, lpc8xx, ch32v003 host
+rustup target add thumbv7em-none-eabi   # tm4c123gxl
 ```
+
+## Dependencies (tiny_vm Dev Environment / Theia IDE)
+
+Needed only if you want to use the host-side `tiny_vm` IDE at
+`tools/dev_env/` (simulator + DAP server + Theia browser app + Playwright
+e2e). Not required to build or flash firmware. See
+`tools/dev_env/README.md` for the full story.
+
+Required:
+
+- Node.js >= 18 (Theia)
+- `npm`
+- `python3` (already a dep of the on-target test suites)
+
+Optional:
+
+- Google Chrome (Playwright e2e — Playwright's bundled Chromium has no
+  Ubuntu 26.04 build, so the config uses system Chrome by default)
+- `ffmpeg` (Playwright video recording)
+
+### Ubuntu 24.04 LTS
+
+```sh
+sudo apt update
+sudo apt install -y nodejs npm python3 ffmpeg
+# Optional: Google Chrome for Playwright e2e
+wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo gpg --dearmor -o /usr/share/keyrings/google-chrome.gpg
+echo 'deb [arch=amd64 signed-by=/usr/share/keyrings/google-chrome.gpg] https://dl.google.com/linux/chrome/deb/ stable main' \
+  | sudo tee /etc/apt/sources.list.d/google-chrome.list >/dev/null
+sudo apt update
+sudo apt install -y google-chrome-stable
+```
+
+24.04's default `nodejs` is 18.x, which works. If you want a newer LTS:
+
+```sh
+curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
+sudo apt install -y nodejs   # replaces the distro nodejs
+```
+
+### Ubuntu 26.04
+
+```sh
+sudo apt update
+sudo apt install -y nodejs npm python3 ffmpeg
+# Optional: Google Chrome as on 24.04, same commands
+```
+
+26.04's `nodejs` is current enough for Theia; the NodeSource step is
+optional.
+
+### Install and build the IDE
+
+```sh
+tools/dev_env/scripts/install.sh    # one-time: npm install + theia build
+tools/dev_env/scripts/serve.sh      # serves the IDE on 0.0.0.0:3000
+```
+
+### Run the Playwright e2e
+
+```sh
+cd tools/dev_env/theia
+npx playwright test --project=chrome-system
+```
+
+Notes:
+
+- Playwright's bundled `ffmpeg` does not ship for `ubuntu26.04-x64`. If
+  you need video recording on 26.04, symlink the system binary into the
+  expected location:
+  ```sh
+  mkdir -p ~/.cache/ms-playwright/ffmpeg-1011
+  ln -sf "$(which ffmpeg)" ~/.cache/ms-playwright/ffmpeg-1011/ffmpeg-linux
+  RECORD_VIDEO=1 npx playwright test --project=chrome-system
+  ```
+- Override the browser path with `CHROME_PATH=/usr/bin/chromium` (or any
+  Chromium-family binary).
 
 ## CH32V003 (WCH-Link + OpenOCD)
 
 The CH32V003 uses WCH's single-wire debug interface. The stock `openocd` package from Raspberry Pi OS typically does not include WCH-Link scripts/driver support, so CH32V003 attach fails even when the probe is detected on USB.
 
 ### CH32V003 host dependencies
+
+Needed to build `cjacker/wch-openocd` from source. Same package names on
+Raspberry Pi OS Trixie, Ubuntu 24.04 LTS, and Ubuntu 26.04:
 
 ```sh
 sudo apt update
@@ -126,7 +223,8 @@ git clone --recursive https://github.com/cjacker/wch-openocd.git third_party/wch
 
 For CH32V003 applications, this repo now supports `ch32fun` as the primary C framework.
 
-Install CH32 toolchain prerequisites:
+Install CH32 toolchain prerequisites. Same packages on Raspberry Pi OS
+Trixie, Ubuntu 24.04 LTS, and Ubuntu 26.04:
 
 ```sh
 sudo apt update
