@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>tiny_vm wasm sim — M1 demo</title>
+<style>
+  body { font-family: ui-monospace, "SF Mono", monospace; max-width: 920px; margin: 2rem auto; padding: 0 1rem; line-height: 1.4; color: #222; }
+  h1 { font-size: 1.2rem; margin-bottom: 0.2rem; }
+  h2 { font-size: 1rem; margin-top: 1.6rem; color: #555; }
+  p.tag { color: #888; margin-top: 0; }
+  .row { display: flex; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap; }
+  .col { flex: 1 1 280px; min-width: 280px; }
+  button { font: inherit; padding: 0.4rem 0.8rem; cursor: pointer; border: 1px solid #888; background: #fafafa; border-radius: 3px; }
+  button:hover { background: #eee; }
+  pre { background: #f4f4f4; padding: 0.6rem 0.8rem; border-radius: 3px; overflow-x: auto; margin: 0.3rem 0; }
+  .out { min-height: 6rem; }
+  .state { font-size: 0.85rem; color: #555; }
+  .ok { color: #1a7c2a; font-weight: bold; }
+  .fail { color: #b50000; font-weight: bold; }
+  table.state { border-collapse: collapse; font-size: 0.85rem; }
+  table.state td { padding: 0.1rem 0.6rem 0.1rem 0; }
+  table.state td.k { color: #888; }
+  table.state td.v { font-weight: bold; }
+  select { font: inherit; padding: 0.3rem; }
+</style>
+</head>
+<body>
+<h1>tiny_vm wasm sim — M1 demo</h1>
+<p class="tag">Live in your browser via <code>tools/dev_env_web/sim/pkg/tiny_vm_sim_bg.wasm</code>. No server-side execution.</p>
+
+<div class="row">
+  <div>
+    <label for="prog">Program:</label>
+    <select id="prog">
+      <option value="count10">count10 — print 1..10</option>
+      <option value="checksum8">checksum8 — print 15</option>
+      <option value="mem32">mem32 — print 12345678 + A5A5A5A5</option>
+      <option value="rotate32">rotate32 — 0x12345678 rotated</option>
+    </select>
+  </div>
+  <div>
+    <button id="run">Run</button>
+    <button id="step">Step</button>
+    <button id="reset">Reset</button>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col">
+    <h2>stdout</h2>
+    <pre class="out" id="stdout"></pre>
+  </div>
+  <div class="col">
+    <h2>VM state</h2>
+    <table class="state">
+      <tr><td class="k">status</td><td class="v" id="status">—</td></tr>
+      <tr><td class="k">pc</td><td class="v" id="pc">—</td></tr>
+      <tr><td class="k">sp</td><td class="v" id="sp">—</td></tr>
+      <tr><td class="k">halted</td><td class="v" id="halted">—</td></tr>
+      <tr><td class="k">stack</td><td class="v" id="stack">—</td></tr>
+      <tr><td class="k">locals[0..3]</td><td class="v" id="locals">—</td></tr>
+    </table>
+  </div>
+</div>
+
+<h2>Notes</h2>
+<ul>
+  <li>The bytecode is precomputed by <code>tools/vm_cc.py</code> from <code>projects/tiny_vm/tests/*.cvm.c</code> and loaded via <code>fetch()</code>.</li>
+  <li>Host calls (<code>led_write</code>, <code>delay_ms</code>, <code>print_u32</code>, <code>print_hex32</code>) are handled in JS via the coroutine protocol: sim returns <code>STATUS_HOST_PENDING (3)</code>, JS pops args and pushes results, then calls <code>complete_host_call(rc)</code>.</li>
+  <li>This is the same wasm module that the VS Code Web extension (M2+) will consume.</li>
+</ul>
+
+<script type="module">
+import init, { WasmTinyVm } from "../pkg/tiny_vm_sim.js";
+
+const HOST_LED_WRITE = 0;
+const HOST_DELAY_MS = 1;
+const HOST_UART_PRINTLN_U32 = 2;
+const HOST_UART_PRINTLN_HEX32 = 3;
+
+const STATUS_OK = 0;
+const STATUS_HALT = 1;
+const STATUS_STEP_LIMIT = 2;
+const STATUS_HOST_PENDING = 3;
+
+const STATUS_NAMES = {
+  0: "OK", 1: "HALT", 2: "STEP_LIMIT", 3: "HOST_PENDING",
+  "-1": "ERR_PC_OOB", "-2": "ERR_STACK_OVERFLOW", "-3": "ERR_STACK_UNDERFLOW",
+  "-4": "ERR_BAD_OPCODE", "-5": "ERR_HOST", "-6": "ERR_CODE_TOO_LARGE",
+  "-7": "ERR_MEM_OOB",
+};
+
+let vm = null;
+let bytecode = null;
+const stdoutEl = document.getElementById("stdout");
+const statusEl = document.getElementById("status");
+const pcEl = document.getElementById("pc");
+const spEl = document.getElementById("sp");
+const haltedEl = document.getElementById("halted");
+const stackEl = document.getElementById("stack");
+const localsEl = document.getElementById("locals");
+const progSel = document.getElementById("prog");
+
+async function loadProgram(name) {
+  const r = await fetch(`./bin/${name}.bin`);
+  if (!r.ok) throw new Error(`failed to fetch ${name}.bin (HTTP ${r.status})`);
+  bytecode = new Uint8Array(await r.arrayBuffer());
+  reset();
+}
+
+function reset() {
+  if (vm) { vm.free(); vm = null; }
+  vm = new WasmTinyVm(bytecode);
+  stdoutEl.textContent = "";
+  paintState({ status: STATUS_OK });
+}
+
+function handlePending() {
+  const id = vm.pending_host_id();
+  let rc = -1;
+  if (id === HOST_LED_WRITE || id === HOST_DELAY_MS) {
+    vm.pop(); // discard
+    rc = 0;
+  } else if (id === HOST_UART_PRINTLN_U32) {
+    const v = vm.pop();
+    stdoutEl.textContent += `${v}\n`;
+    rc = 0;
+  } else if (id === HOST_UART_PRINTLN_HEX32) {
+    const v = vm.pop();
+    const hex = (v >>> 0).toString(16).toUpperCase().padStart(8, "0");
+    stdoutEl.textContent += `${hex}\n`;
+    rc = 0;
+  }
+  vm.complete_host_call(rc);
+}
+
+function statusName(s) {
+  return STATUS_NAMES[s.toString()] ?? `UNKNOWN(${s})`;
+}
+
+function paintState({ status }) {
+  statusEl.textContent = statusName(status);
+  statusEl.className = "v " + (status === STATUS_HALT ? "ok" : (status < 0 ? "fail" : ""));
+  pcEl.textContent = vm.pc();
+  spEl.textContent = vm.sp();
+  haltedEl.textContent = vm.halted() ? "true" : "false";
+  const sp = vm.sp();
+  const stack = [];
+  for (let i = 0; i < sp; i++) stack.push(vm.stack_at(i));
+  stackEl.textContent = stack.length ? "[" + stack.join(", ") + "]" : "[]";
+  const locals = [];
+  for (let i = 0; i < 4; i++) locals.push(vm.local_at(i));
+  localsEl.textContent = "[" + locals.join(", ") + "]";
+}
+
+function runUntilDone() {
+  while (true) {
+    const status = vm.run(1_000_000);
+    if (status === STATUS_HOST_PENDING) {
+      handlePending();
+      continue;
+    }
+    paintState({ status });
+    return status;
+  }
+}
+
+function stepOne() {
+  const r = vm.step();
+  if (r.status === STATUS_HOST_PENDING) handlePending();
+  paintState({ status: r.status });
+  return r.status;
+}
+
+document.getElementById("run").addEventListener("click", () => runUntilDone());
+document.getElementById("step").addEventListener("click", () => stepOne());
+document.getElementById("reset").addEventListener("click", () => reset());
+progSel.addEventListener("change", () => loadProgram(progSel.value));
+
+await init();
+await loadProgram(progSel.value);
+</script>
+</body>
+</html>

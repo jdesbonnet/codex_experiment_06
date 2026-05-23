@@ -1,0 +1,32 @@
+/* tslint:disable */
+/* eslint-disable */
+export const memory: WebAssembly.Memory;
+export const __wbg_get_wasmstepresult_op: (a: number) => number;
+export const __wbg_get_wasmstepresult_pc_after: (a: number) => number;
+export const __wbg_get_wasmstepresult_pc_before: (a: number) => number;
+export const __wbg_get_wasmstepresult_status: (a: number) => number;
+export const __wbg_set_wasmstepresult_op: (a: number, b: number) => void;
+export const __wbg_set_wasmstepresult_pc_after: (a: number, b: number) => void;
+export const __wbg_set_wasmstepresult_pc_before: (a: number, b: number) => void;
+export const __wbg_set_wasmstepresult_status: (a: number, b: number) => void;
+export const __wbg_wasmstepresult_free: (a: number, b: number) => void;
+export const __wbg_wasmtinyvm_free: (a: number, b: number) => void;
+export const wasmtinyvm_code_byte: (a: number, b: number) => number;
+export const wasmtinyvm_code_len: (a: number) => number;
+export const wasmtinyvm_complete_host_call: (a: number, b: number) => void;
+export const wasmtinyvm_halted: (a: number) => number;
+export const wasmtinyvm_last_status: (a: number) => number;
+export const wasmtinyvm_local_at: (a: number, b: number) => number;
+export const wasmtinyvm_mem_byte: (a: number, b: number) => number;
+export const wasmtinyvm_new: (a: number, b: number, c: number) => void;
+export const wasmtinyvm_pc: (a: number) => number;
+export const wasmtinyvm_pending_host_id: (a: number) => number;
+export const wasmtinyvm_pop: (a: number) => number;
+export const wasmtinyvm_push: (a: number, b: number) => number;
+export const wasmtinyvm_run: (a: number, b: number) => number;
+export const wasmtinyvm_set_local: (a: number, b: number, c: number) => void;
+export const wasmtinyvm_sp: (a: number) => number;
+export const wasmtinyvm_stack_at: (a: number, b: number) => number;
+export const wasmtinyvm_step: (a: number) => number;
+export const __wbindgen_add_to_stack_pointer: (a: number) => number;
+export const __wbindgen_export: (a: number, b: number) => number;

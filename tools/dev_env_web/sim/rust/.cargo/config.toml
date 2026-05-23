@@ -1,0 +1,11 @@
+# Override the repo-root /.cargo/config.toml which defaults the build target
+# to thumbv6m-none-eabi (LPC1114 / Cortex-M0). This crate builds for the host
+# (for `cargo test`) and for wasm32 (via `wasm-pack`), neither of which want
+# the Cortex-M defaults.
+#
+# Cargo's config merge cannot replace a string with an empty array, so we set
+# the host triple explicitly. If you build on a different host architecture,
+# update the line below or pass `--target <your-host-triple>` on the command
+# line. M5 may replace this with an env-driven override.
+[build]
+target = "x86_64-unknown-linux-gnu"
