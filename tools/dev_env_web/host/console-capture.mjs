@@ -25,7 +25,10 @@
 
 import { chromium } from "playwright-core";
 
-const url = process.argv[2] || "http://127.0.0.1:3000/";
+// Default to localhost (NOT 127.0.0.1): @vscode/test-web embeds the request's
+// Host header in its iframe URL template, and "xyz.127.0.0.1" is not a valid
+// hostname (URL parser rejects it). See scripts/serve.sh for the same gotcha.
+const url = process.argv[2] || "http://localhost:3000/";
 const chromePath = process.env.CHROME_PATH || "/usr/bin/google-chrome";
 const waitMs = Number.parseInt(process.env.WAIT_MS || "6000", 10);
 const filter = process.env.FILTER ? new RegExp(process.env.FILTER) : null;

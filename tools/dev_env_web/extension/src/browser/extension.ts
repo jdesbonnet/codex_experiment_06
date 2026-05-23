@@ -5,14 +5,39 @@
 // fetch().
 
 import * as vscode from "vscode";
+import { OpfsFileSystemProvider, OPFS_SCHEME } from "./filesystem/opfs";
+
+// Files we copy from the dev-mount workspace into OPFS when the user runs
+// `tinyVm.seedOpfs`. Mirror of projects/tiny_vm/tests/*.cvm.c plus the
+// blink demo plus the README that holds the opcode table.
+const SEED_FILES = [
+    "projects/tiny_vm/tests/count10.cvm.c",
+    "projects/tiny_vm/tests/primes1000.cvm.c",
+    "projects/tiny_vm/tests/collatz_max.cvm.c",
+    "projects/tiny_vm/tests/checksum8.cvm.c",
+    "projects/tiny_vm/tests/crc32.cvm.c",
+    "projects/tiny_vm/tests/rotate32.cvm.c",
+    "projects/tiny_vm/tests/mem32.cvm.c",
+    "projects/tiny_vm/tests/sha1_abc.cvm.c",
+    "projects/tiny_vm/demos/blink.cvm.c",
+    "projects/tiny_vm/README.md",
+];
 
 export function activate(context: vscode.ExtensionContext): void {
-    // Smoke command — proves the extension activated and commands are
-    // registered. Later milestones add tinyVm.runInSim, tinyVm.debugInSim,
-    // tinyVm.compile, etc.
+    const opfs = new OpfsFileSystemProvider();
+    context.subscriptions.push(
+        vscode.workspace.registerFileSystemProvider(OPFS_SCHEME, opfs, {
+            isCaseSensitive: true,
+        }),
+    );
+
     context.subscriptions.push(
         vscode.commands.registerCommand("tinyVm.openOpcodeTable", () =>
             openOpcodeTable(context),
+        ),
+        vscode.commands.registerCommand("tinyVm.seedOpfs", () => seedOpfs()),
+        vscode.commands.registerCommand("tinyVm.openOpfsRoot", () =>
+            openOpfsRoot(),
         ),
     );
 
@@ -103,4 +128,75 @@ function escapeHtml(s: string): string {
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;");
+}
+
+/**
+ * Copy a handful of files from the workspace mount into OPFS. The user runs
+ * this once to populate the OPFS workspace; afterwards their edits live in
+ * OPFS persistently across reloads.
+ *
+ * Source URI is whatever the current workspace mount is (e.g.
+ * vscode-test-web://mount/... in dev). Destination is tinyvm-opfs:/...
+ */
+async function seedOpfs(): Promise<void> {
+    const folders = vscode.workspace.workspaceFolders;
+    if (!folders || folders.length === 0) {
+        vscode.window.showErrorMessage(
+            "tiny_vm: no workspace folder open to seed OPFS from",
+        );
+        return;
+    }
+    // Pick the first non-OPFS folder as the source.
+    const srcRoot = folders.find((f) => f.uri.scheme !== OPFS_SCHEME)?.uri;
+    if (!srcRoot) {
+        vscode.window.showErrorMessage(
+            "tiny_vm: no non-OPFS workspace folder to seed from",
+        );
+        return;
+    }
+
+    let copied = 0;
+    let skipped = 0;
+    for (const rel of SEED_FILES) {
+        const src = vscode.Uri.joinPath(srcRoot, rel);
+        const dst = vscode.Uri.from({ scheme: OPFS_SCHEME, path: "/" + rel });
+        try {
+            const data = await vscode.workspace.fs.readFile(src);
+            await vscode.workspace.fs.writeFile(dst, data);
+            copied += 1;
+        } catch (e) {
+            console.warn(`[tiny_vm] seed: skipped ${rel}: ${e}`);
+            skipped += 1;
+        }
+    }
+    vscode.window.showInformationMessage(
+        `tiny_vm: seeded OPFS — ${copied} files copied, ${skipped} skipped. ` +
+            `Run "tiny_vm: Open OPFS Workspace" to view.`,
+    );
+}
+
+/**
+ * Add the OPFS root (`tinyvm-opfs:/`) as a workspace folder. The user can
+ * then browse and edit OPFS files alongside (or instead of) the original
+ * workspace mount.
+ */
+async function openOpfsRoot(): Promise<void> {
+    const uri = vscode.Uri.from({ scheme: OPFS_SCHEME, path: "/" });
+    const existing = vscode.workspace.workspaceFolders ?? [];
+    const already = existing.some((f) => f.uri.toString() === uri.toString());
+    if (already) {
+        vscode.window.showInformationMessage(
+            "tiny_vm: OPFS workspace folder already open.",
+        );
+        return;
+    }
+    const added = vscode.workspace.updateWorkspaceFolders(existing.length, 0, {
+        uri,
+        name: "tiny_vm OPFS",
+    });
+    if (!added) {
+        vscode.window.showErrorMessage(
+            "tiny_vm: failed to add OPFS folder to workspace",
+        );
+    }
 }
