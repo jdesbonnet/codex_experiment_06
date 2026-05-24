@@ -1,0 +1,13 @@
+{
+  "name": "tiny-vm-web-e2e",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Playwright end-to-end tests for the VS Code Web tiny_vm dev environment. Mirrors tools/dev_env/theia/e2e for the Theia version.",
+  "scripts": {
+    "test": "playwright test",
+    "test:headed": "HEADED=1 playwright test --headed"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.49.0"
+  }
+}
