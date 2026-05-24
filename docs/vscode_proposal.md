@@ -28,8 +28,17 @@ no terminal. The browser is the runtime; the server (if any) is a static
 file host plus optional auth and storage APIs. This eliminates the shell
 vector at the architecture level rather than by feature stripping.
 
-**Implementation status:** _not started_. This document is the spec; an
-implementing agent or human can pick it up.
+**Implementation status (2026-05-24):**
+
+| Milestone                              | Status |
+| -------------------------------------- | ------ |
+| M1: wasm tiny_vm simulator             | shipped — `tools/dev_env_web/sim/` (Rust → 22 KB wasm; 11 unit + 8 regression tests pass) |
+| M2: extension scaffold + OPFS provider | shipped — `tools/dev_env_web/extension/`, `host/`, `scripts/` |
+| M3: in-browser DAP                     | shipped — `extension/src/browser/debugAdapter.ts`; compile via `/api/compile` sidecar (decided architecture pivot, see Q2 below) |
+| M4: Playwright e2e                     | shipped — `tools/dev_env_web/e2e/blink-debug.spec.ts` (1 passed) |
+| M5: hardening + smoke + docs           | shipped — `tools/dev_env_web/scripts/smoke.sh`, README updated, security model documented |
+
+See `tools/dev_env_web/README.md` for the user-facing entry point.
 
 ## 1. Purpose and Scope
 

@@ -79,12 +79,19 @@ rustup target add thumbv6m-none-eabi    # lpc1114, lpc8xx, ch32v003 host
 rustup target add thumbv7em-none-eabi   # tm4c123gxl
 ```
 
-## Dependencies (tiny_vm Dev Environment / Theia IDE)
+## Dependencies (tiny_vm Dev Environments)
 
-Needed only if you want to use the host-side `tiny_vm` IDE at
-`tools/dev_env/` (simulator + DAP server + Theia browser app + Playwright
-e2e). Not required to build or flash firmware. See
-`tools/dev_env/README.md` for the full story.
+Two parallel browser-based IDEs are shipped, sharing the same `tiny_vm`
+bytecode compiler/runtime and test cases:
+
+| Path                | Stack          | Backend model | Use when                                        |
+| ------------------- | -------------- | ------------- | ----------------------------------------------- |
+| `tools/dev_env/`    | Eclipse Theia  | Full Node.js backend (file IO, child_process, terminal). | Single-user dev box; you want the workbench to be able to do anything the host can. |
+| `tools/dev_env_web/`| VS Code for the Web | Static frontend + a narrow compile API sidecar (and later: simulate / auth). Browser sandbox holds the IDE. | Cloud-hosted deployments; multi-user; threat model that should not give browser users shell. See `docs/vscode_proposal.md`. |
+
+Neither is required to build or flash firmware. Each has its own
+detailed README; the dependencies below cover both (they share Node /
+Python / Chrome).
 
 Required:
 
@@ -129,21 +136,28 @@ sudo apt install -y nodejs npm python3 ffmpeg
 26.04's `nodejs` is current enough for Theia; the NodeSource step is
 optional.
 
-### Install and build the IDE
+### Theia IDE — install, serve, e2e
 
 ```sh
 tools/dev_env/scripts/install.sh    # one-time: npm install + theia build
 tools/dev_env/scripts/serve.sh      # serves the IDE on 0.0.0.0:3000
-```
 
-### Run the Playwright e2e
-
-```sh
 cd tools/dev_env/theia
 npx playwright test --project=chrome-system
 ```
 
-Notes:
+### VS Code Web IDE — install, serve, smoke
+
+```sh
+tools/dev_env_web/scripts/install.sh   # one-time: npm + (optional) cargo + wasm-pack
+tools/dev_env_web/scripts/serve.sh     # serves IDE on 127.0.0.1:3000 + compile API on :3001
+tools/dev_env_web/scripts/smoke.sh     # cargo test + typecheck + build + e2e in one shot
+```
+
+Open `http://localhost:3000/` (not `127.0.0.1` — see
+`tools/dev_env_web/README.md` for why).
+
+Playwright/ffmpeg notes that apply to both IDEs:
 
 - Playwright's bundled `ffmpeg` does not ship for `ubuntu26.04-x64`. If
   you need video recording on 26.04, symlink the system binary into the
@@ -155,6 +169,9 @@ Notes:
   ```
 - Override the browser path with `CHROME_PATH=/usr/bin/chromium` (or any
   Chromium-family binary).
+- Set `PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1` when running `npm install` in
+  either IDE tree — the bundled Chromium download fails on 26.04 and we
+  use system Chrome anyway.
 
 ## CH32V003 (WCH-Link + OpenOCD)
 
