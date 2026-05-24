@@ -32,7 +32,14 @@ log "building extension/"
 
 # ---- host ------------------------------------------------------------------
 log "installing host/"
-(cd "$WEB/host" && npm install --no-audit --no-fund)
+# PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1: @vscode/test-web pulls Playwright as
+# a transitive dep; the bundled Chromium has no ubuntu26.04-x64 build, so
+# skip the download. We use the system Google Chrome at runtime.
+(cd "$WEB/host" && PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 npm install --no-audit --no-fund)
+
+# ---- e2e -------------------------------------------------------------------
+log "installing e2e/"
+(cd "$WEB/e2e" && PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 npm install --no-audit --no-fund)
 
 # ---- rust sim (optional, for cargo test) ----------------------------------
 if [ -f "$HOME/.cargo/env" ]; then
