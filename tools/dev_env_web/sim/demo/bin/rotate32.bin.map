@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "source": "projects/tiny_vm/tests/rotate32.cvm.c",
+  "bytecode_size": 21,
+  "entries": [
+    {
+      "pc": 0,
+      "line": 9,
+      "col": 1,
+      "kind": "stmt"
+    },
+    {
+      "pc": 10,
+      "line": 10,
+      "col": 1,
+      "kind": "stmt"
+    }
+  ],
+  "locals": []
+}

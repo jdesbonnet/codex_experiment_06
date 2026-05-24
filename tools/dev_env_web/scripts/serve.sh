@@ -33,6 +33,18 @@ if [ ! -f "$EXT/dist/web/extension.js" ]; then
     (cd "$EXT" && npm run build)
 fi
 
+# Start the compile sidecar in the background. Browser fetches from
+# http://localhost:3001 by default (see extension setting tinyVm.apiUrl).
+COMPILE_PORT=${COMPILE_PORT:-3001}
+echo "[serve] starting compile-server on 127.0.0.1:$COMPILE_PORT"
+PORT=$COMPILE_PORT HOST=127.0.0.1 REPO_ROOT="$ROOT" \
+    node "$HOST/compile-server.mjs" > /tmp/compile-server.log 2>&1 &
+COMPILE_PID=$!
+trap "echo '[serve] stopping compile-server (pid $COMPILE_PID)'; kill $COMPILE_PID 2>/dev/null || true" EXIT INT TERM
+
+# Give it a moment to bind.
+sleep 0.3
+
 cd "$HOST"
 echo "[serve] starting @vscode/test-web on 127.0.0.1:$PORT_ARG"
 echo "[serve] extension path: $EXT"

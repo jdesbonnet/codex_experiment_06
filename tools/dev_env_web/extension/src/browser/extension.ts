@@ -6,6 +6,11 @@
 
 import * as vscode from "vscode";
 import { OpfsFileSystemProvider, OPFS_SCHEME } from "./filesystem/opfs";
+import { ensureSimReady, runProgram, statusName, STATUS } from "./sim";
+import { TinyVmDebugAdapter } from "./debugAdapter";
+import { compileCvmC } from "./compile";
+
+const DEBUG_TYPE = "tiny-vm";
 
 // Files we copy from the dev-mount workspace into OPFS when the user runs
 // `tinyVm.seedOpfs`. Mirror of projects/tiny_vm/tests/*.cvm.c plus the
@@ -23,6 +28,15 @@ const SEED_FILES = [
     "projects/tiny_vm/README.md",
 ];
 
+let output: vscode.OutputChannel | null = null;
+
+function getOutput(): vscode.OutputChannel {
+    if (!output) {
+        output = vscode.window.createOutputChannel("tiny_vm");
+    }
+    return output;
+}
+
 export function activate(context: vscode.ExtensionContext): void {
     const opfs = new OpfsFileSystemProvider();
     context.subscriptions.push(
@@ -39,6 +53,26 @@ export function activate(context: vscode.ExtensionContext): void {
         vscode.commands.registerCommand("tinyVm.openOpfsRoot", () =>
             openOpfsRoot(),
         ),
+        vscode.commands.registerCommand("tinyVm.runBytecode", () =>
+            runBytecodeCommand(context),
+        ),
+        vscode.commands.registerCommand("tinyVm.debugBytecode", () =>
+            debugBytecodeCommand(context),
+        ),
+    );
+
+    // Register the tiny_vm debug type with an in-process adapter factory.
+    // The factory creates a fresh TinyVmDebugAdapter per session — VS Code
+    // calls handleMessage(req) on it directly with DAP messages and we fire
+    // events back via onDidSendMessage.
+    context.subscriptions.push(
+        vscode.debug.registerDebugAdapterDescriptorFactory(DEBUG_TYPE, {
+            createDebugAdapterDescriptor(session) {
+                return new vscode.DebugAdapterInlineImplementation(
+                    new TinyVmDebugAdapter(context, session),
+                );
+            },
+        }),
     );
 
     console.log("[tiny_vm] web extension activated");
@@ -180,6 +214,161 @@ async function seedOpfs(): Promise<void> {
  * then browse and edit OPFS files alongside (or instead of) the original
  * workspace mount.
  */
+/**
+ * Smoke command for the M3 wasm integration. Prompts the user to pick a
+ * .bin file from the workspace, runs it through the wasm sim with default
+ * host call handlers, and streams output into the tiny_vm output channel.
+ * This is the run-only path; the DAP-driven debug path comes next.
+ */
+async function runBytecodeCommand(
+    context: vscode.ExtensionContext,
+): Promise<void> {
+    const out = getOutput();
+    out.show(true);
+
+    // Priority 1: if the active editor holds a .bin URI, run that.
+    // Priority 2: open file dialog (uses the registered FileSystemProvider's
+    //   readDirectory, which works for both vscode-test-web:// and
+    //   tinyvm-opfs://, whereas vscode.workspace.findFiles does not).
+    let target: vscode.Uri | undefined;
+    const active = vscode.window.activeTextEditor?.document.uri;
+    if (active && active.path.endsWith(".bin")) {
+        target = active;
+    } else {
+        const picked = await vscode.window.showOpenDialog({
+            canSelectFiles: true,
+            canSelectFolders: false,
+            canSelectMany: false,
+            openLabel: "Run in tiny_vm sim",
+            filters: { "tiny_vm bytecode": ["bin"] },
+            defaultUri: vscode.workspace.workspaceFolders?.[0]?.uri,
+        });
+        target = picked?.[0];
+    }
+    if (!target) {
+        out.appendLine(`[tinyVm] cancelled`);
+        return;
+    }
+
+    out.appendLine(`[tinyVm] loading ${target.toString()}`);
+    await ensureSimReady(context);
+    const code = await vscode.workspace.fs.readFile(target);
+    out.appendLine(`[tinyVm] running ${code.length} bytes`);
+    const t0 = Date.now();
+    const { status, stdout } = runProgram(code, (line) => {
+        out.appendLine(line);
+    });
+    const elapsed = Date.now() - t0;
+    out.appendLine(
+        `[tinyVm] finished: status=${statusName(status)} ` +
+            `(${status}), ${stdout.length} lines, ${elapsed}ms`,
+    );
+    if (status !== STATUS.HALT) {
+        vscode.window.showWarningMessage(
+            `tiny_vm: program ended with ${statusName(status)} — see Output panel`,
+        );
+    }
+}
+
+/**
+ * Start a tiny_vm debug session against a bytecode file. Pick from the
+ * active editor if it ends in .bin, otherwise prompt with a file dialog.
+ * Session loads the .bin + its companion .bin.map, stops on entry, and
+ * surfaces DAP for stepping/breakpoints/inspection through the
+ * TinyVmDebugAdapter.
+ */
+/**
+ * Compile (if needed) and start a debug session.
+ *
+ * If the active editor is a .cvm.c (or .vm), we compile it via Pyodide
+ * to bytecode + map, write the artefacts to OPFS at /.cache/<base>.bin{,.map},
+ * and launch against those. If the active editor is a .bin, we launch
+ * directly. Otherwise we prompt for a .bin via the open dialog.
+ */
+async function debugBytecodeCommand(context: vscode.ExtensionContext): Promise<void> {
+    const out = getOutput();
+    let target: vscode.Uri | undefined;
+    const active = vscode.window.activeTextEditor?.document;
+
+    if (active && (active.fileName.endsWith(".cvm.c") || active.fileName.endsWith(".vm"))) {
+        out.show(true);
+        target = await compileAndStage(context, active, out);
+        if (!target) return;
+    } else if (active && active.uri.path.endsWith(".bin")) {
+        target = active.uri;
+    } else {
+        const picked = await vscode.window.showOpenDialog({
+            canSelectFiles: true,
+            canSelectFolders: false,
+            canSelectMany: false,
+            openLabel: "Debug in tiny_vm sim",
+            filters: { "tiny_vm bytecode + source": ["bin", "cvm.c", "vm"] },
+            defaultUri: vscode.workspace.workspaceFolders?.[0]?.uri,
+        });
+        if (!picked || picked.length === 0) return;
+        const u = picked[0];
+        if (u.path.endsWith(".cvm.c") || u.path.endsWith(".vm")) {
+            out.show(true);
+            const doc = await vscode.workspace.openTextDocument(u);
+            target = await compileAndStage(context, doc, out);
+            if (!target) return;
+        } else {
+            target = u;
+        }
+    }
+
+    const folder = vscode.workspace.getWorkspaceFolder(target);
+    await vscode.debug.startDebugging(folder, {
+        type: DEBUG_TYPE,
+        request: "launch",
+        name: `tiny_vm: ${target.path.split("/").pop()}`,
+        program: target.toString(),
+        stopOnEntry: true,
+    });
+}
+
+/**
+ * Compile a .cvm.c (or .vm) document and write the .bin + .bin.map into
+ * OPFS at /.cache/<base>.bin{,.map}. Returns the .bin URI for launching
+ * the debug session, or undefined on compile failure.
+ */
+async function compileAndStage(
+    context: vscode.ExtensionContext,
+    doc: vscode.TextDocument,
+    out: vscode.OutputChannel,
+): Promise<vscode.Uri | undefined> {
+    const base = doc.uri.path.split("/").pop()!.replace(/\.(cvm\.c|vm)$/, "");
+    const sourceName = vscode.workspace.asRelativePath(doc.uri);
+    try {
+        const { bytecode, sourceMap } = await compileCvmC(
+            context,
+            doc.getText(),
+            sourceName,
+            out,
+        );
+        const binUri = vscode.Uri.from({
+            scheme: OPFS_SCHEME,
+            path: `/.cache/${base}.bin`,
+        });
+        const mapUri = vscode.Uri.from({
+            scheme: OPFS_SCHEME,
+            path: `/.cache/${base}.bin.map`,
+        });
+        await vscode.workspace.fs.writeFile(binUri, bytecode);
+        await vscode.workspace.fs.writeFile(
+            mapUri,
+            new TextEncoder().encode(sourceMap),
+        );
+        out.appendLine(`[tinyVm] staged ${binUri.toString()}`);
+        return binUri;
+    } catch (e) {
+        const msg = `tiny_vm: compile failed: ${e}`;
+        out.appendLine(`[tinyVm] ${msg}`);
+        vscode.window.showErrorMessage(msg);
+        return undefined;
+    }
+}
+
 async function openOpfsRoot(): Promise<void> {
     const uri = vscode.Uri.from({ scheme: OPFS_SCHEME, path: "/" });
     const existing = vscode.workspace.workspaceFolders ?? [];

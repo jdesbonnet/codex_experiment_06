@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "source": "projects/tiny_vm/tests/mem32.cvm.c",
+  "bytecode_size": 27,
+  "entries": [
+    {
+      "pc": 0,
+      "line": 7,
+      "col": 1,
+      "kind": "stmt"
+    },
+    {
+      "pc": 8,
+      "line": 8,
+      "col": 1,
+      "kind": "stmt"
+    },
+    {
+      "pc": 16,
+      "line": 10,
+      "col": 1,
+      "kind": "stmt"
+    },
+    {
+      "pc": 21,
+      "line": 11,
+      "col": 1,
+      "kind": "stmt"
+    }
+  ],
+  "locals": []
+}

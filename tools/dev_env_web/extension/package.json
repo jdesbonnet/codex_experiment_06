@@ -9,7 +9,9 @@
   "engines": {
     "vscode": "^1.85.0"
   },
-  "extensionKind": ["web"],
+  "extensionKind": [
+    "web"
+  ],
   "browser": "./dist/web/extension.js",
   "activationEvents": [
     "onLanguage:tiny-vm-c",
@@ -17,20 +19,34 @@
     "onCommand:tinyVm.openOpcodeTable",
     "onCommand:tinyVm.seedOpfs",
     "onCommand:tinyVm.openOpfsRoot",
-    "onFileSystem:tinyvm-opfs"
+    "onCommand:tinyVm.runBytecode",
+    "onCommand:tinyVm.debugBytecode",
+    "onFileSystem:tinyvm-opfs",
+    "onDebug"
   ],
   "contributes": {
     "languages": [
       {
         "id": "tiny-vm-c",
-        "aliases": ["tiny_vm C", "tiny-vm-c", "cvm-c"],
-        "extensions": [".cvm.c"],
+        "aliases": [
+          "tiny_vm C",
+          "tiny-vm-c",
+          "cvm-c"
+        ],
+        "extensions": [
+          ".cvm.c"
+        ],
         "configuration": "./language-configurations/tiny-vm-c.json"
       },
       {
         "id": "tiny-vm-asm",
-        "aliases": ["tiny_vm Asm", "tiny-vm-asm"],
-        "extensions": [".vm"],
+        "aliases": [
+          "tiny_vm Asm",
+          "tiny-vm-asm"
+        ],
+        "extensions": [
+          ".vm"
+        ],
         "configuration": "./language-configurations/tiny-vm-asm.json"
       }
     ],
@@ -61,6 +77,72 @@
         "command": "tinyVm.openOpfsRoot",
         "title": "tiny_vm: Open OPFS Workspace",
         "category": "tiny_vm"
+      },
+      {
+        "command": "tinyVm.runBytecode",
+        "title": "tiny_vm: Run Bytecode in Simulator",
+        "category": "tiny_vm"
+      },
+      {
+        "command": "tinyVm.debugBytecode",
+        "title": "tiny_vm: Debug Bytecode in Simulator",
+        "category": "tiny_vm"
+      }
+    ],
+    "breakpoints": [
+      {
+        "language": "tiny-vm-c"
+      },
+      {
+        "language": "tiny-vm-asm"
+      }
+    ],
+    "configuration": {
+      "title": "tiny_vm",
+      "properties": {
+        "tinyVm.apiUrl": {
+          "type": "string",
+          "default": "http://localhost:3001",
+          "description": "Base URL of the tiny_vm backend API (compile + future simulate/auth endpoints). In dev this is the sidecar started by tools/dev_env_web/scripts/serve.sh; in production it's the cloud-hosted service."
+        }
+      }
+    },
+    "debuggers": [
+      {
+        "type": "tiny-vm",
+        "label": "tiny_vm Simulator",
+        "languages": [
+          "tiny-vm-c",
+          "tiny-vm-asm"
+        ],
+        "configurationAttributes": {
+          "launch": {
+            "required": [
+              "program"
+            ],
+            "properties": {
+              "program": {
+                "type": "string",
+                "description": "URI of the .bin bytecode file. The companion .bin.map (from `vm_cc.py --map`) is loaded automatically if present.",
+                "default": "${workspaceFolder}/count10.bin"
+              },
+              "stopOnEntry": {
+                "type": "boolean",
+                "description": "Stop at the first bytecode instruction (PC=0) instead of running immediately.",
+                "default": true
+              }
+            }
+          }
+        },
+        "initialConfigurations": [
+          {
+            "type": "tiny-vm",
+            "request": "launch",
+            "name": "tiny_vm: debug current .bin",
+            "program": "${file}",
+            "stopOnEntry": true
+          }
+        ]
       }
     ]
   },

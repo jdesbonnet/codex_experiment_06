@@ -5,6 +5,16 @@ development environment using **VS Code for the Web** (the architecture
 that powers `vscode.dev`). The existing Theia-based implementation under
 `tools/dev_env/theia/` is **not removed**; this plan stands beside it.
 
+**Architecture pivot (2026-05-24):** the project is destined for
+cloud-hosted deployment, so what the original plan deferred as "build
+endpoint" (Q2, option D) is now a v1 dependency rather than v2. The
+backend hosts compilation today, and the simulator / auth / storage
+endpoints will live on the same backend in later iterations. The
+extension's frontend code never assumed a "no backend" architecture
+beyond the optional static-host recipe — flipping `tinyVm.apiUrl` from
+`http://localhost:3001` (dev sidecar) to the production URL is the only
+configuration change required.
+
 **Why a second implementation:** the Theia browser app shipped in
 `tools/dev_env/theia/` is a server-side IDE — it ships a Node.js backend
 with full host access (file I/O, subprocess spawning, terminal). Anyone
@@ -400,6 +410,17 @@ Acceptance:
   `extension/package.json`.
 
 ## 8. Open Questions
+
+**Q2 — decided 2026-05-24.** Backend compile endpoint, served by
+`tools/dev_env_web/host/compile-server.mjs` in dev (running `vm_cc.py`
+via `child_process`). In production the same `/api/compile` contract
+moves to a cloud service. Rationale: the project is destined for cloud
+hosting and we'd rather exercise the API pattern from day one than
+build an in-browser Pyodide solution we'd throw away. Pyodide was
+attempted briefly and hit an `importScripts is blocked` failure
+fundamental to ES-module workers, confirming the choice.
+
+**Other open questions:**
 
 1. **Sim implementation language: Rust vs C-via-emscripten vs Pyodide?**
    This plan assumes Rust. Decision drivers:

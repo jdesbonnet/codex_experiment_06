@@ -1,0 +1,85 @@
+{
+  "version": 1,
+  "source": "projects/tiny_vm/tests/checksum8.cvm.c",
+  "bytecode_size": 64,
+  "entries": [
+    {
+      "pc": 0,
+      "line": 7,
+      "col": 1,
+      "kind": "stmt"
+    },
+    {
+      "pc": 5,
+      "line": 8,
+      "col": 1,
+      "kind": "stmt"
+    },
+    {
+      "pc": 10,
+      "line": 9,
+      "col": 1,
+      "kind": "stmt"
+    },
+    {
+      "pc": 15,
+      "line": 10,
+      "col": 1,
+      "kind": "stmt"
+    },
+    {
+      "pc": 20,
+      "line": 11,
+      "col": 1,
+      "kind": "stmt"
+    },
+    {
+      "pc": 25,
+      "line": 13,
+      "col": 1,
+      "kind": "stmt"
+    },
+    {
+      "pc": 29,
+      "line": 14,
+      "col": 1,
+      "kind": "stmt"
+    },
+    {
+      "pc": 33,
+      "line": 16,
+      "col": 1,
+      "kind": "loop_head"
+    },
+    {
+      "pc": 41,
+      "line": 17,
+      "col": 5,
+      "kind": "stmt"
+    },
+    {
+      "pc": 49,
+      "line": 18,
+      "col": 5,
+      "kind": "stmt"
+    },
+    {
+      "pc": 59,
+      "line": 21,
+      "col": 1,
+      "kind": "stmt"
+    }
+  ],
+  "locals": [
+    {
+      "slot": 0,
+      "name": "i",
+      "line": 13
+    },
+    {
+      "slot": 1,
+      "name": "sum",
+      "line": 14
+    }
+  ]
+}

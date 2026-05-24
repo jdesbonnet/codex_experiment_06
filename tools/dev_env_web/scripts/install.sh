@@ -46,4 +46,20 @@ else
     log "rust or wasm-pack missing — skipping sim rebuild (the committed pkg/ stands in)"
 fi
 
+# Copy sim/pkg/ into extension/wasm/ so the extension can load the wasm at
+# runtime via vscode.workspace.fs. The extension imports the JS bridge as a
+# normal ES module (esbuild bundles it) and reads the .wasm bytes separately.
+log "copying sim/pkg/ -> extension/wasm/"
+mkdir -p "$WEB/extension/wasm"
+cp "$WEB/sim/pkg/tiny_vm_sim.js" \
+   "$WEB/sim/pkg/tiny_vm_sim.d.ts" \
+   "$WEB/sim/pkg/tiny_vm_sim_bg.wasm" \
+   "$WEB/sim/pkg/tiny_vm_sim_bg.wasm.d.ts" \
+   "$WEB/extension/wasm/"
+
+# Compilation happens server-side via tools/dev_env_web/host/compile-server.mjs
+# (started by scripts/serve.sh). The browser fetches; no Python or Pyodide
+# bundled into the extension. See docs/vscode_proposal.md §8 Q2 decision
+# record.
+
 log "done. Next: tools/dev_env_web/scripts/serve.sh"
