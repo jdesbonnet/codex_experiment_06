@@ -1,0 +1,21 @@
+<svg width="400" height="400" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+  <!-- Instruction Loop / Stylized 06 -->
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#0984e3" />
+    </marker>
+  </defs>
+
+  <!-- Background Glow -->
+  <circle cx="200" cy="200" r="120" fill="#f1f2f6" />
+
+  <!-- Continuous Path -->
+  <path d="M 160 160 A 40 40 0 1 0 160 240 A 40 40 0 1 0 160 160 
+           M 240 120 L 240 280 L 280 280 L 280 200 L 240 200" 
+        fill="none" stroke="#0984e3" stroke-width="15" stroke-linecap="round" stroke-linejoin="round" />
+
+  <circle cx="160" cy="200" r="5" fill="#dfe6e9" />
+  <circle cx="260" cy="240" r="5" fill="#dfe6e9" />
+
+  <text x="200" y="340" font-family="serif" font-style="italic" font-weight="bold" font-size="28" fill="#2f3542" text-anchor="middle">Codex 06</text>
+</svg>

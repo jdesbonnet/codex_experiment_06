@@ -3,7 +3,7 @@
 This is the execution plan for a parallel implementation of the `tiny_vm`
 development environment using **VS Code for the Web** (the architecture
 that powers `vscode.dev`). The existing Theia-based implementation under
-`tools/dev_env/theia/` is **not removed**; this plan stands beside it.
+`tools/theia/theia/` is **not removed**; this plan stands beside it.
 
 **Architecture pivot (2026-05-24):** the project is destined for
 cloud-hosted deployment, so what the original plan deferred as "build
@@ -16,7 +16,7 @@ beyond the optional static-host recipe — flipping `tinyVm.apiUrl` from
 configuration change required.
 
 **Why a second implementation:** the Theia browser app shipped in
-`tools/dev_env/theia/` is a server-side IDE — it ships a Node.js backend
+`tools/theia/theia/` is a server-side IDE — it ships a Node.js backend
 with full host access (file I/O, subprocess spawning, terminal). Anyone
 who can reach its HTTP port has shell-as-the-server-user. That is fine
 for a single-user dev box behind a firewall but is not a sound base for
@@ -32,14 +32,14 @@ vector at the architecture level rather than by feature stripping.
 
 | Milestone                              | Status |
 | -------------------------------------- | ------ |
-| M1: wasm tiny_vm simulator             | shipped — `tools/dev_env_web/sim/` (Rust → 22 KB wasm; 11 unit + 8 regression tests pass) |
-| M2: extension scaffold + OPFS provider | shipped — `tools/dev_env_web/extension/`, `host/`, `scripts/` |
+| M1: wasm tiny_vm simulator             | shipped — `tools/vscode/sim/` (Rust → 22 KB wasm; 11 unit + 8 regression tests pass) |
+| M2: extension scaffold + OPFS provider | shipped — `tools/vscode/extension/`, `host/`, `scripts/` |
 | M3: in-browser DAP                     | shipped — `extension/src/browser/debugAdapter.ts`; compile via `/api/compile` sidecar (decided architecture pivot, see Q2 below) |
-| M4: Playwright e2e                     | shipped — `tools/dev_env_web/e2e/blink-debug.spec.ts` (1 passed) |
-| M5: hardening + smoke + docs           | shipped — `tools/dev_env_web/scripts/smoke.sh`, README updated, security model documented |
+| M4: Playwright e2e                     | shipped — `tools/vscode/e2e/blink-debug.spec.ts` (1 passed) |
+| M5: hardening + smoke + docs           | shipped — `tools/vscode/scripts/smoke.sh`, README updated, security model documented |
 | D2 (subset): cloud project files       | shipped — `/api/projects` + `tinyvm-cloud:` FileSystemProvider + persistence e2e. Auth still deferred. See `docs/cloud_storage_proposal.md`. |
 
-See `tools/dev_env_web/README.md` for the user-facing entry point.
+See `tools/vscode/README.md` for the user-facing entry point.
 
 ## 1. Purpose and Scope
 
@@ -57,7 +57,7 @@ In-scope for v1 (this plan):
 - Source-map driven source-line, opcode, and bytecode-level stepping
   (reuses existing `.map` schema).
 - Playwright e2e test against a self-hosted VS Code Web build that
-  matches `tools/dev_env/theia/e2e/blink-debug.spec.ts` behaviour.
+  matches `tools/theia/theia/e2e/blink-debug.spec.ts` behaviour.
 - Onboarding README; static-only hosting recipe.
 
 Deferred to v2 (designed for, not built in v1):
@@ -92,12 +92,12 @@ Everything below is reused unchanged or with cosmetic wrapping:
 | Bytecode test cases | `projects/tiny_vm/tests/*.cvm.c`        | Source of truth for sim acceptance tests            |
 | Native runtime   | `common/src/tiny_vm.c`, `common/include/tiny_vm.h` | The reference being matched bit-for-bit         |
 | Expected output  | `tools/test_tiny_vm_hardware.py` `expected_lines()` | Same expectations now asserted in JS tests    |
-| Smoke script glue| `tools/dev_env/scripts/smoke.sh` (Theia)   | Web equivalent at `tools/dev_env_web/scripts/`       |
+| Smoke script glue| `tools/theia/scripts/smoke.sh` (Theia)   | Web equivalent at `tools/vscode/scripts/`       |
 
 What does **not** carry over:
-- `tools/dev_env/sim/tiny_vm_sim.py` — replaced by a wasm sim.
-- `tools/dev_env/dap/server.py` — replaced by an in-browser DAP class.
-- `tools/dev_env/theia/tiny-vm-extension/` — replaced by a VS Code Web
+- `tools/theia/sim/tiny_vm_sim.py` — replaced by a wasm sim.
+- `tools/theia/dap/server.py` — replaced by an in-browser DAP class.
+- `tools/theia/theia/tiny-vm-extension/` — replaced by a VS Code Web
   extension. The command names and UX are mirrored deliberately.
 
 ## 3. Architecture
@@ -134,10 +134,10 @@ Key principles:
 
 ## 4. Repository Layout
 
-All new code lives under `tools/dev_env_web/`:
+All new code lives under `tools/vscode/`:
 
 ```
-tools/dev_env_web/
+tools/vscode/
   sim/                          # wasm simulator
     rust/   (or  c/)            # source code for the wasm sim
     pkg/                        # built .wasm + .js glue (committed for static-only deploys)
@@ -169,7 +169,7 @@ tools/dev_env_web/
     install.sh                  # node deps, sim build
     serve.sh                    # static file server on :3000
     smoke.sh                    # end-to-end one-shot check
-  README.md                     # user-facing entrypoint mirroring tools/dev_env/README.md
+  README.md                     # user-facing entrypoint mirroring tools/theia/README.md
 ```
 
 The build endpoint for `vm_cc.py` / `vm_asm.py` (if we ship one) lives
@@ -178,7 +178,7 @@ static IDE bundle. v1 may ship without it (see section 8).
 
 ## 5. Component Specifications
 
-### 5.1 Wasm Simulator (`tools/dev_env_web/sim/`)
+### 5.1 Wasm Simulator (`tools/vscode/sim/`)
 
 Language choice: **Rust + wasm-bindgen** (recommended). Rationale:
 - The CH32V003 / LPC1114 / TM4C runtimes are all C, but the existing
@@ -204,11 +204,11 @@ Host-call set (matches the existing Python sim and on-MCU C runtime):
 ### 5.2 Source Map (no new code)
 
 Reuses the existing `.map` JSON emitted by `vm_cc.py --map` and
-`vm_asm.py --map`. `tools/dev_env_web/extension/src/browser/sourcemap.ts`
-is a TypeScript port of `tools/dev_env/sim/sourcemap.py` — same lookup
+`vm_asm.py --map`. `tools/vscode/extension/src/browser/sourcemap.ts`
+is a TypeScript port of `tools/theia/sim/sourcemap.py` — same lookup
 semantics (`pc -> line`, `line -> pc`, locals by slot).
 
-### 5.3 In-Browser DAP (`tools/dev_env_web/extension/src/browser/debugAdapter.ts`)
+### 5.3 In-Browser DAP (`tools/vscode/extension/src/browser/debugAdapter.ts`)
 
 Implements `vscode.DebugAdapter` (the in-process form) rather than the
 network DAP protocol. The extension creates an adapter directly; there
@@ -235,7 +235,7 @@ Backend abstraction: `DebugBackend` interface with `step()`, `cont()`,
 the same `TVM1` upload protocol to a chip over WebSerial — DAP layer
 unchanged. (Same design as the Theia version's `HardwareBackend`.)
 
-### 5.4 VS Code Web Extension (`tools/dev_env_web/extension/`)
+### 5.4 VS Code Web Extension (`tools/vscode/extension/`)
 
 Manifest constraints: this is a **web extension**, declared with
 `"browser": "./dist/web/extension.js"` in `package.json` and no `"main"`.
@@ -261,7 +261,7 @@ Contributions:
   - "tiny_vm Memory" hex view (read-only in v1)
   - "tiny_vm Host Log" output channel
 
-### 5.5 Filesystem Providers (`tools/dev_env_web/extension/src/browser/filesystem/`)
+### 5.5 Filesystem Providers (`tools/vscode/extension/src/browser/filesystem/`)
 
 Two providers in v1:
 - **OPFS provider** (default): files live in the Origin Private File
@@ -280,22 +280,22 @@ Cloud-backed providers (REST / GitHub / S3) are v2.
 
 ### 5.6 Build, Install, and Run Glue
 
-`tools/dev_env_web/scripts/install.sh`:
+`tools/vscode/scripts/install.sh`:
 - checks Node 18+ and `wasm-pack` (or `cargo` + a wasm target)
 - installs npm deps for `extension/`, `host/`, `e2e/`
 - builds the wasm sim (`sim/`) and commits the artifact under `sim/pkg/`
 
-`tools/dev_env_web/scripts/serve.sh`:
+`tools/vscode/scripts/serve.sh`:
 - launches a static HTTP server (`http-server`, `caddy`, or `python -m
-  http.server`) over `tools/dev_env_web/host/dist/` on port 3000
+  http.server`) over `tools/vscode/host/dist/` on port 3000
 - explicitly does **not** bind 0.0.0.0 by default; documented in the
   README how to expose if desired
 - has no Node backend running
 
-`tools/dev_env_web/scripts/smoke.sh`:
+`tools/vscode/scripts/smoke.sh`:
 - runs `test_sim.ts` against the wasm pkg for every committed test case
 - runs the Playwright e2e against `serve.sh` for the blink debug flow
-- this is the canonical "before you merge" gate for `dev_env_web/`
+- this is the canonical "before you merge" gate for `vscode/`
 
 ## 6. Milestones
 
@@ -305,8 +305,8 @@ user-assistant exchange.
 ### Milestone 1 — Wasm Simulator (8-12 turns)
 
 Scope:
-- Port `tools/dev_env/sim/tiny_vm_sim.py` to Rust under
-  `tools/dev_env_web/sim/rust/`.
+- Port `tools/theia/sim/tiny_vm_sim.py` to Rust under
+  `tools/vscode/sim/rust/`.
 - Add `host_calls.rs` with the four host call IDs from 5.1.
 - Build to `sim/pkg/` via `wasm-pack`.
 - Write `test_sim.ts` that runs every test case in
@@ -321,7 +321,7 @@ Acceptance:
 ### Milestone 2 — VS Code Web Extension Scaffold (6-9 turns)
 
 Scope:
-- Set up `tools/dev_env_web/extension/` as a web extension package.
+- Set up `tools/vscode/extension/` as a web extension package.
 - Register `tiny-vm-c` and `tiny-vm-asm` languages; copy grammars.
 - Implement the OPFS `FileSystemProvider` and seed with a starter
   workspace.
@@ -351,8 +351,8 @@ Acceptance:
 ### Milestone 4 — Playwright E2E (6-9 turns)
 
 Scope:
-- `tools/dev_env_web/e2e/blink-debug.spec.ts` parallels the Theia
-  spec at `tools/dev_env/theia/e2e/blink-debug.spec.ts`: launches the
+- `tools/vscode/e2e/blink-debug.spec.ts` parallels the Theia
+  spec at `tools/theia/theia/e2e/blink-debug.spec.ts`: launches the
   static host, opens blink.cvm.c, steps through, asserts UI state and
   snapshots per step.
 - Reuse the same system-Chrome path noted in the Theia README
@@ -365,8 +365,8 @@ Acceptance:
 ### Milestone 5 — Hardening, Smoke, Docs (4-6 turns)
 
 Scope:
-- `tools/dev_env_web/scripts/smoke.sh` ties M1+M3+M4 into one command.
-- `README.md` parallel to `tools/dev_env/README.md`, with the same
+- `tools/vscode/scripts/smoke.sh` ties M1+M3+M4 into one command.
+- `README.md` parallel to `tools/theia/README.md`, with the same
   "Quick start (no IDE) / Quick start (IDE) / Tests / Source map" sections.
 - Add a "Security model" section explicitly stating what is and is not
   exposed (in pointed contrast to the Theia version).
@@ -422,7 +422,7 @@ Acceptance:
 ## 8. Open Questions
 
 **Q2 — decided 2026-05-24.** Backend compile endpoint, served by
-`tools/dev_env_web/host/compile-server.mjs` in dev (running `vm_cc.py`
+`tools/vscode/host/compile-server.mjs` in dev (running `vm_cc.py`
 via `child_process`). In production the same `/api/compile` contract
 moves to a cloud service. Rationale: the project is destined for cloud
 hosting and we'd rather exercise the API pattern from day one than
@@ -461,7 +461,7 @@ fundamental to ES-module workers, confirming the choice.
 6. **Should this live in this repo or a sibling?** The Theia code is
    already a substantial subtree. Pros of same repo: shared tests,
    shared CI, single PR for cross-stack changes. Cons: bigger checkout,
-   slower CI. Default in this plan: same repo, under `tools/dev_env_web/`.
+   slower CI. Default in this plan: same repo, under `tools/vscode/`.
 
 ## 9. Reference Files
 
@@ -469,14 +469,14 @@ Existing code this plan reads from:
 
 - `docs/theia_proposal.md` — the original Theia plan; this doc mirrors
   its structure.
-- `tools/dev_env/README.md` — the user-facing entry point being mirrored.
-- `tools/dev_env/sim/tiny_vm_sim.py` — reference implementation for the
+- `tools/theia/README.md` — the user-facing entry point being mirrored.
+- `tools/theia/sim/tiny_vm_sim.py` — reference implementation for the
   wasm port.
-- `tools/dev_env/dap/handlers.py` — reference for the DAP request set
+- `tools/theia/dap/handlers.py` — reference for the DAP request set
   and the `DebugBackend` abstraction.
-- `tools/dev_env/theia/tiny-vm-extension/` — reference for the command
+- `tools/theia/theia/tiny-vm-extension/` — reference for the command
   surface and UX.
-- `tools/dev_env/theia/e2e/blink-debug.spec.ts` — reference Playwright
+- `tools/theia/theia/e2e/blink-debug.spec.ts` — reference Playwright
   flow.
 - `tools/test_tiny_vm_hardware.py` `expected_lines()` — acceptance
   oracle for sim outputs.

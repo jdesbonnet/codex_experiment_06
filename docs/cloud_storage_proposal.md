@@ -30,8 +30,8 @@ The first cloud-storage iteration reuses, unchanged:
 
 | Component                                          | Role in this plan                             |
 | -------------------------------------------------- | --------------------------------------------- |
-| `tools/dev_env_web/host/compile-server.mjs`        | Same Node HTTP process now also hosts `/api/projects`. |
-| `tools/dev_env_web/extension/src/browser/compile.ts` | Already a `fetch()` client of the same origin. New code uses the same `tinyVm.apiUrl` setting. |
+| `tools/vscode/host/compile-server.mjs`        | Same Node HTTP process now also hosts `/api/projects`. |
+| `tools/vscode/extension/src/browser/compile.ts` | Already a `fetch()` client of the same origin. New code uses the same `tinyVm.apiUrl` setting. |
 | `OpfsFileSystemProvider` (`filesystem/opfs.ts`)    | Reference implementation of the FileSystemProvider interface. The cloud provider mirrors its shape. |
 | `tinyVm.debugBytecode` flow                        | Stays as-is. The cloud provider returns the source bytes; compile + DAP launch are unchanged. |
 
@@ -75,10 +75,10 @@ Key design notes:
 
 ## 4. Repository Layout
 
-New code lives under `tools/dev_env_web/`:
+New code lives under `tools/vscode/`:
 
 ```
-tools/dev_env_web/
+tools/vscode/
   host/
     compile-server.mjs            # extended; now exports getHandler() for routes
     projects-store.mjs            # new — FS-backed project store
@@ -127,7 +127,7 @@ Path normalization rules (server-side):
 
 ### 5.2 OpenAPI wire contract
 
-Lives at `tools/dev_env_web/host/openapi.yaml`. The full spec is in the
+Lives at `tools/vscode/host/openapi.yaml`. The full spec is in the
 sibling file; an abridged human-readable summary:
 
 | Method | Path                                       | Body            | Response                                |
@@ -294,7 +294,7 @@ Acceptance:
 Scope:
 - `e2e/cloud-persistence.spec.ts`: new-project / write-file /
   close-context / new-context-same-origin / verify-file-content.
-- Update `tools/dev_env_web/README.md` with a "Cloud projects" section.
+- Update `tools/vscode/README.md` with a "Cloud projects" section.
 - Update `docs/vscode_proposal.md` status table — D2 "cloud project
   files" partially shipped (no auth yet).
 
@@ -349,7 +349,7 @@ e2e can flip-flop via `IDE_URL` / `tinyVm.apiUrl` overrides.
 
 - `docs/vscode_proposal.md` — the VS Code Web environment plan that this
   proposal extends.
-- `tools/dev_env_web/host/compile-server.mjs` — existing sidecar that
+- `tools/vscode/host/compile-server.mjs` — existing sidecar that
   gains the new endpoints.
-- `tools/dev_env_web/extension/src/browser/filesystem/opfs.ts` —
+- `tools/vscode/extension/src/browser/filesystem/opfs.ts` —
   reference FileSystemProvider whose shape we mirror.

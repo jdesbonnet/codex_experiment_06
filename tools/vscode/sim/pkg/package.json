@@ -1,0 +1,17 @@
+{
+  "name": "tiny_vm_sim",
+  "type": "module",
+  "description": "WebAssembly tiny_vm simulator — Rust port of tools/theia/sim/tiny_vm_sim.py",
+  "version": "0.1.0",
+  "license": "MIT OR Apache-2.0",
+  "files": [
+    "tiny_vm_sim_bg.wasm",
+    "tiny_vm_sim.js",
+    "tiny_vm_sim.d.ts"
+  ],
+  "main": "tiny_vm_sim.js",
+  "types": "tiny_vm_sim.d.ts",
+  "sideEffects": [
+    "./snippets/*"
+  ]
+}

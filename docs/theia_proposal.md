@@ -9,12 +9,12 @@ that other agents can implement step by step.
 | Milestone                              | Status                  |
 | -------------------------------------- | ----------------------- |
 | M1: source-map emission (`vm_cc.py`/`vm_asm.py --map`) | shipped (4 new tests in `tools/test_vm_tools.py`) |
-| M2: host-side simulator                | shipped (`tools/dev_env/sim/`, 16 tests passing) |
-| M3: Python DAP server                  | shipped (`tools/dev_env/dap/`, 2 end-to-end tests passing) |
-| M4: Theia browser app                  | scaffolded under `tools/dev_env/theia/` (install + build steps in `scripts/install.sh`) |
-| M5: hardening + smoke + README         | shipped (`tools/dev_env/scripts/smoke.sh`, `tools/dev_env/README.md`) |
+| M2: host-side simulator                | shipped (`tools/theia/sim/`, 16 tests passing) |
+| M3: Python DAP server                  | shipped (`tools/theia/dap/`, 2 end-to-end tests passing) |
+| M4: Theia browser app                  | scaffolded under `tools/theia/theia/` (install + build steps in `scripts/install.sh`) |
+| M5: hardening + smoke + README         | shipped (`tools/theia/scripts/smoke.sh`, `tools/theia/README.md`) |
 
-See `tools/dev_env/README.md` for the user-facing entrypoint.
+See `tools/theia/README.md` for the user-facing entrypoint.
 
 ## 1. Purpose and Scope
 
@@ -73,8 +73,8 @@ flowchart LR
     A[Editor<br/>Monaco in Theia] --> B[tiny_vm Theia extension<br/>TypeScript]
     B -->|spawn| C[vm_cc.py<br/>subprocess]
     B -->|spawn| D[vm_asm.py<br/>subprocess]
-    B -->|launch DAP| E[Python DAP server<br/>tools/dev_env/dap]
-    E -->|drives| F[Python simulator<br/>tools/dev_env/sim]
+    B -->|launch DAP| E[Python DAP server<br/>tools/theia/dap]
+    E -->|drives| F[Python simulator<br/>tools/theia/sim]
     F -->|host call stubs| G[Mocked host services<br/>led/delay/print/host]
     C -.emits.-> H[.bin bytecode + .map source map]
     H --> E
@@ -96,10 +96,10 @@ Key principles:
 
 ## 4. Repository Layout
 
-All new code lives under `tools/dev_env/`:
+All new code lives under `tools/theia/`:
 
 ```
-tools/dev_env/
+tools/theia/
   README.md                # How to install, run, and develop the IDE
   sim/
     tiny_vm_sim.py         # Python port of common/src/tiny_vm.c
@@ -137,7 +137,7 @@ separate Theia distribution.
 
 ## 5. Component Specifications
 
-### 5.1 Host-side Simulator (`tools/dev_env/sim/`)
+### 5.1 Host-side Simulator (`tools/theia/sim/`)
 
 Language: Python 3 (matches `vm_cc.py`, `vm_asm.py`,
 `web_debugger_backend/server.py`).
@@ -181,7 +181,7 @@ exception classes"): `StepBudgetExceeded`, `TimeBudgetExceeded`,
 `InvalidOpcode`, `HostCallFailure`. The DAP layer maps these to DAP
 `StoppedEvent` reasons.
 
-CLI form (`python -m tools.dev_env.sim.cli <bin>`):
+CLI form (`python -m tools.theia.sim.cli <bin>`):
 - runs to halt
 - prints captured stdout
 - exits with the VM status code
@@ -189,7 +189,7 @@ CLI form (`python -m tools.dev_env.sim.cli <bin>`):
 This CLI is what `tools/test_vm_tools.py` should also exercise (extend the
 existing tests, do not create a parallel harness).
 
-### 5.2 Source Map (`tools/dev_env/sim/sourcemap.py` + change to `vm_cc.py`)
+### 5.2 Source Map (`tools/theia/sim/sourcemap.py` + change to `vm_cc.py`)
 
 To support `.cvm.c` source-level stepping, `vm_cc.py` must emit a sidecar
 source map alongside the `.bin`. Proposed format `<output>.map`:
@@ -219,7 +219,7 @@ Two PRs cleanly separate this work:
 `vm_asm.py` gets a similar but smaller change: emit `<out>.map` containing
 just `{pc -> source line}` for `.vm` files when `--map` is passed.
 
-### 5.3 DAP Server (`tools/dev_env/dap/`)
+### 5.3 DAP Server (`tools/theia/dap/`)
 
 Language: Python 3. Transport: TCP on `127.0.0.1` (port chosen at startup,
 reported on stdout for the Theia extension to read).
@@ -257,7 +257,7 @@ only implementation is `SimBackend(TinyVmSim)`. In v2 we add
 `HardwareBackend(WebDebuggerClient)` that talks to
 `tools/web_debugger_backend/server.py`. The DAP layer stays unchanged.
 
-### 5.4 Theia Browser Application (`tools/dev_env/theia/`)
+### 5.4 Theia Browser Application (`tools/theia/theia/`)
 
 Choice: a Theia *browser* application (not just an extension dropped into
 someone else's IDE). It runs on the Pi 5 and is opened from a workstation
@@ -275,7 +275,7 @@ Contributions provided by `src/extension/`:
 - **Languages**: register `tiny-vm-c` (`.cvm.c`) and `tiny-vm-asm` (`.vm`)
   with TextMate grammars. v1 syntax-highlighting only; LSP is v2.
 - **Debug type**: register `tiny-vm` debug type. The extension spawns
-  `python3 -m tools.dev_env.dap.server` and connects via TCP.
+  `python3 -m tools.theia.dap.server` and connects via TCP.
 - **Commands**:
   - `tinyVm.compile` (Cmd/Ctrl+B): runs `vm_cc.py` or `vm_asm.py`
     depending on file type. Output to Theia's `output` panel.
@@ -297,19 +297,19 @@ theming; do not introduce custom themes in v1.
 
 ### 5.5 Build, Install, and Run Glue
 
-`tools/dev_env/scripts/install.sh`:
+`tools/theia/scripts/install.sh`:
 - checks Node version, installs via nvm if missing
 - installs Theia application dependencies (`yarn`)
-- creates a Python venv at `tools/dev_env/.venv` with the same Python that
+- creates a Python venv at `tools/theia/.venv` with the same Python that
   `tools/vm_cc.py` already runs under
 - runs `tests` once to make sure everything links up
 
-`tools/dev_env/scripts/serve.sh`:
+`tools/theia/scripts/serve.sh`:
 - starts `theia start --hostname 0.0.0.0 --port 3000`
 - the DAP server is *not* started by serve.sh; the Theia extension spawns
   it on demand per debug session
 
-`tools/dev_env/scripts/smoke.sh`:
+`tools/theia/scripts/smoke.sh`:
 - compiles `projects/tiny_vm/tests/count10.cvm.c` with `vm_cc.py --map`
 - runs the sim CLI on the result
 - asserts stdout is `1\n2\n...\n10\ntiny_vm: halt\n`
@@ -338,14 +338,14 @@ Acceptance:
 ### Milestone 2 - Host-side Simulator (6-9 turns)
 
 Scope:
-- Implement `tools/dev_env/sim/tiny_vm_sim.py`, `host_calls.py`,
+- Implement `tools/theia/sim/tiny_vm_sim.py`, `host_calls.py`,
   `sourcemap.py`, `cli.py`.
 - Cross-check every bytecode test in `projects/tiny_vm/tests/` against the
   expected UART output already documented in
   `projects/tiny_vm/README.md`.
 
 Acceptance:
-- `tools/dev_env/sim/cli.py <bin>` produces the same output as the
+- `tools/theia/sim/cli.py <bin>` produces the same output as the
   hardware regression suite for `count10`, `primes1000`, `collatz_max`,
   `checksum8`, `crc32`, `rotate32`, `mem32`, `sha1_abc`.
 - Sim unit tests run alongside `test_vm_tools.py`.
@@ -354,7 +354,7 @@ Acceptance:
 
 Scope:
 - Implement the DAP server and handlers listed in section 5.3.
-- `tools/dev_env/dap/test_dap.py` drives the server over TCP for
+- `tools/theia/dap/test_dap.py` drives the server over TCP for
   initialize / launch / setBreakpoints / continue / stackTrace flows.
 
 Acceptance:
@@ -366,15 +366,15 @@ Acceptance:
 ### Milestone 4 - Theia Browser App (10-14 turns)
 
 Scope:
-- Bootstrap the Theia browser app under `tools/dev_env/theia/`.
+- Bootstrap the Theia browser app under `tools/theia/theia/`.
 - Implement the contributions in section 5.4 (grammars, debug type,
   commands, views, opcode webview).
 - Wire `scripts/install.sh` and `scripts/serve.sh`.
 
 Acceptance:
-- `bash tools/dev_env/scripts/install.sh` finishes clean on a stock Pi 5
+- `bash tools/theia/scripts/install.sh` finishes clean on a stock Pi 5
   Trixie image.
-- `bash tools/dev_env/scripts/serve.sh` exposes Theia on `:3000`.
+- `bash tools/theia/scripts/serve.sh` exposes Theia on `:3000`.
 - From the browser, a user can: open `count10.cvm.c`, hit F5, see the
   program run in the sim and produce output in the Theia output panel.
 - The same flow with Shift+F5 stops on entry and supports source-line
@@ -384,11 +384,11 @@ Acceptance:
 
 Scope:
 - Implement `scripts/smoke.sh`; wire into CI if/when a CI exists.
-- Write `tools/dev_env/README.md` covering install, run, troubleshooting.
-- Add a `docs/dev_env/` operator guide if the README grows past a screen.
+- Write `tools/theia/README.md` covering install, run, troubleshooting.
+- Add a `docs/theia/` operator guide if the README grows past a screen.
 
 Acceptance:
-- `bash tools/dev_env/scripts/smoke.sh` passes from a clean checkout.
+- `bash tools/theia/scripts/smoke.sh` passes from a clean checkout.
 - README links from the top-level `README.md` "Projects" or "Tools"
   section.
 

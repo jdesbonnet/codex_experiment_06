@@ -1,0 +1,74 @@
+<svg width="400" height="400" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="chipGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#2c3e50;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1a252f;stop-opacity:1" />
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="2.5" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background (Shadow) -->
+  <rect x="105" y="105" width="200" height="200" rx="15" fill="rgba(0,0,0,0.3)" />
+
+  <!-- Main Chip Body -->
+  <rect x="100" y="100" width="200" height="200" rx="15" fill="url(#chipGrad)" stroke="#34495e" stroke-width="2" />
+
+  <!-- Pins -->
+  <!-- Left -->
+  <rect x="75" y="130" width="30" height="12" rx="2" fill="#95a5a6" />
+  <rect x="75" y="160" width="30" height="12" rx="2" fill="#95a5a6" />
+  <rect x="75" y="190" width="30" height="12" rx="2" fill="#95a5a6" />
+  <rect x="75" y="220" width="30" height="12" rx="2" fill="#95a5a6" />
+  <rect x="75" y="250" width="30" height="12" rx="2" fill="#95a5a6" />
+
+  <!-- Right -->
+  <rect x="295" y="130" width="30" height="12" rx="2" fill="#95a5a6" />
+  <rect x="295" y="160" width="30" height="12" rx="2" fill="#95a5a6" />
+  <rect x="295" y="190" width="30" height="12" rx="2" fill="#95a5a6" />
+  <rect x="295" y="220" width="30" height="12" rx="2" fill="#95a5a6" />
+  <rect x="295" y="250" width="30" height="12" rx="2" fill="#95a5a6" />
+
+  <!-- Top -->
+  <rect x="130" y="75" width="12" height="30" rx="2" fill="#95a5a6" />
+  <rect x="160" y="75" width="12" height="30" rx="2" fill="#95a5a6" />
+  <rect x="190" y="75" width="12" height="30" rx="2" fill="#95a5a6" />
+  <rect x="220" y="75" width="12" height="30" rx="2" fill="#95a5a6" />
+  <rect x="250" y="75" width="12" height="30" rx="2" fill="#95a5a6" />
+
+  <!-- Bottom -->
+  <rect x="130" y="295" width="12" height="30" rx="2" fill="#95a5a6" />
+  <rect x="160" y="295" width="12" height="30" rx="2" fill="#95a5a6" />
+  <rect x="190" y="295" width="12" height="30" rx="2" fill="#95a5a6" />
+  <rect x="220" y="295" width="12" height="30" rx="2" fill="#95a5a6" />
+  <rect x="250" y="295" width="12" height="30" rx="2" fill="#95a5a6" />
+
+  <!-- Stylized "06" Circuit -->
+  <g filter="url(#glow)">
+    <!-- The "0" -->
+    <rect x="145" y="160" width="40" height="80" rx="4" fill="none" stroke="#00ffcc" stroke-width="10" stroke-linecap="round" />
+    
+    <!-- The "6" -->
+    <path d="M 255 160 L 210 160 L 210 240 L 255 240 L 255 200 L 210 200" fill="none" stroke="#00ffcc" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" />
+    
+    <!-- Nodes (Small Circles) -->
+    <circle cx="145" cy="160" r="5" fill="#00ffcc" />
+    <circle cx="185" cy="160" r="5" fill="#00ffcc" />
+    <circle cx="185" cy="240" r="5" fill="#00ffcc" />
+    <circle cx="145" cy="240" r="5" fill="#00ffcc" />
+    
+    <circle cx="255" cy="160" r="5" fill="#00ffcc" />
+    <circle cx="210" cy="160" r="5" fill="#00ffcc" />
+    <circle cx="210" cy="240" r="5" fill="#00ffcc" />
+    <circle cx="255" cy="240" r="5" fill="#00ffcc" />
+    <circle cx="255" cy="200" r="5" fill="#00ffcc" />
+  </g>
+  
+  <!-- Tiny Label -->
+  <text x="200" y="135" font-family="monospace" font-size="14" fill="#5dade2" text-anchor="middle" letter-spacing="2">CODEX</text>
+</svg>

@@ -71,7 +71,7 @@ else
     echo "  --   tools/wch-openocd          optional (run tools/setup_wch_openocd.sh)"
 fi
 
-section "Host dev environment (tools/dev_env)"
+section "Host dev environment (tools/theia)"
 optional node       "Theia IDE"
 optional npm        "Theia IDE"
 optional npx        "Theia IDE / Playwright"

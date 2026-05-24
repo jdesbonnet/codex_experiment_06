@@ -86,8 +86,8 @@ bytecode compiler/runtime and test cases:
 
 | Path                | Stack          | Backend model | Use when                                        |
 | ------------------- | -------------- | ------------- | ----------------------------------------------- |
-| `tools/dev_env/`    | Eclipse Theia  | Full Node.js backend (file IO, child_process, terminal). | Single-user dev box; you want the workbench to be able to do anything the host can. |
-| `tools/dev_env_web/`| VS Code for the Web | Static frontend + a narrow compile API sidecar (and later: simulate / auth). Browser sandbox holds the IDE. | Cloud-hosted deployments; multi-user; threat model that should not give browser users shell. See `docs/vscode_proposal.md`. |
+| `tools/theia/`    | Eclipse Theia  | Full Node.js backend (file IO, child_process, terminal). | Single-user dev box; you want the workbench to be able to do anything the host can. |
+| `tools/vscode/`| VS Code for the Web | Static frontend + a narrow compile API sidecar (and later: simulate / auth). Browser sandbox holds the IDE. | Cloud-hosted deployments; multi-user; threat model that should not give browser users shell. See `docs/vscode_proposal.md`. |
 
 Neither is required to build or flash firmware. Each has its own
 detailed README; the dependencies below cover both (they share Node /
@@ -139,23 +139,23 @@ optional.
 ### Theia IDE — install, serve, e2e
 
 ```sh
-tools/dev_env/scripts/install.sh    # one-time: npm install + theia build
-tools/dev_env/scripts/serve.sh      # serves the IDE on 0.0.0.0:3000
+tools/theia/scripts/install.sh    # one-time: npm install + theia build
+tools/theia/scripts/serve.sh      # serves the IDE on 0.0.0.0:3000
 
-cd tools/dev_env/theia
+cd tools/theia/theia
 npx playwright test --project=chrome-system
 ```
 
 ### VS Code Web IDE — install, serve, smoke
 
 ```sh
-tools/dev_env_web/scripts/install.sh   # one-time: npm + (optional) cargo + wasm-pack
-tools/dev_env_web/scripts/serve.sh     # serves IDE on 127.0.0.1:3000 + compile API on :3001
-tools/dev_env_web/scripts/smoke.sh     # cargo test + typecheck + build + e2e in one shot
+tools/vscode/scripts/install.sh   # one-time: npm + (optional) cargo + wasm-pack
+tools/vscode/scripts/serve.sh     # serves IDE on 127.0.0.1:3000 + compile API on :3001
+tools/vscode/scripts/smoke.sh     # cargo test + typecheck + build + e2e in one shot
 ```
 
 Open `http://localhost:3000/` (not `127.0.0.1` — see
-`tools/dev_env_web/README.md` for why).
+`tools/vscode/README.md` for why).
 
 Playwright/ffmpeg notes that apply to both IDEs:
 

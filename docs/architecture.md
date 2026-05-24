@@ -4,7 +4,7 @@ This is the visual companion to the textual proposals in this directory:
 
 - `docs/vscode_proposal.md` — VS Code Web IDE plan + status (M1..M5).
 - `docs/cloud_storage_proposal.md` — server-backed projects + Spring migration plan.
-- `docs/theia_proposal.md` — the parallel Theia implementation (`tools/dev_env/`).
+- `docs/theia_proposal.md` — the parallel Theia implementation (`tools/theia/`).
 
 Diagrams below are Mermaid. They render natively in GitHub, in the VS
 Code Markdown preview, and at <https://mermaid.live>. To export an SVG
@@ -194,7 +194,7 @@ flowchart TB
     classDef shipped fill:#d6f5d6,stroke:#2a8a2a,color:#0a3d0a
     classDef ancillary fill:#d6e7f5,stroke:#2a5a8a,color:#0a2a4d
 
-    subgraph Web ["tools/dev_env_web/ (this work)"]
+    subgraph Web ["tools/vscode/ (this work)"]
         direction TB
         Sim["sim/ → Rust + wasm-pack<br/>committed pkg/ for static deploys"]:::shipped
         ExtDir["extension/ → web extension<br/>languages · commands · DAP · FS providers"]:::shipped
@@ -203,7 +203,7 @@ flowchart TB
         Scripts["scripts/ → install · serve · smoke · console-capture"]:::shipped
     end
 
-    subgraph Theia ["tools/dev_env/ (parallel Theia version)"]
+    subgraph Theia ["tools/theia/ (parallel Theia version)"]
         direction TB
         ThSim["sim/ → Python sim (reference)"]:::ancillary
         ThDap["dap/ → Python DAP server"]:::ancillary
@@ -234,7 +234,7 @@ flowchart TB
 | Q2 | Compile path | Backend API | `vscode_proposal.md §8` + `cloud_storage_proposal.md` |
 | – | Storage backend | Filesystem | `cloud_storage_proposal.md §1` |
 | – | Project IDs | Server UUIDs | `cloud_storage_proposal.md §1` |
-| – | API contract | OpenAPI 3.0 | `tools/dev_env_web/host/openapi.yaml` |
+| – | API contract | OpenAPI 3.0 | `tools/vscode/host/openapi.yaml` |
 | ❓ | Auth provider | OIDC vs Cloudflare Access vs Tailscale | open |
 | ❓ | When to do Spring rewrite | After feature set stabilises | open |
 | ❓ | Cloud object storage vs FS in prod | Likely object storage for multi-instance | open |
