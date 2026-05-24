@@ -21,7 +21,11 @@
     "onCommand:tinyVm.openOpfsRoot",
     "onCommand:tinyVm.runBytecode",
     "onCommand:tinyVm.debugBytecode",
+    "onCommand:tinyVm.cloud.newProject",
+    "onCommand:tinyVm.cloud.openProject",
+    "onCommand:tinyVm.cloud.deleteProject",
     "onFileSystem:tinyvm-opfs",
+    "onFileSystem:tinyvm-cloud",
     "onDebug"
   ],
   "contributes": {
@@ -86,6 +90,21 @@
       {
         "command": "tinyVm.debugBytecode",
         "title": "tiny_vm: Debug Bytecode in Simulator",
+        "category": "tiny_vm"
+      },
+      {
+        "command": "tinyVm.cloud.newProject",
+        "title": "tiny_vm: New Cloud Project",
+        "category": "tiny_vm"
+      },
+      {
+        "command": "tinyVm.cloud.openProject",
+        "title": "tiny_vm: Open Cloud Project",
+        "category": "tiny_vm"
+      },
+      {
+        "command": "tinyVm.cloud.deleteProject",
+        "title": "tiny_vm: Delete Cloud Project",
         "category": "tiny_vm"
       }
     ],

@@ -62,6 +62,29 @@ Inside the IDE:
 The host calls (`led_write`, `delay_ms`, `print_u32`, `print_hex32`)
 emit to the **Debug Console** as the program executes.
 
+### Cloud projects
+
+Persistent projects stored on the server (in dev: `~/.tinyvm-projects/`
+on the host running `serve.sh`; in production: a real backend service
+implementing the same `/api/projects/*` contract from
+`tools/dev_env_web/host/openapi.yaml`).
+
+1. `F1` → **`tiny_vm: New Cloud Project`**. Enter a name. The server
+   creates the project, seeds a `hello.cvm.c` blink-loop starter, and
+   the IDE opens that file.
+2. Edit, `Ctrl+S` to save. The save goes through the
+   `tinyvm-cloud:` FileSystemProvider and `PUT /api/projects/{id}/files/...`
+   to disk.
+3. Compile + debug the file in place via
+   `tiny_vm: Debug Bytecode in Simulator` — the cloud file is read
+   over HTTP, compiled, and run in the wasm sim.
+4. Close the browser. Open it again. `F1` →
+   **`tiny_vm: Open Cloud Project`** → pick the project from the
+   list. The starter file re-opens with your edits.
+
+See `docs/cloud_storage_proposal.md` for the architecture and the
+Spring Boot migration plan.
+
 ### OPFS workspace
 
 The Origin Private File System provider gives you browser-local persistent

@@ -37,6 +37,7 @@ vector at the architecture level rather than by feature stripping.
 | M3: in-browser DAP                     | shipped — `extension/src/browser/debugAdapter.ts`; compile via `/api/compile` sidecar (decided architecture pivot, see Q2 below) |
 | M4: Playwright e2e                     | shipped — `tools/dev_env_web/e2e/blink-debug.spec.ts` (1 passed) |
 | M5: hardening + smoke + docs           | shipped — `tools/dev_env_web/scripts/smoke.sh`, README updated, security model documented |
+| D2 (subset): cloud project files       | shipped — `/api/projects` + `tinyvm-cloud:` FileSystemProvider + persistence e2e. Auth still deferred. See `docs/cloud_storage_proposal.md`. |
 
 See `tools/dev_env_web/README.md` for the user-facing entry point.
 

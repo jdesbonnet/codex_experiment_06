@@ -6,6 +6,12 @@
 
 import * as vscode from "vscode";
 import { OpfsFileSystemProvider, OPFS_SCHEME } from "./filesystem/opfs";
+import { CloudFileSystemProvider, CLOUD_SCHEME } from "./filesystem/cloud";
+import {
+    newProjectCommand,
+    openProjectCommand,
+    deleteProjectCommand,
+} from "./cloud-commands";
 import { ensureSimReady, runProgram, statusName, STATUS } from "./sim";
 import { TinyVmDebugAdapter } from "./debugAdapter";
 import { compileCvmC } from "./compile";
@@ -39,8 +45,12 @@ function getOutput(): vscode.OutputChannel {
 
 export function activate(context: vscode.ExtensionContext): void {
     const opfs = new OpfsFileSystemProvider();
+    const cloud = new CloudFileSystemProvider();
     context.subscriptions.push(
         vscode.workspace.registerFileSystemProvider(OPFS_SCHEME, opfs, {
+            isCaseSensitive: true,
+        }),
+        vscode.workspace.registerFileSystemProvider(CLOUD_SCHEME, cloud, {
             isCaseSensitive: true,
         }),
     );
@@ -58,6 +68,15 @@ export function activate(context: vscode.ExtensionContext): void {
         ),
         vscode.commands.registerCommand("tinyVm.debugBytecode", () =>
             debugBytecodeCommand(context),
+        ),
+        vscode.commands.registerCommand("tinyVm.cloud.newProject", () =>
+            newProjectCommand(),
+        ),
+        vscode.commands.registerCommand("tinyVm.cloud.openProject", () =>
+            openProjectCommand(),
+        ),
+        vscode.commands.registerCommand("tinyVm.cloud.deleteProject", () =>
+            deleteProjectCommand(),
         ),
     );
 

@@ -29,6 +29,7 @@ import path from "node:path";
 import os from "node:os";
 import { fileURLToPath } from "node:url";
 import { randomBytes } from "node:crypto";
+import { ProjectsStore, BadInput, NotFound } from "./projects-store.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const HERE = path.dirname(__filename);
@@ -38,6 +39,8 @@ const HOST = process.env.HOST || "127.0.0.1";
 const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN || "http://localhost:3000";
 
 const VM_CC = path.join(REPO_ROOT, "tools", "vm_cc.py");
+
+const projectsStore = new ProjectsStore();
 
 // CORS: the extension host worker's origin is whatever VS Code Web's
 // {{uuid}} subdomain template produced, e.g. http://abc-123.localhost:3000.
@@ -53,7 +56,7 @@ function setCors(req, res) {
         res.setHeader("Access-Control-Allow-Origin", origin);
         res.setHeader("Vary", "Origin");
     }
-    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
     res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 }
 
@@ -165,13 +168,130 @@ async function handleRequest(req, res) {
         res.statusCode = 204;
         return res.end();
     }
-    if (req.url === "/api/health" && req.method === "GET") {
-        return writeJson(req, res, 200, { ok: true, repoRoot: REPO_ROOT });
+    try {
+        if (req.url === "/api/health" && req.method === "GET") {
+            return writeJson(req, res, 200, { ok: true, repoRoot: REPO_ROOT });
+        }
+        if (req.url === "/api/compile" && req.method === "POST") {
+            return await handleCompile(req, res);
+        }
+        // /api/projects routes — see openapi.yaml for the wire contract.
+        const url = new URL(req.url, "http://h");
+        const pj = url.pathname.match(
+            /^\/api\/projects(?:\/([^/]+)(?:\/files(?:\/(.+))?)?)?$/,
+        );
+        if (pj) {
+            return await handleProjects(req, res, pj[1], pj[2]);
+        }
+        return writeJson(req, res, 404, { error: "not found" });
+    } catch (e) {
+        if (e instanceof NotFound) {
+            return writeJson(req, res, 404, { error: e.message });
+        }
+        if (e instanceof BadInput) {
+            return writeJson(req, res, 400, { error: e.message });
+        }
+        console.error("[compile-server] unhandled:", e);
+        return writeJson(req, res, 500, {
+            error: "internal error",
+            detail: String(e?.message ?? e),
+        });
     }
-    if (req.url === "/api/compile" && req.method === "POST") {
-        return handleCompile(req, res);
+}
+
+/**
+ * Dispatch /api/projects, /api/projects/{id}, /api/projects/{id}/files,
+ * /api/projects/{id}/files/{path...}. `id` and `path` may be undefined
+ * (collection routes vs item routes).
+ */
+async function handleProjects(req, res, id, filePath) {
+    // Decoded path comes URL-encoded if it contained slashes/spaces.
+    const decodedPath = filePath ? decodeURIComponent(filePath) : undefined;
+
+    if (!id) {
+        // /api/projects
+        if (req.method === "GET") {
+            const projects = await projectsStore.listProjects();
+            return writeJson(req, res, 200, { projects });
+        }
+        if (req.method === "POST") {
+            const body = await readJsonBody(req);
+            const project = await projectsStore.createProject(body?.name);
+            return writeJson(req, res, 201, project);
+        }
+        return writeJson(req, res, 405, { error: "method not allowed" });
     }
-    writeJson(req, res, 404, { error: "not found" });
+
+    if (id && !filePath && !req.url.endsWith("/files")) {
+        // /api/projects/{id}
+        if (req.method === "GET") {
+            return writeJson(req, res, 200, await projectsStore.getProject(id));
+        }
+        if (req.method === "DELETE") {
+            await projectsStore.deleteProject(id);
+            res.statusCode = 204;
+            setCors(req, res);
+            return res.end();
+        }
+        return writeJson(req, res, 405, { error: "method not allowed" });
+    }
+
+    if (id && req.url.endsWith("/files") && !decodedPath) {
+        // /api/projects/{id}/files (tree listing)
+        if (req.method === "GET") {
+            return writeJson(req, res, 200, {
+                entries: await projectsStore.listFiles(id),
+            });
+        }
+        return writeJson(req, res, 405, { error: "method not allowed" });
+    }
+
+    if (id && decodedPath) {
+        // /api/projects/{id}/files/{path}
+        if (req.method === "GET") {
+            const bytes = await projectsStore.readFile(id, decodedPath);
+            res.statusCode = 200;
+            res.setHeader("Content-Type", "application/octet-stream");
+            res.setHeader("Content-Length", String(bytes.length));
+            setCors(req, res);
+            return res.end(bytes);
+        }
+        if (req.method === "PUT") {
+            const body = await readBinaryBody(req);
+            const entry = await projectsStore.writeFile(id, decodedPath, body);
+            return writeJson(req, res, 200, entry);
+        }
+        if (req.method === "DELETE") {
+            await projectsStore.deleteFile(id, decodedPath);
+            res.statusCode = 204;
+            setCors(req, res);
+            return res.end();
+        }
+        return writeJson(req, res, 405, { error: "method not allowed" });
+    }
+
+    return writeJson(req, res, 404, { error: "not found" });
+}
+
+/**
+ * Read the request body as raw bytes (for file PUT).
+ * Limit: 10 MB (a reasonable per-file cap; user code is well under this).
+ */
+function readBinaryBody(req, limitBytes = 10 * 1024 * 1024) {
+    return new Promise((resolve, reject) => {
+        const chunks = [];
+        let total = 0;
+        req.on("data", (c) => {
+            total += c.length;
+            if (total > limitBytes) {
+                req.destroy(new Error(`body too large (>${limitBytes} bytes)`));
+                return;
+            }
+            chunks.push(c);
+        });
+        req.on("error", reject);
+        req.on("end", () => resolve(Buffer.concat(chunks)));
+    });
 }
 
 // Listen on both IPv4 and IPv6 loopback. Chrome/Firefox resolve `localhost`
