@@ -94,7 +94,121 @@ export function activate(context: vscode.ExtensionContext): void {
         }),
     );
 
+    // Configuration provider so the Run/Debug sidebar button "just works":
+    //   - Dynamic registration lets the giant "Run and Debug" button start
+    //     a session against the active .cvm.c / .vm / .bin file without a
+    //     launch.json.
+    //   - Default registration backfills an empty config (no launch.json) and
+    //     compiles source files into bytecode on the fly before the DAP
+    //     adapter starts.
+    const cfgProvider = new TinyVmConfigurationProvider(context, getOutput);
+    context.subscriptions.push(
+        vscode.debug.registerDebugConfigurationProvider(DEBUG_TYPE, cfgProvider),
+        vscode.debug.registerDebugConfigurationProvider(
+            DEBUG_TYPE,
+            cfgProvider,
+            vscode.DebugConfigurationProviderTriggerKind.Dynamic,
+        ),
+    );
+
     console.log("[tiny_vm] web extension activated");
+}
+
+/**
+ * Lets the "Run and Debug" sidebar button (or F5 in non-browser) launch a
+ * tiny_vm session straight from a .cvm.c / .vm / .bin file. Compiles source
+ * files on the fly via the backend API and rewrites `program` to point at
+ * the staged .bin URI in OPFS.
+ */
+class TinyVmConfigurationProvider implements vscode.DebugConfigurationProvider {
+    constructor(
+        private context: vscode.ExtensionContext,
+        private getOut: () => vscode.OutputChannel,
+    ) {}
+
+    // Dynamic trigger kind: surfaced as a top-level entry in the Run/Debug
+    // picker when no launch.json exists. The Initial trigger kind drives the
+    // "Add Configuration..." wizard.
+    provideDebugConfigurations(
+        _folder: vscode.WorkspaceFolder | undefined,
+    ): vscode.DebugConfiguration[] {
+        const uri = vscode.window.activeTextEditor?.document.uri;
+        const program = uri ? uri.toString() : "${file}";
+        const baseName = uri?.path.split("/").pop() ?? "current file";
+        return [
+            {
+                type: DEBUG_TYPE,
+                request: "launch",
+                name: `tiny_vm: ${baseName}`,
+                program,
+                stopOnEntry: true,
+            },
+        ];
+    }
+
+    // The sidebar "Run and Debug" button (no launch.json) hands us an empty
+    // config; we fill it in from the active editor. A populated config (from
+    // launch.json or our own provideDebugConfigurations) passes through.
+    async resolveDebugConfiguration(
+        _folder: vscode.WorkspaceFolder | undefined,
+        config: vscode.DebugConfiguration,
+    ): Promise<vscode.DebugConfiguration | undefined> {
+        if (!config.type && !config.request && !config.name) {
+            const uri = vscode.window.activeTextEditor?.document.uri;
+            if (!uri || !isLaunchable(uri.path)) {
+                await vscode.window.showInformationMessage(
+                    "tiny_vm: open a .cvm.c, .vm, or .bin file to debug",
+                );
+                return undefined;
+            }
+            config.type = DEBUG_TYPE;
+            config.request = "launch";
+            config.name = `tiny_vm: ${uri.path.split("/").pop()}`;
+            config.program = uri.toString();
+            config.stopOnEntry = true;
+        }
+        return config;
+    }
+
+    // Variable substitution (${file}, ${workspaceFolder}) has already run by
+    // the time we get here. If `program` is a source file, compile it through
+    // the backend and rewrite to the staged .bin URI.
+    async resolveDebugConfigurationWithSubstitutedVariables(
+        _folder: vscode.WorkspaceFolder | undefined,
+        config: vscode.DebugConfiguration,
+    ): Promise<vscode.DebugConfiguration | null | undefined> {
+        const program = config.program as string | undefined;
+        if (!program) {
+            vscode.window.showErrorMessage(
+                "tiny_vm: launch config missing 'program'",
+            );
+            return null;
+        }
+        if (program.endsWith(".cvm.c") || program.endsWith(".vm")) {
+            const out = this.getOut();
+            out.show(true);
+            let uri: vscode.Uri;
+            try {
+                uri = vscode.Uri.parse(program, true);
+            } catch {
+                uri = vscode.Uri.file(program);
+            }
+            try {
+                const doc = await vscode.workspace.openTextDocument(uri);
+                const staged = await compileAndStage(this.context, doc, out);
+                if (!staged) return null;
+                config.program = staged.toString();
+            } catch (e) {
+                vscode.window.showErrorMessage(`tiny_vm: ${e}`);
+                return null;
+            }
+        }
+        return config;
+    }
+}
+
+function isLaunchable(p: string): boolean {
+    return p.endsWith(".cvm.c") || p.endsWith(".vm") || p.endsWith(".bin");
 }
 
 export function deactivate(): void {

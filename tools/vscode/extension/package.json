@@ -142,8 +142,8 @@
             "properties": {
               "program": {
                 "type": "string",
-                "description": "URI of the .bin bytecode file. The companion .bin.map (from `vm_cc.py --map`) is loaded automatically if present.",
-                "default": "${workspaceFolder}/count10.bin"
+                "description": "URI of a .cvm.c / .vm source (compiled on the fly via the backend) or a precompiled .bin. For .bin, the companion .bin.map (from `vm_cc.py --map`) is loaded automatically if present.",
+                "default": "${file}"
               },
               "stopOnEntry": {
                 "type": "boolean",
@@ -157,7 +157,7 @@
           {
             "type": "tiny-vm",
             "request": "launch",
-            "name": "tiny_vm: debug current .bin",
+            "name": "tiny_vm: debug current file",
             "program": "${file}",
             "stopOnEntry": true
           }
