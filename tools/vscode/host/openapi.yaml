@@ -259,3 +259,18 @@ components:
       properties:
         error:  { type: string }
         detail: { type: string }
+        diagnostics:
+          description: |
+            Structured compile diagnostics (errors only in v1; warnings TBD).
+            Present on /api/compile failures; absent on other 4xx errors.
+          type: array
+          items: { $ref: "#/components/schemas/Diagnostic" }
+
+    Diagnostic:
+      type: object
+      required: [line, col, severity, message]
+      properties:
+        line:     { type: integer, minimum: 1 }
+        col:      { type: integer, minimum: 1 }
+        severity: { type: string, enum: [error, warning] }
+        message:  { type: string }

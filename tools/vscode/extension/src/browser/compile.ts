@@ -20,6 +20,28 @@ export interface CompileResult {
     sourceMap: string; // JSON text matching tools/vm_cc.py --map output
 }
 
+export interface CompileDiagnostic {
+    line: number;
+    col: number;
+    severity: "error" | "warning";
+    message: string;
+}
+
+/**
+ * Thrown when /api/compile returns 4xx. Carries structured diagnostics from
+ * the backend when present (vm_cc.py --json-errors output), so callers can
+ * publish them to vscode.languages.createDiagnosticCollection(...).
+ */
+export class CompileFailedError extends Error {
+    constructor(
+        message: string,
+        public readonly diagnostics: CompileDiagnostic[],
+    ) {
+        super(message);
+        this.name = "CompileFailedError";
+    }
+}
+
 function getApiUrl(): string {
     const cfg = vscode.workspace.getConfiguration("tinyVm");
     return cfg.get<string>("apiUrl") ?? "http://localhost:3001";
@@ -49,9 +71,25 @@ export async function compileCvmC(
     }
     if (!resp.ok) {
         const text = await resp.text().catch(() => "");
-        throw new Error(
-            `compile failed: HTTP ${resp.status} ${resp.statusText} — ${text}`,
-        );
+        let diagnostics: CompileDiagnostic[] = [];
+        let detail = text;
+        try {
+            const parsed = JSON.parse(text) as {
+                error?: string;
+                detail?: string;
+                diagnostics?: CompileDiagnostic[];
+            };
+            if (Array.isArray(parsed.diagnostics)) {
+                diagnostics = parsed.diagnostics;
+            }
+            detail = parsed.detail ?? parsed.error ?? text;
+        } catch {
+            // body wasn't JSON; fall back to raw text
+        }
+        const headline = diagnostics[0]
+            ? `${diagnostics[0].line}:${diagnostics[0].col}: ${diagnostics[0].message}`
+            : detail || `HTTP ${resp.status} ${resp.statusText}`;
+        throw new CompileFailedError(`compile failed: ${headline}`, diagnostics);
     }
     const json = (await resp.json()) as {
         bytecodeBase64: string;

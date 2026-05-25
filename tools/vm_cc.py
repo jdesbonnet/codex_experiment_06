@@ -58,6 +58,21 @@ class Token:
     col: int = 1
 
 
+class CompileError(Exception):
+    """A user-facing compile error carrying source position info.
+
+    Distinct from generic exceptions: only CompileError gets formatted as
+    a structured diagnostic (file:line:col: error: msg). Other exceptions
+    are treated as internal bugs.
+    """
+
+    def __init__(self, line: int, col: int, msg: str) -> None:
+        super().__init__(msg)
+        self.line = line
+        self.col = col
+        self.msg = msg
+
+
 def strip_comments(src: str) -> str:
     # Preserve newlines so lex() line counting stays accurate.
     def _block(m: re.Match[str]) -> str:
@@ -108,7 +123,7 @@ def lex(src: str) -> list[Token]:
             i += len(m.group(0))
             col += len(m.group(0))
             continue
-        raise ValueError(f"lex error near: {src[i:i+20]!r}")
+        raise CompileError(line, col, f"lex error near: {src[i:i+20]!r}")
     tokens.append(Token("EOF", "", line, col))
     return tokens
 
@@ -129,8 +144,16 @@ class Parser:
     def expect(self, kind: str, text: str | None = None) -> Token:
         t = self.peek()
         if t.kind != kind or (text is not None and t.text != text):
-            raise ValueError(f"expected {kind} {text or ''}, got {t.kind} {t.text!r}")
+            raise CompileError(
+                t.line,
+                t.col,
+                f"expected {kind} {text or ''}, got {t.kind} {t.text!r}",
+            )
         return self.take()
+
+    def _err(self, msg: str, tok: Token | None = None) -> CompileError:
+        t = tok or self.peek()
+        return CompileError(t.line, t.col, msg)
 
     def parse_program(self) -> list[dict]:
         out: list[dict] = []
@@ -205,8 +228,8 @@ class Parser:
                 args = self.parse_call_args()
                 self.expect("SYM", ";")
                 return {"kind": "call", "name": name, "args": args}
-            raise ValueError(f"invalid statement starting with identifier {name}")
-        raise ValueError(f"unexpected token {t.kind} {t.text!r}")
+            raise self._err(f"invalid statement starting with identifier {name}", t)
+        raise self._err(f"unexpected token {t.kind} {t.text!r}", t)
 
     def parse_call_args(self) -> list[dict]:
         out: list[dict] = []
@@ -225,52 +248,52 @@ class Parser:
     def parse_eq(self) -> dict:
         node = self.parse_rel()
         while self.peek().kind == "SYM" and self.peek().text == "==":
-            op = self.take().text
+            tok = self.take()
             rhs = self.parse_rel()
-            node = {"kind": "bin", "op": op, "l": node, "r": rhs}
+            node = {"kind": "bin", "op": tok.text, "l": node, "r": rhs, "line": tok.line, "col": tok.col}
         return node
 
     def parse_rel(self) -> dict:
         node = self.parse_add()
         while self.peek().kind == "SYM" and self.peek().text in {"<", ">"}:
-            op = self.take().text
+            tok = self.take()
             rhs = self.parse_add()
-            node = {"kind": "bin", "op": op, "l": node, "r": rhs}
+            node = {"kind": "bin", "op": tok.text, "l": node, "r": rhs, "line": tok.line, "col": tok.col}
         return node
 
     def parse_add(self) -> dict:
         node = self.parse_mul()
         while self.peek().kind == "SYM" and self.peek().text in {"+", "-"}:
-            op = self.take().text
+            tok = self.take()
             rhs = self.parse_mul()
-            node = {"kind": "bin", "op": op, "l": node, "r": rhs}
+            node = {"kind": "bin", "op": tok.text, "l": node, "r": rhs, "line": tok.line, "col": tok.col}
         return node
 
     def parse_mul(self) -> dict:
         node = self.parse_term()
         while self.peek().kind == "SYM" and self.peek().text in {"*", "/", "%"}:
-            op = self.take().text
+            tok = self.take()
             rhs = self.parse_term()
-            node = {"kind": "bin", "op": op, "l": node, "r": rhs}
+            node = {"kind": "bin", "op": tok.text, "l": node, "r": rhs, "line": tok.line, "col": tok.col}
         return node
 
     def parse_term(self) -> dict:
         t = self.peek()
         if t.kind == "NUM":
             self.take()
-            return {"kind": "num", "value": int(t.text, 0)}
+            return {"kind": "num", "value": int(t.text, 0), "line": t.line, "col": t.col}
         if t.kind == "ID":
             name = self.take().text
             if self.peek().kind == "SYM" and self.peek().text == "(":
                 args = self.parse_call_args()
-                return {"kind": "call_expr", "name": name, "args": args}
-            return {"kind": "name", "value": name}
+                return {"kind": "call_expr", "name": name, "args": args, "line": t.line, "col": t.col}
+            return {"kind": "name", "value": name, "line": t.line, "col": t.col}
         if t.kind == "SYM" and t.text == "(":
             self.take()
             node = self.parse_expr()
             self.expect("SYM", ")")
             return node
-        raise ValueError(f"unexpected token in expr: {t.kind} {t.text!r}")
+        raise self._err(f"unexpected token in expr: {t.kind} {t.text!r}", t)
 
 
 class Compiler:
@@ -282,6 +305,19 @@ class Compiler:
         self.pc = 0
         self.entries: list[dict] = []
         self.local_decls: list[dict] = []
+        # Tracks the AST node currently being lowered so semantic errors
+        # (e.g. unknown identifier) can carry source position even when
+        # raised from deep helpers like eval_const_expr or emit_call.
+        self.cur_line: int = 1
+        self.cur_col: int = 1
+
+    def _track(self, node: dict) -> None:
+        if "line" in node and node["line"] is not None:
+            self.cur_line = node["line"]
+            self.cur_col = node.get("col") or 1
+
+    def _err(self, msg: str) -> CompileError:
+        return CompileError(self.cur_line, self.cur_col, msg)
 
     def new_label(self, prefix: str) -> str:
         name = f"{prefix}_{self.label_id}"
@@ -315,21 +351,22 @@ class Compiler:
 
     def alloc_var(self, name: str) -> int:
         if name in self.vars:
-            raise ValueError(f"duplicate variable {name}")
+            raise self._err(f"duplicate variable {name}")
         if len(self.vars) >= 16:
-            raise ValueError("too many variables (max 16)")
+            raise self._err("too many variables (max 16)")
         idx = len(self.vars)
         self.vars[name] = idx
         return idx
 
     def eval_const_expr(self, node: dict) -> int:
+        self._track(node)
         kind = node["kind"]
         if kind == "num":
             return int(node["value"])
         if kind == "name":
             name = node["value"]
             if name not in self.consts:
-                raise ValueError(f"'{name}' is not a compile-time const")
+                raise self._err(f"'{name}' is not a compile-time const")
             return self.consts[name]
         if kind == "bin":
             l = self.eval_const_expr(node["l"])
@@ -341,13 +378,13 @@ class Compiler:
                 return l - r
             if op == "%":
                 if r == 0:
-                    raise ValueError("mod by zero in const expression")
+                    raise self._err("mod by zero in const expression")
                 return l % r
             if op == "*":
                 return l * r
             if op == "/":
                 if r == 0:
-                    raise ValueError("div by zero in const expression")
+                    raise self._err("div by zero in const expression")
                 return int(l / r)
             if op == "==":
                 return 1 if l == r else 0
@@ -355,7 +392,7 @@ class Compiler:
                 return 1 if l < r else 0
             if op == ">":
                 return 1 if l > r else 0
-        raise ValueError("unsupported const expression")
+        raise self._err("unsupported const expression")
 
     def emit_push_imm(self, value: int) -> None:
         if -128 <= value <= 127:
@@ -367,9 +404,10 @@ class Compiler:
         elif 0 <= value <= 0xFFFFFFFF:
             self.emit(f"PUSH32 {value - 0x100000000}")
         else:
-            raise ValueError(f"literal out of PUSH32 range: {value}")
+            raise self._err(f"literal out of PUSH32 range: {value}")
 
     def emit_expr(self, node: dict) -> None:
+        self._track(node)
         kind = node["kind"]
         if kind == "num":
             self.emit_push_imm(int(node["value"]))
@@ -382,78 +420,78 @@ class Compiler:
             if name in self.consts:
                 self.emit_push_imm(self.consts[name])
                 return
-            raise ValueError(f"unknown symbol '{name}'")
+            raise self._err(f"unknown symbol '{name}'")
         if kind == "call_expr":
             name = node["name"]
             args = node["args"]
             if name == "load8":
                 if len(args) != 1:
-                    raise ValueError("load8 expects 1 arg")
+                    raise self._err("load8 expects 1 arg")
                 self.emit_expr(args[0])
                 self.emit("MGET")
                 return
             if name == "load32le":
                 if len(args) != 1:
-                    raise ValueError("load32le expects 1 arg")
+                    raise self._err("load32le expects 1 arg")
                 self.emit_expr(args[0])
                 self.emit("MGET32")
                 return
             if name == "and32":
                 if len(args) != 2:
-                    raise ValueError("and32 expects 2 args")
+                    raise self._err("and32 expects 2 args")
                 self.emit_expr(args[0])
                 self.emit_expr(args[1])
                 self.emit("AND")
                 return
             if name == "or32":
                 if len(args) != 2:
-                    raise ValueError("or32 expects 2 args")
+                    raise self._err("or32 expects 2 args")
                 self.emit_expr(args[0])
                 self.emit_expr(args[1])
                 self.emit("OR")
                 return
             if name == "xor32":
                 if len(args) != 2:
-                    raise ValueError("xor32 expects 2 args")
+                    raise self._err("xor32 expects 2 args")
                 self.emit_expr(args[0])
                 self.emit_expr(args[1])
                 self.emit("XOR")
                 return
             if name == "not32":
                 if len(args) != 1:
-                    raise ValueError("not32 expects 1 arg")
+                    raise self._err("not32 expects 1 arg")
                 self.emit_expr(args[0])
                 self.emit("NOT")
                 return
             if name == "shl32":
                 if len(args) != 2:
-                    raise ValueError("shl32 expects 2 args")
+                    raise self._err("shl32 expects 2 args")
                 self.emit_expr(args[0])
                 self.emit_expr(args[1])
                 self.emit("SHL")
                 return
             if name == "shr32":
                 if len(args) != 2:
-                    raise ValueError("shr32 expects 2 args")
+                    raise self._err("shr32 expects 2 args")
                 self.emit_expr(args[0])
                 self.emit_expr(args[1])
                 self.emit("SHR")
                 return
             if name == "rol32":
                 if len(args) != 2:
-                    raise ValueError("rol32 expects 2 args")
+                    raise self._err("rol32 expects 2 args")
                 self.emit_expr(args[0])
                 self.emit_expr(args[1])
                 self.emit("ROL")
                 return
             if name == "ror32":
                 if len(args) != 2:
-                    raise ValueError("ror32 expects 2 args")
+                    raise self._err("ror32 expects 2 args")
                 self.emit_expr(args[0])
                 self.emit_expr(args[1])
                 self.emit("ROR")
                 return
-            raise ValueError(f"unsupported expression function '{name}'")
+            raise self._err(f"unsupported expression function '{name}'")
         if kind == "bin":
             op = node["op"]
             if op == ">":
@@ -478,11 +516,12 @@ class Compiler:
             elif op == "<":
                 self.emit("LT")
             else:
-                raise ValueError(f"unsupported operator {op}")
+                raise self._err(f"unsupported operator {op}")
             return
-        raise ValueError(f"unsupported expression node {kind}")
+        raise self._err(f"unsupported expression node {kind}")
 
     def emit_stmt(self, stmt: dict) -> None:
+        self._track(stmt)
         kind = stmt["kind"]
         entry_kind = {
             "while": "loop_head",
@@ -503,7 +542,7 @@ class Compiler:
             return
         if kind == "assign":
             if stmt["name"] not in self.vars:
-                raise ValueError(f"assignment to undeclared variable '{stmt['name']}'")
+                raise self._err(f"assignment to undeclared variable '{stmt['name']}'")
             self.emit_expr(stmt["expr"])
             self.emit(f"LSET {self.vars[stmt['name']]}")
             return
@@ -539,57 +578,57 @@ class Compiler:
                     self.emit_stmt(s)
             self.emit(f"{l_end}:")
             return
-        raise ValueError(f"unsupported statement kind {kind}")
+        raise self._err(f"unsupported statement kind {kind}")
 
     def emit_call(self, name: str, args: list[dict]) -> None:
         if name == "led_write":
             if len(args) != 1:
-                raise ValueError("led_write expects 1 arg")
+                raise self._err("led_write expects 1 arg")
             self.emit_expr(args[0])
             self.emit("HOST 0")
             return
         if name == "delay_ms":
             if len(args) != 1:
-                raise ValueError("delay_ms expects 1 arg")
+                raise self._err("delay_ms expects 1 arg")
             self.emit_expr(args[0])
             self.emit("HOST 1")
             return
         if name == "print_u32":
             if len(args) != 1:
-                raise ValueError("print_u32 expects 1 arg")
+                raise self._err("print_u32 expects 1 arg")
             self.emit_expr(args[0])
             self.emit("HOST 2")
             return
         if name == "print_hex32":
             if len(args) != 1:
-                raise ValueError("print_hex32 expects 1 arg")
+                raise self._err("print_hex32 expects 1 arg")
             self.emit_expr(args[0])
             self.emit("HOST 3")
             return
         if name == "host":
             if len(args) != 2:
-                raise ValueError("host expects 2 args")
+                raise self._err("host expects 2 args")
             host_id = self.eval_const_expr(args[0])
             if host_id < 0 or host_id > 255:
-                raise ValueError("host id out of range 0..255")
+                raise self._err("host id out of range 0..255")
             self.emit_expr(args[1])
             self.emit(f"HOST {host_id}")
             return
         if name == "store8":
             if len(args) != 2:
-                raise ValueError("store8 expects 2 args")
+                raise self._err("store8 expects 2 args")
             self.emit_expr(args[0])
             self.emit_expr(args[1])
             self.emit("MSET")
             return
         if name == "store32le":
             if len(args) != 2:
-                raise ValueError("store32le expects 2 args")
+                raise self._err("store32le expects 2 args")
             self.emit_expr(args[0])
             self.emit_expr(args[1])
             self.emit("MSET32")
             return
-        raise ValueError(f"unsupported function '{name}'")
+        raise self._err(f"unsupported function '{name}'")
 
     def compile(self, stmts: list[dict]) -> str:
         for s in stmts:
@@ -636,6 +675,11 @@ def main() -> int:
         action="store_true",
         help="emit source map sidecar JSON at <output>.map",
     )
+    parser.add_argument(
+        "--json-errors",
+        action="store_true",
+        help='emit diagnostics on stderr as JSON ({"errors": [{line,col,severity,message}]})',
+    )
     args = parser.parse_args()
 
     if args.map and args.output is None:
@@ -645,8 +689,34 @@ def main() -> int:
     src = args.input.read_text(encoding="utf-8")
     try:
         asm, comp = compile_with_map(src, str(args.input))
+    except CompileError as exc:
+        if args.json_errors:
+            payload = {
+                "errors": [
+                    {
+                        "line": exc.line,
+                        "col": exc.col,
+                        "severity": "error",
+                        "message": exc.msg,
+                    }
+                ],
+            }
+            print(json.dumps(payload), file=sys.stderr)
+        else:
+            print(f"{args.input}:{exc.line}:{exc.col}: error: {exc.msg}", file=sys.stderr)
+        return 1
     except Exception as exc:
-        print(f"error: {exc}", file=sys.stderr)
+        # Non-CompileError = internal bug. Emit at line 1 so tooling still
+        # has something to anchor the squiggly to.
+        if args.json_errors:
+            payload = {
+                "errors": [
+                    {"line": 1, "col": 1, "severity": "error", "message": f"internal: {exc}"}
+                ],
+            }
+            print(json.dumps(payload), file=sys.stderr)
+        else:
+            print(f"error: {exc}", file=sys.stderr)
         return 1
 
     if args.asm:

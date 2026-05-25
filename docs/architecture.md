@@ -97,7 +97,8 @@ flowchart LR
 
     D1["D1: WebSerial / WebUSB<br/>hardware from browser"]:::planned
     D2auth["D2: Auth (OIDC)<br/>multi-user SaaS"]:::planned
-    D4["D4: LSP features<br/>diagnostics / hover / goto-def"]:::planned
+    D4a["D4 stage 1<br/>compile-on-save diagnostics"]:::shipped
+    D4["D4 stage 2+<br/>live diagnostics · hover · goto-def"]:::planned
     D5["D5: native MCU debug<br/>via WebUSB"]:::planned
     SB["Spring Boot rewrite<br/>(from openapi.yaml)"]:::planned
 
@@ -105,7 +106,7 @@ flowchart LR
     CS --> D2auth
     CS --> SB
     M5 --> D1
-    M5 --> D4
+    M5 --> D4a --> D4
     M5 --> D5
 ```
 

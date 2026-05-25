@@ -43,6 +43,21 @@ Inside the IDE:
 - `F1` (command palette) → `tiny_vm: Open Opcode Table` → opens the
   bytecode reference in a webview.
 
+### Inline syntax errors
+
+The extension compiles `.cvm.c` (and `.vm`) on **save** and on file open via
+the `/api/compile` endpoint, then publishes the compiler's structured
+diagnostics back as VS Code `Diagnostic` entries.
+
+- Errors appear as red squigglies in the editor and as entries in the
+  **Problems panel** (`Ctrl+Shift+M`). Click an entry to jump to the line.
+- Fix the issue and save again — squigglies clear on a successful compile.
+- This is save-time only in v1; as-you-type live diagnostics are Stage 2.
+
+The wire format is documented in `host/openapi.yaml` (the `Diagnostic`
+schema). The compiler emits structured JSON when invoked with
+`tools/vm_cc.py --json-errors`.
+
 ### Debug a `.cvm.c` source
 
 1. Open a `.cvm.c` file.

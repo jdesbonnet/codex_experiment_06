@@ -11,7 +11,8 @@
 //   POST /api/compile         -> compile a .cvm.c source
 //     body: { source: string, name?: string }
 //     200:  { bytecodeBase64, sourceMap, assembly }
-//     4xx:  { error: string, detail?: string }
+//     4xx:  { error: string, detail?: string,
+//             diagnostics?: [{ line, col, severity, message }] }
 //
 // CORS allows the configured FRONTEND_ORIGIN (default http://localhost:3000)
 // because the browser fetches from a different port.
@@ -91,11 +92,25 @@ async function readJsonBody(req, limitBytes = 1_000_000) {
     });
 }
 
+/**
+ * Spawn vm_cc.py with --json-errors so a failed compile lands as a single
+ * JSON line on stderr that we can forward to the IDE as structured
+ * diagnostics. Resolves on exit 0; rejects with a `CompileFailed` carrying
+ * the parsed diagnostics array (or raw stderr if parsing fails) on non-zero.
+ */
+class CompileFailed extends Error {
+    constructor(message, diagnostics, raw) {
+        super(message);
+        this.diagnostics = diagnostics;
+        this.raw = raw;
+    }
+}
+
 function runVmCc(srcPath, binPath) {
     return new Promise((resolve, reject) => {
         const proc = spawn(
             "python3",
-            [VM_CC, srcPath, "-o", binPath, "--map"],
+            [VM_CC, srcPath, "-o", binPath, "--map", "--json-errors"],
             { cwd: REPO_ROOT, stdio: ["ignore", "pipe", "pipe"] },
         );
         let stdout = "";
@@ -104,8 +119,21 @@ function runVmCc(srcPath, binPath) {
         proc.stderr.on("data", (b) => (stderr += b.toString("utf-8")));
         proc.on("error", reject);
         proc.on("close", (code) => {
-            if (code === 0) resolve({ stdout, stderr });
-            else reject(new Error(`vm_cc.py exit ${code}: ${stderr || stdout}`));
+            if (code === 0) {
+                resolve({ stdout, stderr });
+                return;
+            }
+            let diagnostics = null;
+            try {
+                const parsed = JSON.parse(stderr.trim());
+                if (Array.isArray(parsed?.errors)) diagnostics = parsed.errors;
+            } catch {
+                // freeform stderr — caller falls back to `raw`
+            }
+            const msg = diagnostics?.length
+                ? diagnostics[0].message
+                : stderr.trim() || `vm_cc.py exit ${code}`;
+            reject(new CompileFailed(msg, diagnostics, stderr));
         });
     });
 }
@@ -152,10 +180,14 @@ async function handleCompile(req, res) {
             assembly: null, // omit for now; can wire vm_cc -S later
         });
     } catch (e) {
-        return writeJson(req, res, 400, {
+        const payload = {
             error: "compile failed",
             detail: String(e?.message ?? e),
-        });
+        };
+        if (e instanceof CompileFailed && Array.isArray(e.diagnostics)) {
+            payload.diagnostics = e.diagnostics;
+        }
+        return writeJson(req, res, 400, payload);
     } finally {
         // Best-effort cleanup. Ignore errors (e.g. partial-write paths).
         fs.rm(dir, { recursive: true, force: true }).catch(() => {});

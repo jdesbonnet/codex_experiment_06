@@ -15,6 +15,7 @@ import {
 import { ensureSimReady, runProgram, statusName, STATUS } from "./sim";
 import { TinyVmDebugAdapter } from "./debugAdapter";
 import { compileCvmC } from "./compile";
+import { registerDiagnostics } from "./diagnostics";
 
 const DEBUG_TYPE = "tiny-vm";
 
@@ -93,6 +94,10 @@ export function activate(context: vscode.ExtensionContext): void {
             },
         }),
     );
+
+    // Compile-on-save diagnostics. Squigglies + Problems panel entries
+    // appear when a saved file fails to compile and clear when it succeeds.
+    registerDiagnostics(context);
 
     // Configuration provider so the Run/Debug sidebar button "just works":
     //   - Dynamic registration lets the giant "Run and Debug" button start
