@@ -1,6 +1,6 @@
 # Chapter 2: A Respectable Story
 
-The man on the cart looked first at Fiona, then at the case, then at the lane
+The man on the cart looked first at Iris, then at the case, then at the lane
 behind her, as if a fourth explanation might emerge if he inspected the road
 hard enough.
 
@@ -12,7 +12,7 @@ were a permanent argument to be borne rather than won. The younger men waited
 without speaking. One had straw in his hair and the wary expression of somebody
 accustomed to blame. The other was scarcely more than a boy.
 
-Fiona had already made one useful calculation: they were curious before they
+Iris had already made one useful calculation: they were curious before they
 were hostile. That was not safety, but it was time.
 
 "I'm afraid I've lost my way," she said.
@@ -25,12 +25,12 @@ The younger of the two standing by the wheel gave a brief snort and looked down
 at once, ashamed of laughing in front of her or in front of the older man,
 perhaps both.
 
-"Is there a village near?" Fiona asked.
+"Is there a village near?" Iris asked.
 
 "There is if you keep to the road and do not spring out of hedges," the older
 man said. "What village d'you want?"
 
-That was the first dangerous question. Fiona could not name a place she did not
+That was the first dangerous question. Iris could not name a place she did not
 know and she did not yet know enough to choose one that belonged naturally in
 her mouth.
 
@@ -46,7 +46,7 @@ side leads to anywhere worth losing a lady."
 
 It was not exactly a question, which made it harder.
 
-Fiona bent to the case as if to lift it again, buying a second to think.
+Iris bent to the case as if to lift it again, buying a second to think.
 
 "I am not a lady," she said.
 
@@ -63,10 +63,10 @@ road."
 
 "Maybe she fell from the moon," the older man said. "Hold your tongue, Ned."
 
-The younger labourer by the wheel had been staring at Fiona's boots. "Them are
+The younger labourer by the wheel had been staring at Iris's boots. "Them are
 queer."
 
-Fiona resisted the urge to hide them under the hem of her coat.
+Iris resisted the urge to hide them under the hem of her coat.
 
 "Imported," she said, because the lie offered itself fully formed and because
 there was no world in which this place could verify it.
@@ -79,7 +79,7 @@ back."
 
 He spoke as though he had already decided.
 
-Fiona let out the breath she had been holding.
+Iris let out the breath she had been holding.
 
 "Thank you."
 
@@ -91,7 +91,7 @@ joined him. Between them they lifted the case. Both men grunted at the weight.
 
 "God preserve us," said the younger one. "What's in it?"
 
-"Books," Fiona said.
+"Books," Iris said.
 
 That won her the first useful silence.
 
@@ -103,12 +103,12 @@ The older man shoved the case into the cart and wiped his hands on his coat.
 "Tom," he said to the younger labourer, "mind the wheel. Ned, off. Miss, if you
 please."
 
-Fiona climbed awkwardly onto the shaft while the boy slid down, and the cart
+Iris climbed awkwardly onto the shaft while the boy slid down, and the cart
 set off again with a groan from the damaged side. The lane ran between hedges
 beaded with cold water. Mud struck the spokes. The horse smelled of wet hide
 and patient resignation.
 
-For several minutes no one spoke. Fiona used the time to steady herself by the
+For several minutes no one spoke. Iris used the time to steady herself by the
 old method of counting facts.
 
 The horse tack was well used but competently kept. The cart itself had a worn
@@ -126,9 +126,9 @@ She had expected that sooner.
 Names were dangerous. Her own felt too modern, though only just. But to invent
 a full false self in three seconds was to invite disaster later.
 
-"Fiona," she said.
+"Iris," she said.
 
-He glanced up. "Fiona what?"
+He glanced up. "Iris what?"
 
 "Marsh."
 
@@ -137,7 +137,7 @@ of anything spoken when one is frightened.
 
 "Marsh," he said. "And where do you belong, Miss Marsh?"
 
-That question, Fiona suspected, would pursue her for years.
+That question, Iris suspected, would pursue her for years.
 
 "Cambridgeshire," she said.
 
@@ -166,7 +166,7 @@ by compactness. Human life drawn in upon itself against winter.
 
 People looked up as the cart went by.
 
-Fiona felt their eyes on the case before she felt them on her face. Whatever
+Iris felt their eyes on the case before she felt them on her face. Whatever
 she looked like, the luggage made her a story.
 
 The inn stood at a bend where the road widened just enough for a hitching post
@@ -177,7 +177,7 @@ human proximity that almost made her dizzy.
 
 The older man nodded toward it. "The Crown."
 
-"Do I ask for Mrs. Davy or the lion?" Fiona said before she could stop herself.
+"Do I ask for Mrs. Davy or the lion?" Iris said before she could stop herself.
 
 Tom barked a laugh. The older man gave her the briefest shadow of approval.
 
@@ -201,18 +201,18 @@ requires a room."
 
 "Then she had best ask at a better inn."
 
-Mrs. Davy was perhaps fifty, though Fiona knew well enough that hard lives
+Mrs. Davy was perhaps fifty, though Iris knew well enough that hard lives
 aged people beyond arithmetic. Her face was broad, clever, and entirely
 unfooled.
 
-"I can pay," Fiona said.
+"I can pay," Iris said.
 
-Mrs. Davy's eyes dropped at once to Fiona's hands, then to the absence of any
+Mrs. Davy's eyes dropped at once to Iris's hands, then to the absence of any
 reticule, purse, servant, or visible means of producing coin.
 
 "Can you."
 
-Fiona's pockets held a house key, a folded shopping receipt, half a packet of
+Iris's pockets held a house key, a folded shopping receipt, half a packet of
 mints, and a modern debit card useful to no one in any century without the rest
 of the civilization attached.
 
@@ -224,16 +224,16 @@ The refusal was not cruel. That made it worse. It was simply a calculation.
 Fuel, bread, sheets, risk.
 
 Ned, the boy, had already drifted toward the hearth where another, smaller boy
-sat on a stool with his hand bundled in linen. Fiona saw the dressing first in
+sat on a stool with his hand bundled in linen. Iris saw the dressing first in
 the way trained people see a problem before they know they've looked at it: too
 thick, too dry, and dark where fresh seepage had crept through. The child was
 trying not to cry. That effort alone told her the pain was bad.
 
-Mrs. Davy saw Fiona looking and moved half a step, instinctively between them.
+Mrs. Davy saw Iris looking and moved half a step, instinctively between them.
 
 "My son has no business that concerns you."
 
-"No," Fiona said. "But that bandage does."
+"No," Iris said. "But that bandage does."
 
 The room changed.
 
@@ -251,7 +251,7 @@ Mrs. Davy's expression hardened. "Are you a surgeon?"
 
 "Then I think—"
 
-"I think," Fiona said, more sharply than intended, "that if the hand was
+"I think," Iris said, more sharply than intended, "that if the hand was
 burned, or torn, or crushed, then keeping it wrapped in old linen beside a fire
 will do it no kindness."
 
@@ -263,7 +263,7 @@ centuries had taught many things badly; they had taught sepsis thoroughly.
 
 Mrs. Davy lifted her chin. "And you know this how?"
 
-Fiona looked at the child. Ten, perhaps. Pale around the mouth. Sweat at the
+Iris looked at the child. Ten, perhaps. Pale around the mouth. Sweat at the
 hairline though the room was only moderately warm. That could still be pain
 rather than fever.
 
@@ -273,7 +273,7 @@ changed it last should have washed first."
 
 There was a silence long enough for offence to settle in it.
 
-Then, from the far side of the hearth, a man Fiona had not noticed said, "She
+Then, from the far side of the hearth, a man Iris had not noticed said, "She
 is not wrong."
 
 He was thin, grey at the temples, with the stooped shoulders of someone who sat
@@ -286,20 +286,20 @@ So the older man from the cart was Elias. It suited him.
 
 "I am saying she is not wrong," he repeated.
 
-Mrs. Davy's mouth tightened. She looked at Fiona again, now not as a vagrant
+Mrs. Davy's mouth tightened. She looked at Iris again, now not as a vagrant
 but as a nuisance of a more expensive kind.
 
 "If I let you near him and you worsen it, I will have you turned out into the
 dark before the hour is done."
 
-"If you do not let me look," Fiona said, "then nothing I say matters and you
+"If you do not let me look," Iris said, "then nothing I say matters and you
 lose only the satisfaction of refusing me."
 
 Tom coughed into his hand to hide a smile.
 
 Mrs. Davy hesitated.
 
-That hesitation was all Fiona needed. She crossed the room slowly, keeping her
+That hesitation was all Iris needed. She crossed the room slowly, keeping her
 hands visible. The boy watched her with the grave distrust children reserve for
 adults discussing them as if they were furniture.
 
@@ -311,11 +311,11 @@ adults discussing them as if they were furniture.
 
 "No," he said instantly, which meant yes.
 
-Fiona crouched. "May I see?"
+Iris crouched. "May I see?"
 
 He looked to his mother. Mrs. Davy gave one curt nod.
 
-The linen smelled faintly of fat and smoke. Fiona unwound it carefully. The
+The linen smelled faintly of fat and smoke. Iris unwound it carefully. The
 hand beneath was angry red across the palm and lower fingers, with blistering
 broken in one place and a crust of whatever domestic salve had been used first.
 A kitchen burn, perhaps. Bad, but not yet catastrophic.
@@ -344,7 +344,7 @@ truth.
 
 No one answered.
 
-Fiona became aware of her own hands, clean by modern standards only because she
+Iris became aware of her own hands, clean by modern standards only because she
 had cleaned them that morning in another century. Not clean enough. She wanted
 soap, boiling water, and gloves. She had none. The whole room suddenly seemed
 made of contamination: table edges, sleeves, smoke residue, the grain of wood
@@ -356,7 +356,7 @@ tight."
 
 "And for the pain?" Will asked in a very small voice.
 
-Fiona almost laughed, not because it was funny but because the question was
+Iris almost laughed, not because it was funny but because the question was
 modern in its fairness. Adults could talk all they liked about methods. The
 patient still wanted to know the useful part.
 
@@ -368,7 +368,7 @@ fire."
 But the edge had gone out of her tone. She was thinking now not about class or
 insolence but about whether the stranger might be right.
 
-Fiona rewrapped the hand as best she could and stood.
+Iris rewrapped the hand as best she could and stood.
 
 "That is all I can say without proper supplies."
 
@@ -378,7 +378,7 @@ Fiona rewrapped the hand as best she could and stood.
 
 "You speak as if all the world ought to be a surgery."
 
-Fiona thought of clean rooms, autoclavable trays, controlled packaging,
+Iris thought of clean rooms, autoclavable trays, controlled packaging,
 disposable drapes, sterility indicators, traceability records, post-market
 surveillance, and a thousand miracles so normalized they no longer looked like
 miracles to anyone who had not been deprived of them.
@@ -400,18 +400,18 @@ clearly costing her some inward concession. "Not in one of the proper rooms.
 And if in the morning you prove a thief or a lunatic, I shall consider the
 charity badly invested."
 
-Fiona inclined her head. "That is fair."
+Iris inclined her head. "That is fair."
 
 "It is not charity," Mrs. Davy snapped. "It is barter. There is dignity in one
 and waste in the other."
 
-That, Fiona thought, might be the first sentence from 1800 she entirely loved.
+That, Iris thought, might be the first sentence from 1800 she entirely loved.
 
 The room resumed movement in cautious increments. Elias and Tom returned to the
-cart. Ned followed them. Mrs. Davy sent for water. Will stared at Fiona as if
+cart. Ned followed them. Mrs. Davy sent for water. Will stared at Iris as if
 she had stepped out of a book his mother would not let him read.
 
-Only when she was left briefly alone by the hearth did Fiona allow her knees to
+Only when she was left briefly alone by the hearth did Iris allow her knees to
 shake.
 
 She had a bed for one night. That was all.
@@ -425,7 +425,7 @@ be lucky but wrong enough to be dangerous if repeated. Third, Little Abberton
 was the sort of place where everyone knew, by suppertime, that an educated
 woman with unnatural boots and no money was sleeping over Mrs. Davy's kitchen.
 
-By the time the common room thinned and the shutters were barred, Fiona had
+By the time the common room thinned and the shutters were barred, Iris had
 constructed the beginnings of a respectable story.
 
 She was not married. Better to be a dependent relation than a wife without a
@@ -446,7 +446,7 @@ another hand.
 When Mrs. Davy showed her at last to the room above the kitchen, it was smaller
 than the word room ordinarily implied: a narrow bed, a washstand, a single
 candle, plaster cracked by age, and the warmth of the flue working its way
-through one wall. Fiona set the case down and sat on the bed in her clothes.
+through one wall. Iris set the case down and sat on the bed in her clothes.
 
 For the first time since arriving, she let herself think beyond the next hour.
 
@@ -510,7 +510,7 @@ Down below, she could hear the murmur of Mrs. Davy's voice, the scrape of a pot
 lid, the closing of a door. Then the house settled around her in the old way:
 timber, ash, and breathing.
 
-Fiona lay down without undressing and put one hand on the case.
+Iris lay down without undressing and put one hand on the case.
 
 The bag was still too heavy.
 
@@ -536,5 +536,5 @@ Not wild ones. Respectable ones.
 The sort that could pass through a parlour door without being announced as
 fraud.
 
-Only then, Fiona thought, eyes open in the dark, could she begin the more
+Only then, Iris thought, eyes open in the dark, could she begin the more
 difficult business of telling the truth.

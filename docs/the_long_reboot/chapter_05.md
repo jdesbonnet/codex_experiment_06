@@ -2,12 +2,12 @@
 
 London smelled of horses, drains, coal, cheap food, expensive perfume, and the
 collective insistence of too many people making too many arrangements in too
-little space. Fiona had lived in cities all her adult life and had forgotten
+little space. Iris had lived in cities all her adult life and had forgotten
 how much of urban civilization depended on invisible infrastructure. London in
 1800 possessed the crowd without the concealment.
 
 Cresswell lodged them in Bloomsbury in rooms chosen for affordability and moral
-defensibility. The Royal Institution, when Fiona first saw it, disappointed her
+defensibility. The Royal Institution, when Iris first saw it, disappointed her
 in exactly the right way. It was not yet a myth. Only a building in which
 wealthy men and curious women came to admire useful spectacle and congratulate
 themselves on valuing inquiry.
@@ -15,7 +15,7 @@ themselves on valuing inquiry.
 That was enough. Institutions did not need purity. Only resources.
 
 The demonstration they were invited to observe was chemical, fashionable, and
-slightly theatrical. Humphry Davy, younger than Fiona had imagined and far more
+slightly theatrical. Humphry Davy, younger than Iris had imagined and far more
 beautiful in motion than any man had a right to be while speaking of gases,
 held the room with an ease she recognized instantly as dangerous. He was not
 merely intelligent. He was persuasive in real time, which was an altogether
@@ -32,7 +32,7 @@ identifying the source of the trouble. "Mr. Cresswell tells me you have
 interests in mechanics, chemistry, and electricity. This is either admirable or
 impossible."
 
-"It has certainly been inconvenient," Fiona said.
+"It has certainly been inconvenient," Iris said.
 
 Davy laughed at that and waved them to chairs. The secretary remained standing,
 which told her more about power than any introduction could have.
@@ -45,7 +45,7 @@ interest than gentlemen of finance."
 
 "You imagine correctly. It is one of our defects."
 
-He sat opposite her, all brightness and attention. Fiona felt, with some
+He sat opposite her, all brightness and attention. Iris felt, with some
 annoyance, that he was doing the same rapid diagnosis she herself used in
 laboratories: competence, vanity, instability, usefulness, risk. Human
 factors, only in a better coat.
@@ -55,7 +55,7 @@ faked, but that you know where learning runs aground."
 
 There it was. A real question.
 
-Fiona had prepared speeches on galvanic efficiency, relay logic, chemical
+Iris had prepared speeches on galvanic efficiency, relay logic, chemical
 purification, and standards. She discarded them all.
 
 "Measurement," she said. "Repeatability. Bad screws. Worse glass. Impure copper.
@@ -82,7 +82,7 @@ offended him in the correct register.
 "And what," he asked, "would you do first, if this nation were absurd enough to
 place means at your disposal?"
 
-Fiona answered without pause.
+Iris answered without pause.
 
 "Machine screws. Gauges. Better pumps. Better batteries. Better insulation. A
 workshop attached to every laboratory. Drawings kept by rule, not memory.
@@ -106,7 +106,7 @@ voltaic piles and metals, medical applications, gas, drainage, corrosion,
 magnetism, practical workshop organization, and why she believed signaling over
 distance would matter beyond novelty.
 
-"Because governments will pay for it first," Fiona said, "and merchants will
+"Because governments will pay for it first," Iris said, "and merchants will
 pay for it second. Once they do, everyone else must live in the world it
 creates."
 
@@ -150,7 +150,7 @@ and wrong as seldom as possible."
 "It is not," said the secretary, speaking for the first time. "It is simply the
 best available."
 
-Fiona liked him immediately and trusted him not at all.
+Iris liked him immediately and trusted him not at all.
 
 So began the next life.
 
@@ -179,14 +179,14 @@ apparatus could be rebuilt twice without argument. After that he called it
 "method" and explained it to visitors as though it had arisen naturally from
 his own temperament.
 
-Fiona did not object. Credit, in 1800, was less important than control of the
+Iris did not object. Credit, in 1800, was less important than control of the
 next step.
 
 The next step came by way of batteries.
 
 The voltaic pile fascinated everyone and served no one nearly as well as it
 might. It leaked, corroded, failed irregularly, and behaved like a spoiled
-relative. Fiona could not conjure modern cells, but she could see immediately
+relative. Iris could not conjure modern cells, but she could see immediately
 that much of the misery came from practical neglect: contact surfaces, fluid
 management, sealing, repeatable assembly, the inability to compare one build to
 another except by mood and anecdote.
@@ -209,7 +209,7 @@ Davy cared because it was interesting. The War Office cared because it was
 useful. Banks, once he finally took notice, cared because any system that moved
 information faster altered the Empire's shape.
 
-Fiona cared because wire was the first honest road to the future.
+Iris cared because wire was the first honest road to the future.
 
 One wet evening, leaving the Institution by a side door after midnight, she
 paused under the portico and watched the lamps glisten on the street.
@@ -224,6 +224,6 @@ profited by it.
 
 London rolled around them, enormous and badly managed and alive.
 
-For the first time since the lane, Fiona allowed herself a dangerous thought.
+For the first time since the lane, Iris allowed herself a dangerous thought.
 
 This might work.

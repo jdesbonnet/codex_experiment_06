@@ -2,7 +2,7 @@
 
 The path to green letters ran through vacuum.
 
-Fiona knew that from the first, but knowing a destination and surviving the
+Iris knew that from the first, but knowing a destination and surviving the
 terrain are distinct activities. Glass was treacherous. Seals leaked. Pumps
 lied. Cathodes behaved like temperamental saints. Every advance in controlled
 vacuum opened three new failures in materials, chemistry, or measurement.
@@ -14,13 +14,13 @@ of three cultures that rarely trusted each other:
 - chemists and physicists
 - wire engineers and signal men
 
-By the mid-`1830s`, those cultures were entangled enough that Fiona could do
+By the mid-`1830s`, those cultures were entangled enough that Iris could do
 something she had not dared attempt earlier: argue openly for amplification and
 electronic switching as engineering objectives rather than scientific curiosities.
 
 The argument itself had to be staged carefully. Men would fund a curiosity out
 of vanity. They would fund an engineering objective only if one could describe
-who would gain power from it. Fiona described, in successive rooms, three
+who would gain power from it. Iris described, in successive rooms, three
 versions of the same future.
 
 To scientists, she spoke of sensitivity.
@@ -37,13 +37,13 @@ late, for instruction.
 
 The first successful valves looked nothing like elegance. Bulbous, fragile,
 difficult, expensive. Yet once they amplified a weak signal without human
-repetition, the room changed. Fiona saw it happen. Not in the apparatus alone
+repetition, the room changed. Iris saw it happen. Not in the apparatus alone
 but in the posture of those watching. Relay chains had made networks scale.
 Valves promised speed without so much mechanical complaint.
 
 The demonstration was held in a room no one loved because it was too hot in
 summer, too cold in winter, and perpetually smelled of dust warmed by apparatus.
-Fiona preferred it for all three reasons. A machine that worked only in comfort
+Iris preferred it for all three reasons. A machine that worked only in comfort
 was not yet a machine but a mood.
 
 Faraday adjusted the instrument. A weak incoming line signal, poor enough under
@@ -65,24 +65,24 @@ Babbage, who had been grumbling for fifteen minutes about fragility, stared at
 the stable indication and said, with the involuntary honesty of shock,
 "Damnation."
 
-Fiona accepted that as praise.
+Iris accepted that as praise.
 
 "They are intolerably delicate," Faraday said after one of the early runs.
 
-"So were all of us at first," Fiona replied.
+"So were all of us at first," Iris replied.
 
 "Speak for yourself."
 
 But he was smiling.
 
 The military men returned, of course. So did the ministries, the insurers, the
-merchant houses. Fiona no longer bothered pretending surprise. Every new layer
+merchant houses. Iris no longer bothered pretending surprise. Every new layer
 of capability redrew the same social diagram with larger consequences.
 
 What interested her more by then was display.
 
 To most of her colleagues, the cathode-ray experiments were exotic, useful for
-inquiry, perhaps for measurement. Fiona saw a terminal waiting to be born.
+inquiry, perhaps for measurement. Iris saw a terminal waiting to be born.
 
 Not a television. That road led elsewhere. A text instrument. A way for a
 machine or network office to show state without clatter, paper, or a man's hand
@@ -102,13 +102,13 @@ This was met with offended silence.
 Then Ada, who had come in late and heard only the last sentence, said, "Then the
 problem is not display. It is legibility under fatigue."
 
-Fiona smiled.
+Iris smiled.
 
 "Yes. At last someone in this building knows how to speak in requirements."
 
 Green, when it finally came as a favored color, was not chosen for sentiment.
 It was chosen because in dim rooms it was legible and tolerable, a color one
-could work by without feeling attacked. Fiona did not say aloud how much that
+could work by without feeling attacked. Iris did not say aloud how much that
 pleased her. Some private loyalties to the future did not need witnesses.
 
 The laboratory politics of display research were vicious in the small,
@@ -129,4 +129,4 @@ Between pulse and glass.
 By the end of the decade they had rooms in which one could, under controlled and
 expensive conditions, display machine state on luminous surfaces as text-like
 forms. Not yet practical, not yet robust, but no longer fantasy. Faraday called
-the apparatus ugly. Fiona considered that an encouraging sign.
+the apparatus ugly. Iris considered that an encouraging sign.

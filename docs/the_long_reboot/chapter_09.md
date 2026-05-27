@@ -3,7 +3,7 @@
 Charles Babbage disliked imprecision in other people with the fervor of a man
 who generated so much of it in himself.
 
-Fiona met him in Cambridge again, years after her first arrival there, when the
+Iris met him in Cambridge again, years after her first arrival there, when the
 network had already given her a reputation and enough leverage to travel as
 something more respectable than a stray problem wrapped in borrowed cloth. She
 had gone north to speak with instrument makers and returned through the
@@ -14,7 +14,7 @@ That description suited Babbage exactly.
 
 He was brilliant, quick, impatient, vain in an almost innocent manner, and
 genuinely offended by error as though nature had committed it to insult him
-personally. Fiona liked him at once and understood within twenty minutes that
+personally. Iris liked him at once and understood within twenty minutes that
 liking him would need management.
 
 He showed her printed tables.
@@ -25,7 +25,7 @@ He showed her printed tables.
 
 "Not machines."
 
-Fiona looked at the gears on his bench, the drawings, the stack of notation, the
+Iris looked at the gears on his bench, the drawings, the stack of notation, the
 component pieces lying in neat conceptual order and poor manufacturing order.
 
 "No," she said. "Machines are full of tolerances."
@@ -38,7 +38,7 @@ He asked her to explain, which was the best thing he did in that first hour.
 Many clever men asked questions only to purchase the right not to hear the
 answer. Babbage, to his credit, wished to hear.
 
-So Fiona told him what the wire had taught her. That arithmetic was not enough.
+So Iris told him what the wire had taught her. That arithmetic was not enough.
 That repeatability lived or died in fit, wear, assembly sequence, lubrication,
 inspection. That a machine intended to remove human clerical error would merely
 replace it with manufacturing error unless the workshop was designed as carefully
@@ -66,16 +66,16 @@ described."
 "That is the most honest thing you have said today."
 
 By the end of the afternoon Babbage had stopped talking about the machine and
-begun talking about the factory required by the machine. That, Fiona thought,
+begun talking about the factory required by the machine. That, Iris thought,
 was progress.
 
 Their collaboration never became easy. Babbage did not admire advice unless it
-arrived disguised as his own future opinion. Fiona, for her part, had no
+arrived disguised as his own future opinion. Iris, for her part, had no
 patience for genius when it mistook specifications for implementation. Yet they
 needed each other in ways both recognized.
 
 Babbage had the mathematical and architectural instinct to imagine engines that
-went beyond tables. Fiona had the systems instinct to ask what fed them, what
+went beyond tables. Iris had the systems instinct to ask what fed them, what
 recorded them, what signaled states, what failed first, what could be rebuilt,
 what could be replicated.
 
@@ -98,7 +98,7 @@ constraint.
 
 "You are turning my engine into an office," he said once in disgust.
 
-"Yes," Fiona said. "Because offices are where civilizations spend most of their
+"Yes," Iris said. "Because offices are where civilizations spend most of their
 lives."
 
 He disliked that for an hour and then began designing state indicators.
@@ -113,7 +113,7 @@ thing. It was a family of devices and practices:
 - stricter workshop tolerancing than England would likely have tolerated without
   the pressure of the wire industries already teaching similar lessons
 
-For Fiona, the most important advance was conceptual rather than mechanical.
+For Iris, the most important advance was conceptual rather than mechanical.
 Babbage thought in engines. She thought in systems. Between them emerged a third
 thought: stored procedure.
 
@@ -123,12 +123,12 @@ that could be encoded externally, replayed, checked, transmitted, altered.
 The day the idea settled properly between them, it did so over something
 ridiculously small: a punched strip describing a sequence of corrections that
 could be applied to one tabulation but, with minor substitution, to another.
-Babbage was arguing that the strip was merely instruction. Fiona argued that
+Babbage was arguing that the strip was merely instruction. Iris argued that
 instruction reusable across cases was already an asset class of its own.
 
 "It is a method," Babbage said.
 
-"It is a transferable method," Fiona said. "That is a different order of thing."
+"It is a transferable method," Iris said. "That is a different order of thing."
 
 "You are inventing categories to win an argument."
 
@@ -161,13 +161,13 @@ Babbage's rooms became, over time, one of the strange nodal points in the
 rebooted century. Men came in expecting abstract genius and left talking about
 machine screws, inspection protocols, and operator notation. Some resented it.
 Some converted. A few simply stole what they could and carried it elsewhere,
-which Fiona considered acceptable so long as they stole correctly.
+which Iris considered acceptable so long as they stole correctly.
 
 The state paid attention again. Of course it did. A signaling network was one
 thing. Engines that might reduce tabulation, navigation correction, finance
 calculation, gunnery tables, actuarial work: that was another.
 
-By then Fiona had learned to treat official enthusiasm the way sailors treated a
+By then Iris had learned to treat official enthusiasm the way sailors treated a
 change in wind. Neither panic nor trust. Only adjustment.
 
 What mattered more was that by the late `1820s` the lines, workshops, and
@@ -180,4 +180,4 @@ the first unmistakable sign that they had succeeded.
 A civilization becomes computational when its own paperwork outruns the people
 paid to push it.
 
-Fiona wrote that in a notebook and underlined it twice.
+Iris wrote that in a notebook and underlined it twice.

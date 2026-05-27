@@ -1,6 +1,6 @@
 # Chapter 3: Patronage or Prison
 
-Fiona woke before dawn to the smell of baking bread and the immediate memory of
+Iris woke before dawn to the smell of baking bread and the immediate memory of
 where she was.
 
 That, more than anything, convinced her the thing was real. Shock might hold
@@ -17,7 +17,7 @@ unsentimental. A man's voice with the deliberate, professionally patient cadence
 of someone used to having the last word without raising it. Not Elias. Not Tom.
 Someone finer in station or more practiced in being listened to.
 
-Fiona stood, washed in water cold enough to count as an insult, and opened the
+Iris stood, washed in water cold enough to count as an insult, and opened the
 case by candle stub.
 
 She did not dare dress better. Better, here, would only make questions worse.
@@ -32,7 +32,7 @@ air of a place that had been in conversation about her before she entered.
 Mrs. Davy stood by the table with her arms folded. Beside the hearth, warming
 his hands not because he needed warmth but because it gave him a posture, stood
 a clergyman in a black coat whose plainness had the expensive finish of good
-cloth. He was younger than Fiona had expected, perhaps forty, with a narrow
+cloth. He was younger than Iris had expected, perhaps forty, with a narrow
 face and alert, steady eyes.
 
 There was a second man as well, broader, in riding boots spattered with mud and
@@ -40,12 +40,12 @@ a coat cut too well for Little Abberton. A land agent, perhaps, or the sort of
 minor local authority who existed in England in great numbers and considered
 their obscurity a sign of civilization.
 
-Mrs. Davy did not invite Fiona to sit.
+Mrs. Davy did not invite Iris to sit.
 
 "Miss Marsh," she said. "This is Reverend Clarke. And Mr. Bell, who oversees
 certain matters for Sir Edward Marston."
 
-Certain matters, Fiona thought, was never good.
+Certain matters, Iris thought, was never good.
 
 The reverend bowed slightly. Mr. Bell did not.
 
@@ -92,7 +92,7 @@ Bell took a step forward.
 The reverend cast Bell a look suggesting that bluntness was useful only when it
 was one's own. Bell ignored him.
 
-Fiona felt the room narrowing into one of those moments on which whole futures
+Iris felt the room narrowing into one of those moments on which whole futures
 balanced for no good reason. Not because the men before her were especially
 important in themselves, but because they represented a system that was. Parish.
 property. reputation. local order. The mesh from which one did not vanish simply
@@ -104,7 +104,7 @@ know when I am being counted like an item of uncertain ownership."
 
 Mrs. Davy looked abruptly away to hide what might have been satisfaction.
 
-Bell's expression hardened. The reverend, to Fiona's annoyance, seemed
+Bell's expression hardened. The reverend, to Iris's annoyance, seemed
 interested rather than alarmed.
 
 "You speak unusually," he said.
@@ -116,14 +116,14 @@ interested rather than alarmed.
 There it was again: the question behind every question. Not what do you know,
 but who licensed you to know it.
 
-"By my father," Fiona said.
+"By my father," Iris said.
 
 That lie had already become useful. It explained knowledge while preserving the
 male chain of legitimacy the century wanted.
 
 "And your father was?" asked Bell.
 
-Fiona took one careful breath.
+Iris took one careful breath.
 
 "A man who preferred books to comfort and died with more opinions than money."
 
@@ -135,7 +135,7 @@ The reverend nodded, as though recognizing a type he had buried before.
 
 Bell remained unconvinced. "Name."
 
-Fiona let silence stretch just enough to become discourteous.
+Iris let silence stretch just enough to become discourteous.
 
 "If I give you a name," she said, "what then?"
 
@@ -152,7 +152,7 @@ perhaps not yet, but confinement of one kind or another. Dependency, supervision
 conveyance to some other authority better placed to categorize her. England was
 less a country than a filing system with fields and churches attached.
 
-Fiona set the notebook and caliper on the table.
+Iris set the notebook and caliper on the table.
 
 "Before you decide what sort of danger I am," she said, "you should perhaps
 learn whether I am any use."
@@ -169,7 +169,7 @@ Reverend Clarke looked down at the steel caliper.
 
 Bell snorted. "We have rulers."
 
-"Then why," Fiona said, turning to Mrs. Davy, "does Elias's cart wheel wobble?"
+"Then why," Iris said, turning to Mrs. Davy, "does Elias's cart wheel wobble?"
 
 The room stalled.
 
@@ -185,23 +185,23 @@ my eyes and a gauge, then you may judge I am at least a more profitable sort of
 nuisance than the average."
 
 Mrs. Davy gave an unwilling bark of laughter at that. The reverend smiled
-openly. Bell did not move, but Fiona caught the first flicker of uncertainty in
+openly. Bell did not move, but Iris caught the first flicker of uncertainty in
 his face. Suspicion had prepared him for hysteria, deception, impropriety,
 religious eccentricity perhaps. It had not prepared him for an engineer.
 
 "Fetch Elias," said Mrs. Davy.
 
-Bell turned to object, then thought better of it. Authority, Fiona noticed,
+Bell turned to object, then thought better of it. Authority, Iris noticed,
 survived by never seeming afraid of experiments it could still stop.
 
 Elias came in a few minutes later, hat in hand and looking already inconvenienced
-on behalf of the day. Tom followed him. The wheel, as Fiona had guessed, had
+on behalf of the day. Tom followed him. The wheel, as Iris had guessed, had
 been the first thing on the men's minds that morning and not merely because it
 gave them an excuse to discuss the stranger.
 
 They led her out to the yard.
 
-The cart stood tipped slightly to one side. Dew silvered the shafts. Fiona
+The cart stood tipped slightly to one side. Dew silvered the shafts. Iris
 walked around the wheel once, crouched, and laid her fingers against the hub.
 Then she asked Elias to roll it forward and back.
 
@@ -210,7 +210,7 @@ There was play. Small, but visible.
 She stood and held out the caliper. "May I?"
 
 No one understood the tool, but Elias, after a look from the reverend, handed
-her the pin that had been removed from the assembly. Fiona measured the worn
+her the pin that had been removed from the assembly. Iris measured the worn
 diameter, then compared it against the less-worn section nearer the head.
 
 "It's not the whole wheel," she said. "The wear is uneven. The pin's gone
@@ -241,7 +241,7 @@ delight for large outcomes.
 
 Bell said, "A village smith could tell us that."
 
-Fiona turned to him. "Then why had he not yet?"
+Iris turned to him. "Then why had he not yet?"
 
 Mrs. Davy made no effort at all to hide her satisfaction this time.
 
@@ -249,7 +249,7 @@ Bell's mouth flattened. The reverend, to his credit, suppressed his amusement.
 
 "The point," Bell said, "is not whether you can inspect a wheel."
 
-"No," Fiona said. "The point is whether you want a woman who can inspect a
+"No," Iris said. "The point is whether you want a woman who can inspect a
 wheel to leave this village on foot, or leave it with a letter."
 
 There. She had said the thing too plainly, but there was no retrieving it. The
@@ -268,8 +268,8 @@ Mrs. Davy sniffed. "My kitchen has served better people."
 
 "I do not doubt it."
 
-Bell looked from the reverend to Fiona and back again, calculating cost,
-scandal, and liability. Fiona knew the type. She had met him in other clothes,
+Bell looked from the reverend to Iris and back again, calculating cost,
+scandal, and liability. Iris knew the type. She had met him in other clothes,
 other centuries, behind procurement desks and committee tables. Men who did not
 invent obstacles but inherited them lovingly.
 
@@ -295,7 +295,7 @@ wished to appear unconvinced.
 
 "Very well," he said. "But she does not travel alone."
 
-Of course not. Fiona had not expected freedom. Freedom, in 1800, was mostly a
+Of course not. Iris had not expected freedom. Freedom, in 1800, was mostly a
 privilege enjoyed in retrospect by the well-documented.
 
 "Ned is going as far as Stowmarket with grain," Elias said. "From there the
@@ -303,7 +303,7 @@ carrier changes. She can go under his eye until the turnpike."
 
 Ned, who had clearly not been consulted, looked both alarmed and flattered.
 
-"I can manage," Fiona said.
+"I can manage," Iris said.
 
 Bell gave her a look suggesting that this sentence, if truly spoken by all
 women, would collapse the constitution.
@@ -312,7 +312,7 @@ women, would collapse the constitution.
 
 The matter, having found a shape, moved quickly after that. The reverend wrote
 the letter at a small side table in Mrs. Davy's common room, pausing now and
-then to ask Fiona a question phrased politely and intended to trap. Could she
+then to ask Iris a question phrased politely and intended to trap. Could she
 quote scripture? Some. Did she have relations still living? Perhaps. Had she
 ever worked as a governess? No, though she could have laughed at the image of
 herself attempting to educate Regency children in the structure of feedback
@@ -324,7 +324,7 @@ possibility.
 
 "Do not lose this," he said, handing it over.
 
-Fiona held the letter between finger and thumb. It was the first official
+Iris held the letter between finger and thumb. It was the first official
 object in this century that acknowledged her existence, even indirectly. A
 frightening amount now depended on paper and the opinion of men who had not yet
 met her.
@@ -340,7 +340,7 @@ not to mistake kindness for safety. You are remarkable enough already."
 It was the closest thing to honest guidance anyone had offered her since
 arrival.
 
-"I won't," Fiona said.
+"I won't," Iris said.
 
 He nodded once. "Good."
 
@@ -352,15 +352,15 @@ to imply that gratitude would be vulgar.
 
 Will stood in the yard with his bandaged hand held carefully away from his body.
 
-"Will it heal?" he asked as Fiona climbed up.
+"Will it heal?" he asked as Iris climbed up.
 
 "If you keep it clean."
 
 "Mother says that's what the Lord invented mothers for."
 
-Fiona looked across at Mrs. Davy, who was pretending not to listen.
+Iris looked across at Mrs. Davy, who was pretending not to listen.
 
-"In that case," Fiona said, "obey the Lord."
+"In that case," Iris said, "obey the Lord."
 
 The boy grinned. Mrs. Davy rolled her eyes at heaven, earth, and strangers all
 at once.
@@ -369,7 +369,7 @@ Ned clicked to the horse, and the cart began to move.
 
 Little Abberton fell away behind them by slow degrees: the inn sign, the forge,
 the cottages crouched against weather, the people who had measured her and, for
-the moment, chosen not to reject her. Fiona sat with the sealed letter inside
+the moment, chosen not to reject her. Iris sat with the sealed letter inside
 her coat and watched the village become a shape rather than a place.
 
 She had not been imprisoned.
@@ -382,7 +382,7 @@ the opposite of confinement. Often it was simply confinement with upholstery.
 Ahead lay Cambridge, or near enough to it, and beyond Cambridge the harder
 country of men who believed themselves modern.
 
-Fiona shifted the weight of the case with her boot and looked down the road.
+Iris shifted the weight of the case with her boot and looked down the road.
 
 She had won movement, nothing more.
 

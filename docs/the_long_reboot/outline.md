@@ -6,7 +6,7 @@
 
 ## Scope
 
-A long-form alternate-history novel following Fiona, a medical device engineer
+A long-form alternate-history novel following Iris, a medical device engineer
 from `2026`, as she tries to accelerate the world from `1800` toward
 `1980`-class information technology within one lifetime.
 
@@ -14,7 +14,7 @@ from `2026`, as she tries to accelerate the world from `1800` toward
 
 ### Part I - Arrival
 
-- Chapter 1: Fiona arrives in `1800` Britain with her luggage
+- Chapter 1: Iris arrives in `1800` Britain with her luggage
 - Chapter 2: first shelter, first lies, first truth
 - Chapter 3: patronage or prison
 
@@ -32,7 +32,7 @@ from `2026`, as she tries to accelerate the world from `1800` toward
 - state interest
 - commercial adoption
 - military capture pressure
-- Fiona learns the price of being believed
+- Iris learns the price of being believed
 
 ### Part IV - Fire in Glass
 
@@ -58,12 +58,12 @@ from `2026`, as she tries to accelerate the world from `1800` toward
 ### Part VII - Ambiguous Future
 
 - a world recognizably transformed
-- Fiona older, influential, and uncertain
+- Iris older, influential, and uncertain
 - success measured in capability, not moral clarity
 
 ## Narrative Approach
 
-- close third-person following Fiona
+- close third-person following Iris
 - enough technical detail to feel plausible
 - use historical figures sparingly and purposefully
 - allow institutions and ordinary workers to matter, not only great inventors

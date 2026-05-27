@@ -1,6 +1,6 @@
 # Chapter 1: The Weight of Twenty Kilograms
 
-The first thing Fiona understood was that the suitcase was too heavy.
+The first thing Iris understood was that the suitcase was too heavy.
 
 Not too heavy by airport standards. Not too heavy for a train platform, a
 hotel lobby, or the polished optimism of a modern city where every burden
@@ -35,7 +35,7 @@ winter afternoon, and the clouds sat low enough to feel personal.
 
 The suitcase bit into her palm.
 
-Fiona lowered it carefully and crouched beside it. Her breathing had gone fast
+Iris lowered it carefully and crouched beside it. Her breathing had gone fast
 and shallow, which offended her on professional grounds. Panic was inefficient.
 It narrowed the field of view and made people stupid. She had spent enough time
 in test labs and clinical rooms to recognise the familiar bodily treachery:
@@ -116,7 +116,7 @@ She closed the notebook and listened.
 Voices.
 
 Not close. Male, by the roughness of them, though distance could lie. A horse
-again, definitely this time, harness leather creaking in rhythm. Fiona's whole
+again, definitely this time, harness leather creaking in rhythm. Iris's whole
 body went still.
 
 A more romantic person might have imagined that history arrived with fanfare.
@@ -138,7 +138,7 @@ serviceable, but the stitching and molded sole belonged to factories that did
 not yet exist. Even her posture was wrong. She carried herself like somebody
 who had spent a life around doors that opened automatically.
 
-The voices came nearer. Fiona shut the case, stood, and tried to lift it with
+The voices came nearer. Iris shut the case, stood, and tried to lift it with
 the composure of a person entirely unsurprised to find herself alone in a
 winter lane two centuries from home.
 
@@ -160,7 +160,7 @@ The accent was older than any living accent she knew, rounder in the vowels and
 rough at the edges, but intelligible. Men discussing the road. One complaining
 about a wheel.
 
-Fiona set the case down again.
+Iris set the case down again.
 
 If they saw the inside of it, she might gain curiosity and lose safety. If she
 lied badly, she might lose both. If she told the truth, and if by some mercy it
@@ -183,7 +183,7 @@ one tilted wheel, and a third perched on the shaft, hat low against the cold.
 None of them wore uniforms. None looked rich. All three looked strong enough to
 be dangerous by accident.
 
-Fiona straightened.
+Iris straightened.
 
 One of them saw her, stopped, and said something she did not catch.
 
@@ -196,7 +196,7 @@ Not because this was the beginning of a better world.
 
 Because this was the beginning of a world that would now include her.
 
-The man on the cart narrowed his eyes at the suitcase, then at Fiona's face.
+The man on the cart narrowed his eyes at the suitcase, then at Iris's face.
 
 "Miss?"
 

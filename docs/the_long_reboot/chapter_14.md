@@ -2,7 +2,7 @@
 
 In `1848`, Europe caught fire in many cities at once.
 
-In the old history Fiona remembered, the revolutions had moved by pamphlet,
+In the old history Iris remembered, the revolutions had moved by pamphlet,
 rhetoric, hunger, rumor, and delay. In this one they moved by those means as
 well, but not only by those means. Messages outran horses. Provincial offices
 received instructions before crowds arrived. Crowds learned what had happened in
@@ -12,7 +12,7 @@ Files crossed borders. So did lies.
 The network had not caused the century's unrest. It had simply removed some of
 the friction that had once localized it.
 
-Fiona was old enough by then to be treated, in rooms of consequence, as part
+Iris was old enough by then to be treated, in rooms of consequence, as part
 woman, part institution. Her hair had silvered. Her hands hurt in damp weather.
 Younger engineers spoke of "Marsh standards" in the mild resentment reserved for
 rules that had saved enough disasters to become annoying. She had outlived
@@ -75,7 +75,7 @@ wise because it had become connected. Empire had learned coordination. So had
 resistance. Administrators had gained memory. So had dissenters. Information had
 become harder to suppress and easier to centralize, often in the same hour.
 
-Fiona stood and walked slowly along the row of screens.
+Iris stood and walked slowly along the row of screens.
 
 At one station, a message from Paris was being decoded and routed. At another, a
 merchant request from Glasgow waited in queue behind government traffic. At a
@@ -98,7 +98,7 @@ be made electrical, why not the ocean? Why not bind two worlds with copper,
 protocol, and stubbornness? Merchants wanted it. Governments wanted it. Men of
 vision wanted it for different and usually less honest reasons.
 
-"What question?" Fiona asked.
+"What question?" Iris asked.
 
 "Whether, if the cable succeeds, the western offices should mirror the London
 stores in full."
@@ -111,7 +111,7 @@ reasons."
 
 The supervisor nodded and withdrew.
 
-Fiona remained where she was while the screens pulsed softly in the dim room.
+Iris remained where she was while the screens pulsed softly in the dim room.
 From the river came the muted sound of traffic and foghorns. Behind her, papers
 moved, relays clicked, valves hummed, and the operators kept the republic of
 signals alive by the oldest method in history: attentive labor.
@@ -135,7 +135,7 @@ Below that, from an internal government office:
 
 Three futures, all arriving at once.
 
-Fiona looked at them until the words blurred slightly with age and fatigue.
+Iris looked at them until the words blurred slightly with age and fatigue.
 
 Then she reached past the operator, set her hand near the keyboard, and typed a
 single routing instruction of her own.

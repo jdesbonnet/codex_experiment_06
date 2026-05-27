@@ -8,7 +8,7 @@ its original justifications. Admiralty dispatches moved through it. Treasury
 figures moved through it. So did private commercial instructions disguised as
 urgencies of national interest and national urgencies disguised as accounting.
 
-Fiona had thought, in her first cold days, that the challenge would be to make
+Iris had thought, in her first cold days, that the challenge would be to make
 people believe in electrical coordination at all. She had not anticipated how
 quickly belief would outrun prudence.
 
@@ -25,7 +25,7 @@ Instead, he asked a simpler question.
 
 "Who may send?"
 
-Fiona answered before Davy could.
+Iris answered before Davy could.
 
 "At present, those with lines, agreements, and the means to pay."
 
@@ -34,12 +34,12 @@ Fiona answered before Davy could.
 There was the state, stripped down to essentials.
 
 Davy gave one of his smoother replies about practical administration and mutual
-interest. Lethbridge listened, then turned to Fiona with the directness of a
+interest. Lethbridge listened, then turned to Iris with the directness of a
 man accustomed to finding the actual engineer in any room of gentlemen.
 
 "And what," he asked, "prevents sedition?"
 
-Fiona thought of every networked system she had ever seen and every committee
+Iris thought of every networked system she had ever seen and every committee
 that had asked the same question in better furniture.
 
 "Nothing," she said. "Nothing in the wire itself. Only in the institutions
@@ -60,11 +60,11 @@ This might have remained an inward irritation had not the postwar years brought
 commercial explosion. Shipping firms wanted price and cargo updates. Insurance
 houses wanted incident notices. Banks wanted rates. Textile merchants wanted
 forecasts of cotton arrivals. The line rooms acquired not only operators but
-clerks, messengers, inspectors, and eventually a type of person Fiona knew
+clerks, messengers, inspectors, and eventually a type of person Iris knew
 instinctively from her own century: the manager who could not build, repair, or
 understand the system but felt appointed by Providence to optimize it.
 
-Somewhere in this expansion Fiona herself became, without intending to, a
+Somewhere in this expansion Iris herself became, without intending to, a
 public name. Not a famous one. That would have been safer or more dangerous, at
 least in recognizable forms. She became instead what London made of difficult
 women when it could not quite deny them: a person discussed in letters,
@@ -85,7 +85,7 @@ public. But repeaters made range into architecture rather than luck. Messages
 could be segmented, restored, forwarded, logged, and counted. With them, a
 network ceased to be a line and became a system.
 
-The first repeater office Fiona trusted occupied an upstairs room above a
+The first repeater office Iris trusted occupied an upstairs room above a
 warehouse whose owner hated the entire enterprise and charged for floor space as
 if copper itself were a vice. The apparatus filled the room with an ugly,
 steady industry.
@@ -96,7 +96,7 @@ steady industry.
 - re-transmission on the next stage
 - separate logging of send and receive states
 
-To everyone else it looked like clutter. To Fiona it looked like a future office
+To everyone else it looked like clutter. To Iris it looked like a future office
 building trying to be born through wood, brass, and acid.
 
 She and Faraday spent six days there after an unexplained cascade of message
@@ -105,7 +105,7 @@ cause: one operator, eager and tidy, had polished a contact face with the wrong
 abrasive and changed its behavior just enough to turn certainty into statistical
 insult.
 
-On the third day Fiona discovered the organizational cause: the operator had not
+On the third day Iris discovered the organizational cause: the operator had not
 known he must not do so because no instruction existed, only custom.
 
 "There," she said, holding up the ruined contact as if it were legal evidence.
@@ -114,7 +114,7 @@ known he must not do so because no instruction existed, only custom.
 The warehouse owner, who had come upstairs merely to complain about fumes, said,
 "Madam, I do not see the rot. I see a machine needing a smarter man."
 
-"Then you see exactly the rot," Fiona replied.
+"Then you see exactly the rot," Iris replied.
 
 The repeater office gave her proof she could carry into every argument after.
 Not faster batteries. Not stronger magnets. Systems.
@@ -132,7 +132,7 @@ She also saw the shadows it cast.
 
 In `1819`, when unrest in the north sent the government into one of its periodic
 convulsions of fear, officials requested temporary monitoring arrangements on
-selected traffic routes. Temporary, Fiona noticed, was the preferred adjective
+selected traffic routes. Temporary, Iris noticed, was the preferred adjective
 of the permanent state.
 
 She objected in committee. Not successfully.
@@ -162,7 +162,7 @@ He did not answer at once.
 
 "Then what are we to do?"
 
-Fiona set the relay spring down on the cloth.
+Iris set the relay spring down on the cloth.
 
 "Build enough of it that no one office can wholly own it."
 
@@ -170,7 +170,7 @@ Faraday frowned. "Decentralize."
 
 She laughed despite herself. "You make me sound fashionable."
 
-"You are many things, Fiona. Fashionable has never been among them."
+"You are many things, Iris. Fashionable has never been among them."
 
 It was one of the few times he used her given name. In public she remained Miss
 Marsh. In laboratories she had become something harder to classify and therefore
@@ -193,7 +193,7 @@ An admiralty board might delay a decision because fresh information was now a
 credible possibility rather than a miracle. Expectation shifted. Time itself, in
 small administrative ways, became more crowded.
 
-Fiona saw the change first in language. People no longer said eventually where
+Iris saw the change first in language. People no longer said eventually where
 they had once said if.
 
 When she realized that, it frightened her more than any minister.

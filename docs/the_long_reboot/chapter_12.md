@@ -10,7 +10,7 @@ of remembering what had already been said.
 Magnetic recording, when it began to become practical, seemed at first like one
 more specialized marvel. Wire. Coated media. Signal traces that could be
 written, erased, rewritten. Most men treated it as an extension of telegraphy.
-Fiona treated it as civilization's next filing cabinet.
+Iris treated it as civilization's next filing cabinet.
 
 She had been waiting for a form of memory that would no longer require every
 useful fact to masquerade as paper. Paper had served. Paper would continue to
@@ -18,7 +18,7 @@ serve. But paper made copying expensive, retrieval slow, and procedural reuse a
 matter of clerical devotion rather than system design.
 
 The first great storage room they built in London was called, by common usage,
-the Archive. Fiona privately called it the House of Memory, because the
+the Archive. Iris privately called it the House of Memory, because the
 mechanical reels, drums, and cabinets within it felt less like office furniture
 than organs.
 
@@ -32,7 +32,7 @@ received, queued, and invoked.
 
 The building chosen for it had once been a warehouse of more ordinary ambition.
 Retrofitting it cost money no committee wished to spend and demanded compromises
-no engineer should have accepted. Fiona accepted them anyway because historical
+no engineer should have accepted. Iris accepted them anyway because historical
 progress, she had learned, generally arrived in buildings planned for something
 less interesting.
 
@@ -45,7 +45,7 @@ The problems came in layers.
 - argument over ownership of stored procedures
 - argument over who might inspect archives and under what authority
 
-The last problem interested government most, which meant it interested Fiona
+The last problem interested government most, which meant it interested Iris
 more than the technical problems, however much she wished otherwise.
 
 Small file transfer, she thought one evening, watching reels turn behind safety
@@ -55,7 +55,7 @@ Ada saw it too, and said as much in her own way.
 
 "The machine has begun to remember not merely answers," she said, "but habits."
 
-Fiona nodded.
+Iris nodded.
 
 "That is when people start trusting it too much."
 
@@ -83,7 +83,7 @@ technical question was trivial. The legal question was not. Who owned an
 improved procedure once it had been refined in use? The originating office? The
 operators who had stabilized it? The ministry that paid for the machine hours?
 
-Fiona listened to three barristers invent a future she recognized and hated.
+Iris listened to three barristers invent a future she recognized and hated.
 
 "They are going to turn methods into property," she said afterward.
 
@@ -96,7 +96,7 @@ answered, "Were they ever anything else?"
 
 She hated that he was right.
 
-Fiona had long feared she might die before the world became recognizable to her
+Iris had long feared she might die before the world became recognizable to her
 again. Now, walking the aisles between cabinets and tape assemblies, she felt
 for the first time the opposite fear: that it might become recognizable in the
 worst ways as well as the best.

@@ -4,7 +4,7 @@ The journey to Cambridge did not feel like an advance so much as a transfer of
 custody.
 
 Ned talked when he was nervous and kept silent only when the road was bad or
-someone older than himself had spoken. By noon Fiona knew the names of three
+someone older than himself had spoken. By noon Iris knew the names of three
 parishes, two alehouses, the quality of Sir Edward Marston's pigs, and the fact
 that Mrs. Davy's bread was preferred in all matters except economy. She also
 knew that Ned had decided she was either the daughter of ruined gentry or a
@@ -19,7 +19,7 @@ French spy.
 "Aye, but mine don't sound expensive."
 
 The carrier at Stowmarket accepted Reverend Clarke's letter as though the wax
-seal had weight in itself. From there Fiona traveled in stages, changing
+seal had weight in itself. From there Iris traveled in stages, changing
 vehicles and explanations together. She learned quickly that in England
 respectability could be borrowed if one handled paper carefully enough.
 
@@ -34,7 +34,7 @@ permanent ink stain on his forefinger, and the air of a man who had once
 imagined himself destined for greater things and had since made a workable
 peace with the scale of his life.
 
-He read the letter twice before looking at Fiona.
+He read the letter twice before looking at Iris.
 
 "My cousin says you are either unfortunate or extraordinary," he said.
 
@@ -42,13 +42,13 @@ He read the letter twice before looking at Fiona.
 
 "That depends very much on the nature of the extraordinariness."
 
-He did not ask first about money. Fiona liked him immediately for that and
+He did not ask first about money. Iris liked him immediately for that and
 distrusted herself for liking anyone immediately in a century that had given her
 no reason to.
 
 Mrs. Cresswell's sister, Miss Anne Lister, ran the practical side of the house
-with a precision that Fiona recognized at once as the hidden engine of many
-apparently male achievements. She fed Fiona, assigned her a room barely larger
+with a precision that Iris recognized at once as the hidden engine of many
+apparently male achievements. She fed Iris, assigned her a room barely larger
 than the one above the inn, and by supper had already formed the correct
 opinion that she was undernourished, underprepared, and carrying secrets too
 heavy for her frame.
@@ -56,11 +56,11 @@ heavy for her frame.
 "If you are to remain even a week," Miss Lister said, "we must decide what sort
 of woman you are. Cambridge does not like uncertainty in female form."
 
-Fiona laughed before she meant to. "Does it like certainty any better?"
+Iris laughed before she meant to. "Does it like certainty any better?"
 
 "Only if the certainty is dull."
 
-That night, for the first time since arriving, Fiona laid out her notebooks on a
+That night, for the first time since arriving, Iris laid out her notebooks on a
 proper table. She had light enough to work by. She had a door that latched. She
 had, in the next room, a schoolmaster who knew two fellows of colleges and one
 instrument maker, all of whom might prove more useful than any magistrate.
@@ -70,23 +70,23 @@ off with mystery alone. Education demanded pedigree; skill demanded explanation.
 An unattached woman with mechanical opinions could be tolerated briefly as a
 curiosity, but never trusted as a participant.
 
-The solution came not from Fiona but from Miss Lister.
+The solution came not from Iris but from Miss Lister.
 
 "Your name may remain Marsh," she said the next morning while pinning a plain
-collar more properly at Fiona's throat. "That was at least spoken before
+collar more properly at Iris's throat. "That was at least spoken before
 witnesses. Your father may remain learned and dead. But if any person asks too
 closely, you are the orphaned daughter of a provincial surgeon who read beyond
 his station and taught you unwisely much. Men enjoy blaming dead fathers. It
 saves them from dealing with daughters on their own terms."
 
-Fiona looked at her in the mirror.
+Iris looked at her in the mirror.
 
 "You say that as if from experience."
 
 "I say it," Miss Lister replied, adjusting the collar with finality, "because I
 have reached the age at which experience becomes rude to mention."
 
-So equipped, Fiona began her first deliberate campaign.
+So equipped, Iris began her first deliberate campaign.
 
 Cresswell introduced her cautiously, first to a mathematical tutor who thought
 her too assured, then to a bookseller who thought her underfed, and finally to
@@ -94,7 +94,7 @@ Mr. Haines, an instrument maker whose shop smelled of brass filings, varnish,
 and ambition. Haines made quadrants, scales, surveying instruments, and any
 number of small exact things on which empires quietly depended.
 
-It was there that Fiona first understood the practical limits of her own mind.
+It was there that Iris first understood the practical limits of her own mind.
 
 She could describe a micrometer screw. Haines could make one badly, then better,
 then better again, and knew the difference in his fingers. She could explain
@@ -102,11 +102,11 @@ why interchangeable fasteners mattered. Haines could tell by sound when a tool
 bit needed grinding. In another age he would have been called an engineer. In
 this one he was called useful and paid too little.
 
-He handled Fiona's caliper as though it were a relic.
+He handled Iris's caliper as though it were a relic.
 
 "This steel is uncommon," he said.
 
-"The finish is," Fiona corrected. "The principle isn't."
+"The finish is," Iris corrected. "The principle isn't."
 
 "Everything is simple once it has been built."
 
@@ -146,7 +146,7 @@ been received at Banks's table. Humphry Davy's name also entered the room before
 the week was out, though in tones half admiring and half irritated, as one
 speaks of a brilliant young man who has made success look personal.
 
-Fiona listened and said little.
+Iris listened and said little.
 
 She was beginning to see the real machine. Not steam engine, not voltaic pile,
 not pump. Patronage itself. A system of introductions, paper, reputation, and
@@ -159,7 +159,7 @@ valuable the longer she delayed converting it into tools, workshops, people,
 standards.
 
 One afternoon, while Cresswell was out and Miss Lister occupied below stairs,
-Fiona spread her notes across the narrow desk and made two columns.
+Iris spread her notes across the narrow desk and made two columns.
 
 In the first she wrote what she wanted:
 
@@ -193,7 +193,7 @@ conversation might be entertained.
 
 Cresswell read the note aloud once and then again for his own pleasure.
 
-"Well," he said, looking at Fiona over the paper, "you seem to have succeeded in
+"Well," he said, looking at Iris over the paper, "you seem to have succeeded in
 becoming someone else's problem."
 
 Miss Lister took the card from him, read it, and placed it back upon the table.
@@ -202,7 +202,7 @@ Miss Lister took the card from him, read it, and placed it back upon the table.
 is to judge her, it will judge her first by seams."
 
 The days before departure were a campaign of preparation more exacting than any
-exam Fiona had ever taken. Clothes were altered. Speech was trimmed, not into
+exam Iris had ever taken. Clothes were altered. Speech was trimmed, not into
 false gentility but into something less likely to provoke immediate resistance.
 Her story was simplified until it could be repeated without contradiction:
 educated by an eccentric father, recently bereft, carrying notes and designs of
@@ -217,7 +217,7 @@ small brass divider of his own making.
 Take it where men of science will see it. If they ask, tell them Haines of
 Cambridge knows how to work to a measure."
 
-Fiona closed her fingers around the cool metal.
+Iris closed her fingers around the cool metal.
 
 "I will."
 
@@ -233,14 +233,14 @@ had not existed before the lane.
 Haines shrugged. "Themes are only truths people have met often."
 
 The coach road to London was better than the lane at Little Abberton and no
-less exhausting. By the second day Fiona's spine ached, her teeth felt dusted
+less exhausting. By the second day Iris's spine ached, her teeth felt dusted
 with grit, and every mile south seemed to add not merely population but
 consequence. Somewhere ahead lay Banks, Davy, and rooms full of apparatus.
 Somewhere ahead, too, lay the first great compromise: to enter the future
 through the favor of men who would assume they owned the door.
 
 At dusk on the final evening, when the coach reached a rise and the western sky
-held the last pale metal of day, Fiona saw London spread beneath cloud and
+held the last pale metal of day, Iris saw London spread beneath cloud and
 smoke like a furnace made into geography.
 
 It was larger than fear and uglier than romance.
