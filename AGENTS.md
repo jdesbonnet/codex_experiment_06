@@ -75,6 +75,15 @@ Default attached MCU target: `LPC1114FN28/102`.
   - `tools/esp32s3_flash_restore.sh`
 - Docs: `targets/esp32s3/README.md`, `datasheets/ESP32S3/README.md`
 
+### ESP32-C3 0.42" OLED
+
+- 01space ESP32-C3 SuperMini with 0.42-inch 72x40 SSD1306 OLED
+- **On host `T1650` (Ubuntu 26.04), not the Pi 5** — board is on T1650's USB
+- MicroPython workflow (`v1.28.0`), not Rust/OpenOCD; flashed with `esptool`
+- Native `USB Serial/JTAG`, VID:PID `303a:1001`, console `/dev/ttyACM0`
+- OLED at I2C `0x3C`, `SDA=GPIO5` / `SCL=GPIO6`; needs 28-column offset
+- Docs + working driver/`main.py`: `targets/esp32c3_042_oled/README.md`
+
 ### LPC8xx Family
 
 The repository may target `LPC810`, `LPC812`, and `LPC824`.
