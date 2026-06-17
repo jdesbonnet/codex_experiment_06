@@ -14,13 +14,14 @@ have_riscv_toolchain() {
 
 usage() {
   cat <<'EOF'
-Usage: build.sh --target <lpc1114|lpc824|ch32v003|tm4c123gxl|stm32f103c8> --lang <c|rust> --project <name> [--profile <release|debug>]
+Usage: build.sh --target <lpc1114|lpc824|ch32v003|cg32x033|tm4c123gxl|stm32f103c8> --lang <c|rust> --project <name> [--profile <release|debug>]
 
 Examples:
   ./tools/build.sh --target lpc1114 --lang c --project blink
   ./tools/build.sh --target lpc1114 --lang rust --project blink --profile debug
   ./tools/build.sh --target ch32v003 --lang c --project blink
   ./tools/build.sh --target ch32v003 --lang rust --project blink
+  ./tools/build.sh --target cg32x033 --lang c --project blink
   ./tools/build.sh --target lpc824 --lang c --project blink
   ./tools/build.sh --target tm4c123gxl --lang c --project blink
   ./tools/build.sh --target stm32f103c8 --lang c --project blink
@@ -107,6 +108,24 @@ case "$TARGET" in
       echo "Invalid --lang '$LANG' (expected c or rust)" >&2
       exit 2
     fi
+    ;;
+  cg32x033)
+    if [[ "$LANG" != "c" ]]; then
+      echo "CG32X033 Rust support is not implemented yet." >&2
+      exit 2
+    fi
+
+    CG32_DIR="projects/${PROJECT}/cg32x033_c"
+    if [[ ! -f "${CG32_DIR}/Makefile" ]]; then
+      echo "CG32X033 C project not found: ${CG32_DIR}/Makefile" >&2
+      exit 2
+    fi
+    if ! have_riscv_toolchain; then
+      echo "Missing RISC-V GCC toolchain (expected one of: riscv64-elf-gcc, riscv64-unknown-elf-gcc, riscv-none-elf-gcc)." >&2
+      echo "On Raspberry Pi OS/Debian: sudo apt install gcc-riscv64-unknown-elf binutils-riscv64-unknown-elf" >&2
+      exit 2
+    fi
+    make -C "${CG32_DIR}" build
     ;;
   lpc824)
     if [[ "$LANG" != "c" ]]; then

@@ -46,6 +46,12 @@ Guideline: when adding material for a new hardware family, prefer a dedicated su
 | `datasheets/CH32V003/QingKeV2_Processor_Manual.PDF` | CPU core manual | QingKe `V2` processor manual. |
 | `datasheets/CH32V003/RISC-V-QingKeV2-Microprocessor-Debug-Manual.pdf` | Debug architecture | QingKe `V2` debug manual. |
 
+## CG32X033 / CH32X03x
+
+| Path | Category | Description |
+| --- | --- | --- |
+| `targets/cg32x033/README.md` | Bench note | Local target notes for the attached WCH `CG32X033` development board, observed over USB as `1a86:fe0c` / `CH32x035`. |
+
 ## LPC1114 / LPC111x
 
 | Path | Category | Description |

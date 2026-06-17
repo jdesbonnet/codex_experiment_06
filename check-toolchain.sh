@@ -57,8 +57,8 @@ if command -v rustup >/dev/null 2>&1; then
       | sed 's/^/       installed target: /'
 fi
 
-section "CH32V003 / RISC-V (ch32fun)"
-optional riscv64-unknown-elf-gcc "needed for ch32v003_c builds"
+section "CH32V003 / CG32X033 / RISC-V (ch32fun)"
+optional riscv64-unknown-elf-gcc "needed for ch32v003_c and cg32x033_c builds"
 optional minichlink              "default flash path (via ch32fun cv_flash)"
 if [ -d third_party/ch32fun ]; then
     echo "  ok   third_party/ch32fun"

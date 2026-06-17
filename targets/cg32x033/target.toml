@@ -1,0 +1,19 @@
+[target]
+id = "cg32x033"
+arch = "riscv32"
+cpu = "qingke-v4"
+
+[toolchain.c]
+cc = "riscv-none-elf-gcc"
+objcopy = "riscv-none-elf-objcopy"
+size = "riscv-none-elf-size"
+
+[flash]
+method = "minichlink"
+interface = "usb-isp"
+usb_vid = "1a86"
+usb_pid = "fe0c"
+default_port = "/dev/ttyACM0"
+
+[notes]
+summary = "WCH CG32X033 development board support via ch32fun's CH32X03x family path. The attached board enumerated as 1a86:fe0c CH32x035 with CDC ACM plus HID interfaces."

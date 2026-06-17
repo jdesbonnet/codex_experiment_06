@@ -15,6 +15,7 @@ This repository supports multiple small projects in both C and Rust, sharing com
   - `targets/lpc824` (NXP LPC824 target scaffold)
   - `targets/lpc8xx` (family-common LPC8xx CMSIS core support)
   - `targets/ch32v003` (target scaffold)
+  - `targets/cg32x033` (WCH CG32X033 development board scaffold)
   - `targets/tm4c123gxl` (TI Tiva C LaunchPad target scaffold)
   - `targets/stm32f103c8` (STM32F103C8 target scaffold)
 - `linker/` linker script
@@ -25,6 +26,7 @@ Project implementation directories use `hardware_language_variant` (variant opti
 - `ch32v003_c`
 - `ch32v003_rust`
 - `ch32v003_rust_shim`
+- `cg32x033_c`
 - `tm4c123gxl_c`
 - `tm4c123gxl_rust`
 - `stm32f103c8_c`
@@ -239,6 +241,8 @@ git clone --recursive https://github.com/cjacker/wch-openocd.git third_party/wch
 ## CH32V003 via ch32fun (recommended app flow)
 
 For CH32V003 applications, this repo now supports `ch32fun` as the primary C framework.
+The same ch32fun flow is used for the CG32X033 development board via
+`targets/cg32x033` and project directories named `projects/<name>/cg32x033_c`.
 
 Install CH32 toolchain prerequisites. Same packages on Raspberry Pi OS
 Trixie, Ubuntu 24.04 LTS, and Ubuntu 26.04:
@@ -292,6 +296,15 @@ Current repo status for CH32V003:
 - OpenOCD probing helper exists at `tools/probe_ch32v003.sh`
 - local WCH OpenOCD setup helper exists at `tools/setup_wch_openocd.sh`
 - flash wrapper can program a CH32V003 image via `tools/flash.sh --target ch32v003 ... --image <file>`
+
+Current repo status for CG32X033:
+
+- target package exists at `targets/cg32x033`
+- C project build convention is `projects/<project>/cg32x033_c`
+- project Makefiles should use `TARGET_MCU ?= CH32X033`
+- observed attached board USB identity is `1a86:fe0c` / `CH32x035`
+- flash wrapper calls ch32fun `cv_flash` via `tools/flash.sh --target cg32x033 --lang c --project <project>`
+- the attached board did not respond to read-only `minichlink` ISP probes while running its current USB CDC/HID firmware
 
 ## Multimeter (SDM3065X)
 
@@ -458,6 +471,7 @@ Target-aware build wrapper:
 ./tools/build.sh --target lpc824 --lang c --project blink
 ./tools/build.sh --target ch32v003 --lang c --project blink
 ./tools/build.sh --target ch32v003 --lang rust --project blink
+./tools/build.sh --target cg32x033 --lang c --project blink
 ./tools/build.sh --target tm4c123gxl --lang c --project blink
 ./tools/build.sh --target tm4c123gxl --lang rust --project tiny_vm
 ./tools/build.sh --target stm32f103c8 --lang c --project blink
@@ -494,6 +508,7 @@ Target-aware flash wrapper:
 ./tools/flash.sh --target ch32v003 --lang c --project blink
 ./tools/flash.sh --target ch32v003 --lang rust --project blink
 ./tools/flash.sh --target ch32v003 --lang c --project blink --image ./build/ch32v003/blink/blink.elf
+./tools/flash.sh --target cg32x033 --lang c --project blink
 ./tools/flash.sh --target tm4c123gxl --lang c --project blink
 ./tools/flash.sh --target tm4c123gxl --lang rust --project tiny_vm
 ./tools/flash.sh --target stm32f103c8 --lang c --project blink
@@ -507,6 +522,11 @@ For `ch32v003`:
 - `build/ch32v003/<project>/<project>.elf`
 - `build/ch32v003/<project>/<project>.bin`
 - `build/ch32v003/<project>/<project>.hex`
+
+For `cg32x033`:
+- current support is C only
+- wrapper builds/flashes `projects/<project>/cg32x033_c` through ch32fun `cv_flash`
+- the board may need to be placed into WCH USB ISP bootloader mode before `minichlink` can attach
 
 For `tm4c123gxl`:
 - current support is C and Rust
